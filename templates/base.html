@@ -6,17 +6,23 @@
     <title>{% block title %}{{ config.title }}{% endblock title %}</title>
     <link rel="stylesheet" href="{{ get_url(path='style.css') }}">
     <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="{{ get_url(path='blog/atom.xml') }}">
+    <script src="{{ get_url(path='theme-toggle.js') }}"></script>
+    <script src="{{ get_url(path='language-switch.js') }}"></script>
 </head>
 <body>
     <header>
+        <div class="header-controls">
+            <button id="theme-toggle" class="toggle-btn" aria-label="Toggle theme">🌙</button>
+            <button id="lang-toggle" class="toggle-btn" aria-label="Switch language">DE</button>
+        </div>
         <h1><a href="{{ get_url(path='/') }}">Çağatay Özcan Jagiello Gutt</a></h1>
         <nav>
-            <a href="{{ get_url(path='/') }}">home</a>
-            <a href="{{ get_url(path='cv/') }}">cv</a>
-            <a href="{{ get_url(path='publications/') }}">publications</a>
-            <a href="{{ get_url(path='projects/') }}">projects</a>
-            <a href="{{ get_url(path='blog/') }}">blog</a>
-            <a href="{{ get_url(path='contact/') }}">contact</a>
+            <a href="{{ get_url(path='/') }}" data-i18n="nav-home">home</a>
+            <a href="{{ get_url(path='cv/') }}" data-i18n="nav-cv">cv</a>
+            <a href="{{ get_url(path='publications/') }}" data-i18n="nav-publications">publications</a>
+            <a href="{{ get_url(path='projects/') }}" data-i18n="nav-projects">projects</a>
+            <a href="{{ get_url(path='blog/') }}" data-i18n="nav-blog">blog</a>
+            <a href="{{ get_url(path='contact/') }}" data-i18n="nav-contact">contact</a>
         </nav>
     </header>
     
@@ -25,7 +31,7 @@
     </main>
     
     <footer>
-        <p class="site-info"><em>This site syncs automatically with GitHub (projects) and ORCID (publications). Last build: {{ now() | date(format="%Y-%m-%d") }}</em></p>
+        <p class="site-info"><em><span data-i18n="footer-info">This site syncs automatically with GitHub (projects) and ORCID (publications). Last build:</span> {{ now() | date(format="%Y-%m-%d") }}</em></p>
         <div class="contact-links">
             <a href="https://www.linkedin.com/in/cagatay-gutt" target="_blank">LinkedIn</a>
             <a href="https://orcid.org/0000-0002-1774-532X" target="_blank">ORCID</a>
