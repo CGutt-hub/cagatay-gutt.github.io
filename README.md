@@ -47,53 +47,36 @@ If you have a free account and want to keep your repository private, you'll need
 
 **Current Status:** Based on the workflow runs, your repository appears to be **public** and GitHub Pages is working correctly.
 
-### Custom Domain Setup (cagatay.gutt.github.io)
+### GitHub Pages URL
 
-This site is configured to use the custom domain **cagatay.gutt.github.io**. 
+This site is configured to use the **FREE standard GitHub Pages URL**:
 
-#### GitHub Configuration (Already Done ✓)
-- CNAME file has been added to `static/CNAME`
-- Base URL is set to `https://cagatay.gutt.github.io` in config files
+**https://cgutt-hub.github.io/cagatay-gutt.github.io**
 
-#### DNS Configuration Required
+✅ **Completely FREE** - No domain purchase required  
+✅ **No DNS configuration** - Works immediately after deployment  
+✅ **Simple setup** - Just merge to main and it's live!
 
-**IMPORTANT:** To use `cagatay.gutt.github.io` as your custom domain, you must own and control the DNS for the domain `gutt.github.io`.
+#### How to Deploy
 
-**Note:** `github.io` is GitHub's top-level domain, so `gutt.github.io` would only work if you have registered it as a GitHub Pages user site. This is an unusual setup.
+1. **Merge to main branch** - The pull request will trigger GitHub Actions
+2. **Wait for build** - GitHub Actions will automatically:
+   - Fetch data from your GitHub, OSF, and ORCID profiles
+   - Build the site with Zola
+   - Deploy to the `gh-pages` branch
+3. **Site is live!** - Your website will be accessible at the URL above
 
-**If you own `gutt.github.io`:**
+#### Custom Domain (Optional)
 
-Add a CNAME record in your DNS settings:
-- **Type:** CNAME
-- **Name:** cagatay
-- **Value:** cgutt-hub.github.io.
-- **TTL:** 3600 (or your provider's default)
+If you want to use a custom domain like `www.your-domain.com`:
 
-**If you own a different domain (e.g., `gutt.com`):**
+1. **Purchase a domain** from a registrar (Namecheap, Google Domains, etc.) - ~$10-15/year
+2. **Add CNAME file** to `static/CNAME` with your domain name
+3. **Update base_url** in `config.toml` to match your domain
+4. **Configure DNS** - Add a CNAME record pointing to `cgutt-hub.github.io`
+5. **Enable in GitHub** - Go to Settings → Pages and enter your custom domain
 
-You would use `cagatay.gutt.com` instead. Update the CNAME file to match your actual domain, and configure:
-- **Type:** CNAME
-- **Name:** cagatay
-- **Value:** cgutt-hub.github.io.
-- **TTL:** 3600
-
-#### Verify Custom Domain in GitHub
-
-After DNS is configured:
-1. Go to your repository Settings → Pages
-2. Under "Custom domain", enter: `cagatay.gutt.github.io`
-3. Click Save
-4. Wait for DNS check to pass (can take a few minutes to 48 hours)
-5. Enable "Enforce HTTPS" once DNS is verified
-
-Your site will be accessible at: **https://cagatay.gutt.github.io**
-
-### Alternative: Use Standard GitHub Pages URL
-
-If you prefer not to set up a custom domain, you can use the standard GitHub Pages URL by:
-1. Removing `static/CNAME`
-2. Changing `base_url` in `config.toml` to `https://cgutt-hub.github.io/cagatay-gutt.github.io`
-3. Site will be at: https://cgutt-hub.github.io/cagatay-gutt.github.io
+For most users, the free GitHub Pages URL works perfectly!
 
 ## Project Structure
 
