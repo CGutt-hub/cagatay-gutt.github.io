@@ -57,20 +57,25 @@ This site is configured to use the custom domain **cagatay.gutt.github.io**.
 
 #### DNS Configuration Required
 
-You need to configure your DNS settings with your domain provider for `gutt.github.io`:
+**IMPORTANT:** To use `cagatay.gutt.github.io` as your custom domain, you must own and control the DNS for the domain `gutt.github.io`.
 
-**Option 1: CNAME Record (Recommended)**
-Add a CNAME record:
-- **Type:** CNAME
-- **Name:** cagatay (or cagatay.gutt if your base domain is github.io)
-- **Value:** cgutt-hub.github.io
-- **TTL:** 3600 (or your provider's default)
+**Note:** `github.io` is GitHub's top-level domain, so `gutt.github.io` would only work if you have registered it as a GitHub Pages user site. This is an unusual setup.
 
-**Option 2: A Records + CNAME**
-If you control the `gutt.github.io` domain, add these DNS records:
+**If you own `gutt.github.io`:**
+
+Add a CNAME record in your DNS settings:
 - **Type:** CNAME
 - **Name:** cagatay
-- **Value:** cgutt-hub.github.io
+- **Value:** cgutt-hub.github.io.
+- **TTL:** 3600 (or your provider's default)
+
+**If you own a different domain (e.g., `gutt.com`):**
+
+You would use `cagatay.gutt.com` instead. Update the CNAME file to match your actual domain, and configure:
+- **Type:** CNAME
+- **Name:** cagatay
+- **Value:** cgutt-hub.github.io.
+- **TTL:** 3600
 
 #### Verify Custom Domain in GitHub
 
