@@ -7,6 +7,9 @@ cagatay@research-station in ~/about
 ❯ whoami
 cagatay
 
+❯ cat name.txt
+Çağatay Özcan Jagiello Gutt
+
 ❯ cat role.txt
 Cognitive Science Student (M.Sc.) & Molecular Biologist (B.Sc.)
 
