@@ -160,4 +160,4 @@ Engagement in Europas größter Hacker-Vereinigung für digitale Rechte, Privats
 
 ## Philosophie
 
-Ich bin **offener und transparenter Wissenschaft** verpflichtet und glaube, dass die bedeutendsten Fortschritte in KI, Brain-Computer Interfaces und Mensch-Maschine-Interaktion aus kollaborativen Ansätzen hervorgehen, die in verkörperter Kognition verankert sind. Mein Hintergrund, der von der Molekularbiologie zur Kognitionswissenschaft reicht, bietet eine multiskalare Perspektive auf Bewusstsein—sowohl biologisch als auch künstlich.
+Ich bin **der offenen und transparenten Wissenschaft** verpflichtet und glaube, dass die bedeutendsten Fortschritte in KI, Brain-Computer Interfaces und Mensch-Maschine-Interaktion aus kollaborativen Ansätzen hervorgehen, die in verkörperter Kognition verankert sind. Mein Hintergrund, der von der Molekularbiologie zur Kognitionswissenschaft reicht, bietet eine multiskalare Perspektive auf Bewusstsein—sowohl biologisch als auch künstlich.
