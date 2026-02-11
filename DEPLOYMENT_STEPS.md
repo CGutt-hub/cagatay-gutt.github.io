@@ -2,12 +2,13 @@
 
 This document provides step-by-step instructions to get your website online at the FREE GitHub Pages URL.
 
-## ✅ What's Already Done (By GitHub Copilot)
+## ✅ What's Already Done
 
 - ✅ Configured `config.toml` with correct base_url: `https://cgutt-hub.github.io/cagatay-gutt.github.io`
-- ✅ Fixed Zola configuration syntax
+- ✅ Created GitHub Actions workflow for automatic deployment
 - ✅ Verified build works correctly
-- ✅ All changes committed to `copilot/get-webpage-online` branch
+- ✅ Set up `.nojekyll` to prevent Jekyll processing
+- ✅ Created comprehensive setup guide
 
 ## 🌐 Your Website URL
 
@@ -16,31 +17,41 @@ This document provides step-by-step instructions to get your website online at t
 This is a **FREE** GitHub Pages URL that requires:
 - ✅ No domain purchase
 - ✅ No DNS configuration
-- ✅ No additional setup
 
-## 📋 What You Need to Do (Simple 2-Step Process)
+## 📋 What You Need to Do
 
-### Step 1: Merge This PR to Main Branch 🔀
+**Important:** GitHub Pages needs to be enabled in repository settings!
 
-1. Go to: https://github.com/CGutt-hub/cagatay-gutt.github.io/pulls
-2. Find the pull request for getting the webpage online
-3. Click the green **"Merge pull request"** button
-4. Confirm by clicking **"Confirm merge"**
+📖 **[Follow the detailed setup guide: GITHUB_PAGES_SETUP.md](GITHUB_PAGES_SETUP.md)**
 
-**What happens:** This triggers the GitHub Actions workflow which will:
-- Fetch data from your scientific profiles (GitHub, OSF, ORCID)
-- Build the site with Zola
-- Deploy to the `gh-pages` branch
-- Make the site available at your GitHub Pages URL
+### Quick Steps:
+
+### Step 1: Enable GitHub Pages 🔧
+
+1. Go to: https://github.com/CGutt-hub/cagatay-gutt.github.io/settings/pages
+2. Under **Source**, select:
+   - Branch: `gh-pages`
+   - Folder: `/ (root)`
+3. Click **Save**
 
 ### Step 2: Wait for Deployment ⏱️
 
-1. Go to: https://github.com/CGutt-hub/cagatay-gutt.github.io/actions
-2. Watch the "Build and Deploy" workflow run
-3. Once it shows a green checkmark ✅, your site is live!
+1. After enabling Pages, the site will be deployed from the existing `gh-pages` branch
+2. Go to: https://github.com/CGutt-hub/cagatay-gutt.github.io/settings/pages
+3. You should see: "Your site is live at https://cgutt-hub.github.io/cagatay-gutt.github.io"
 4. Visit: **https://cgutt-hub.github.io/cagatay-gutt.github.io**
 
-**Typical deployment time:** 1-2 minutes
+**Typical deployment time:** 1-2 minutes after enabling Pages
+
+### Optional: Trigger a Fresh Build
+
+If you want to update the content with the latest data:
+
+1. Go to: https://github.com/CGutt-hub/cagatay-gutt.github.io/actions
+2. Click on "Build and Deploy" workflow
+3. Click "Run workflow" → Select branch: `main` → Click "Run workflow"
+4. Wait for the green checkmark ✅
+5. Your site will be updated with fresh data from GitHub, OSF, and ORCID
 
 ---
 

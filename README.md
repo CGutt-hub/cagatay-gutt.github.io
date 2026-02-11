@@ -34,6 +34,18 @@ This will fetch data and rebuild the site locally.
 
 The site automatically deploys to GitHub Pages when you push to the `main` branch.
 
+### 🚀 IMPORTANT: Enable GitHub Pages First!
+
+**If this is your first time setting up the site, you need to enable GitHub Pages in your repository settings.**
+
+📖 **[Follow the setup guide here: GITHUB_PAGES_SETUP.md](GITHUB_PAGES_SETUP.md)**
+
+Quick steps:
+1. Go to repository Settings → Pages
+2. Set Source to: Deploy from branch `gh-pages` (root)
+3. Click Save
+4. Wait 1-2 minutes for the site to go live
+
 ### Repository Visibility Requirements
 
 **Important:** GitHub Pages visibility depends on your account type:
