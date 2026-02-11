@@ -1,3 +1,38 @@
+/* Theme Variables */
+:root[data-theme="dark"] {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #0d0d0d;
+    --bg-tertiary: #2a2a2a;
+    --text-primary: #d4d4d4;
+    --text-secondary: #b8b8b8;
+    --text-tertiary: #666;
+    --text-heading: #f0f0f0;
+    --text-bright: #e8e8e8;
+    --accent-primary: #d4af37;
+    --accent-secondary: #e6c04a;
+    --border-color: #333;
+    --border-secondary: #2a2a2a;
+    --code-text: #ce9178;
+    --accent-dark: #555;
+}
+
+:root[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --bg-tertiary: #e0e0e0;
+    --text-primary: #333333;
+    --text-secondary: #555555;
+    --text-tertiary: #888888;
+    --text-heading: #1a1a1a;
+    --text-bright: #2a2a2a;
+    --accent-primary: #b8941e;
+    --accent-secondary: #c9a526;
+    --border-color: #d0d0d0;
+    --border-secondary: #e0e0e0;
+    --code-text: #a64d2e;
+    --accent-dark: #cccccc;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,15 +42,16 @@
 body {
     font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
     line-height: 1.7;
-    color: #d4d4d4;
-    background-color: #1a1a1a;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
     max-width: 900px;
     margin: 0 auto;
     padding: 30px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 header {
-    border-bottom: 2px solid #d4af37;
+    border-bottom: 2px solid var(--accent-primary);
     padding-bottom: 25px;
     margin-bottom: 40px;
 }
@@ -28,34 +64,66 @@ header h1 {
 }
 
 header h1 a {
-    color: #f0f0f0;
+    color: var(--text-heading);
     text-decoration: none;
 }
 
 header h1 a:hover {
-    color: #d4af37;
+    color: var(--accent-primary);
 }
 
 header h1 a::before {
     content: '⟩ ';
-    color: #d4af37;
+    color: var(--accent-primary);
 }
 
 nav {
     margin-top: 15px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 nav a {
     margin-right: 20px;
-    color: #b8b8b8;
+    color: var(--text-secondary);
     text-decoration: none;
     transition: all 0.2s;
     border-bottom: 1px solid transparent;
 }
 
 nav a:hover {
-    color: #d4af37;
-    border-bottom: 1px solid #d4af37;
+    color: var(--accent-primary);
+    border-bottom: 1px solid var(--accent-primary);
+}
+
+/* Theme and Language Toggle Buttons */
+nav button {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    font-size: 0.9em;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    font-family: inherit;
+    margin-left: auto;
+}
+
+nav button:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+nav button:first-of-type {
+    margin-left: auto;
+}
+
+nav button + button {
+    margin-left: 8px;
 }
 
 main {
@@ -64,7 +132,7 @@ main {
 
 article h1 {
     margin-bottom: 25px;
-    color: #f0f0f0;
+    color: var(--text-heading);
     font-weight: 600;
     font-size: 1.8em;
 }
@@ -76,26 +144,26 @@ article h1 {
 .content h2 {
     margin-top: 35px;
     margin-bottom: 18px;
-    color: #d4af37;
+    color: var(--accent-primary);
     font-weight: 600;
     font-size: 1.3em;
 }
 
 .content h2::before {
     content: '━ ';
-    color: #555;
+    color: var(--accent-dark);
 }
 
 .content h3 {
     margin-top: 25px;
     margin-bottom: 12px;
-    color: #e8e8e8;
+    color: var(--text-bright);
     font-weight: 500;
 }
 
 .content p {
     margin-bottom: 18px;
-    color: #d4d4d4;
+    color: var(--text-primary);
 }
 
 .content ul, .content ol {
@@ -105,72 +173,72 @@ article h1 {
 
 .content li {
     margin-bottom: 8px;
-    color: #d4d4d4;
+    color: var(--text-primary);
 }
 
 .content a {
-    color: #d4af37;
+    color: var(--accent-primary);
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: all 0.2s;
 }
 
 .content a:hover {
-    border-bottom: 1px solid #d4af37;
+    border-bottom: 1px solid var(--accent-primary);
 }
 
 .content code {
-    background-color: #0d0d0d;
+    background-color: var(--bg-secondary);
     padding: 2px 6px;
     border-radius: 2px;
     font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-    color: #ce9178;
-    border: 1px solid #2a2a2a;
+    color: var(--code-text);
+    border: 1px solid var(--border-secondary);
 }
 
 .content pre {
-    background-color: #0d0d0d;
+    background-color: var(--bg-secondary);
     padding: 15px;
     border-radius: 2px;
     overflow-x: auto;
     margin-bottom: 20px;
-    border-left: 2px solid #d4af37;
+    border-left: 2px solid var(--accent-primary);
 }
 
 .content pre code {
     background-color: transparent;
     padding: 0;
-    color: #d4d4d4;
+    color: var(--text-primary);
     border: none;
 }
 
 .content hr {
     border: none;
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--border-color);
     margin: 30px 0;
 }
 
 .content blockquote {
-    border-left: 2px solid #d4af37;
+    border-left: 2px solid var(--accent-primary);
     padding-left: 20px;
     margin: 20px 0;
-    color: #b8b8b8;
+    color: var(--text-secondary);
     font-style: italic;
-    background-color: #0d0d0d;
+    background-color: var(--bg-secondary);
     padding: 10px 20px;
 }
 
 .content strong {
-    color: #d4af37;
+    color: var(--accent-primary);
     font-weight: 600;
 }
 
 footer {
     margin-top: 60px;
     padding-top: 25px;
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--border-color);
     text-align: center;
-    color: #666;
+    color: var(--text-tertiary);
     font-size: 0.9em;
 }
 
@@ -180,15 +248,15 @@ footer {
 
 .contact-links a {
     margin: 0 10px;
-    color: #b8b8b8;
+    color: var(--text-secondary);
     text-decoration: none;
     transition: all 0.2s;
     border-bottom: 1px solid transparent;
 }
 
 .contact-links a:hover {
-    color: #d4af37;
-    border-bottom: 1px solid #d4af37;
+    color: var(--accent-primary);
+    border-bottom: 1px solid var(--accent-primary);
 }
 
 /* Contact Form Styles */
@@ -196,8 +264,8 @@ footer {
     max-width: 600px;
     margin: 30px 0;
     padding: 25px;
-    background-color: #0d0d0d;
-    border: 1px solid #2a2a2a;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
     border-radius: 4px;
 }
 
@@ -208,7 +276,7 @@ footer {
 .form-group label {
     display: block;
     margin-bottom: 8px;
-    color: #d4af37;
+    color: var(--accent-primary);
     font-weight: 500;
 }
 
@@ -217,10 +285,10 @@ footer {
 .form-group textarea {
     width: 100%;
     padding: 12px;
-    background-color: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-secondary);
     border-radius: 2px;
-    color: #d4d4d4;
+    color: var(--text-primary);
     font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
     font-size: 0.95em;
     transition: border-color 0.2s;
@@ -230,7 +298,7 @@ footer {
 .form-group input[type="email"]:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #d4af37;
+    border-color: var(--accent-primary);
 }
 
 .form-group textarea {
@@ -243,8 +311,8 @@ footer {
 }
 
 .submit-btn {
-    background-color: #d4af37;
-    color: #1a1a1a;
+    background-color: var(--accent-primary);
+    color: var(--bg-primary);
     border: none;
     padding: 12px 30px;
     font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
@@ -256,7 +324,7 @@ footer {
 }
 
 .submit-btn:hover {
-    background-color: #e6c04a;
+    background-color: var(--accent-secondary);
     transform: translateY(-2px);
 }
 
@@ -267,22 +335,22 @@ footer {
 .contact-info {
     margin-top: 40px;
     padding: 20px;
-    background-color: #0d0d0d;
-    border-left: 2px solid #d4af37;
+    background-color: var(--bg-secondary);
+    border-left: 2px solid var(--accent-primary);
 }
 
 .contact-info p {
     margin-bottom: 10px;
-    color: #d4d4d4;
+    color: var(--text-primary);
 }
 
 .contact-info a {
-    color: #d4af37;
+    color: var(--accent-primary);
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: all 0.2s;
 }
 
 .contact-info a:hover {
-    border-bottom: 1px solid #d4af37;
+    border-bottom: 1px solid var(--accent-primary);
 }
