@@ -34,17 +34,3 @@ Active member working toward progressive, evidence-based policy and European coo
 
 ### Chaos Computer Club (CCC)
 Participant in Europe's largest hacker association, advocating for digital rights, privacy, and technological transparency. The CCC's commitment to open knowledge and ethical technology aligns deeply with my scientific and political values.
-
----
-
-## Contact
-
-**Research inquiries:** [ORCID](https://orcid.org/0000-0002-1774-532X) — Publications & contact details
-
-**Volt engagement:** [cagatay.gutt@volteuropa.org](mailto:cagatay.gutt@volteuropa.org) — Policy, data analytics & digital topics
-
-**Code discussions:** [GitHub](https://github.com/CGutt-hub) — Open-source projects & collaborations
-
-**Networking:** [LinkedIn](https://www.linkedin.com/in/cagatay-gutt) — Professional connections & updates
-
-**Location:** Essen, Nordrhein-Westfalen, Deutschland
