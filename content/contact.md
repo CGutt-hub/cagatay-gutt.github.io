@@ -31,7 +31,7 @@ Have a question or want to collaborate? Send me a message using the form below:
 </div>
 
 <div class="form-group">
-<input type="checkbox" name="botcheck" class="hidden" aria-label="Leave this field empty">
+<input type="checkbox" name="botcheck" class="hidden" aria-hidden="true" tabindex="-1">
 </div>
 
 <button type="submit" class="submit-btn">Send Message</button>
