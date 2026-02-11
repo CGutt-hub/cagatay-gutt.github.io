@@ -36,15 +36,3 @@ Have a question or want to collaborate? Send me a message using the form below:
 
 <button type="submit" class="submit-btn">Send Message</button>
 </form>
-
----
-
-## Alternative Contact Methods
-
-📚 **Research & Publications:** [ORCID](https://orcid.org/0000-0002-1774-532X) — View my publications and research profile
-
-💻 **Code & Projects:** [GitHub](https://github.com/CGutt-hub) — Open-source projects and collaborations
-
-🔗 **Professional Network:** [LinkedIn](https://www.linkedin.com/in/cagatay-gutt) — Professional connections and updates
-
-📍 **Location:** Essen, Nordrhein-Westfalen, Deutschland
