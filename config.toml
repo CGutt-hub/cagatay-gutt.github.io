@@ -8,6 +8,11 @@ description = "Cognitive Science Student (M.Sc.) & Molecular Biologist (B.Sc.) |
 # The default language
 default_language = "en"
 
+# Additional languages
+[languages.de]
+title = "Çağatay Özcan Jagiello Gutt"
+description = "Kognitionswissenschaftler (M.Sc.) & Molekularbiologe (B.Sc.) | Künstliches Bewusstsein, BCI & HMI Forschung | Physiological Computing & KI"
+
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
 

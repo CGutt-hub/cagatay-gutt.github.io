@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,12 +11,19 @@
     <header>
         <h1><a href="{{ get_url(path='/') }}">Çağatay Özcan Jagiello Gutt</a></h1>
         <nav>
-            <a href="{{ get_url(path='/') }}">home</a>
-            <a href="{{ get_url(path='cv/') }}">cv</a>
-            <a href="{{ get_url(path='publications/') }}">publications</a>
-            <a href="{{ get_url(path='projects/') }}">projects</a>
+            <a href="{{ get_url(path='/') }}">{% if lang == "de" %}startseite{% else %}home{% endif %}</a>
+            <a href="{{ get_url(path='cv/') }}">{% if lang == "de" %}lebenslauf{% else %}cv{% endif %}</a>
+            <a href="{{ get_url(path='publications/') }}">{% if lang == "de" %}publikationen{% else %}publications{% endif %}</a>
+            <a href="{{ get_url(path='projects/') }}">{% if lang == "de" %}projekte{% else %}projects{% endif %}</a>
             <a href="{{ get_url(path='blog/') }}">blog</a>
-            <a href="{{ get_url(path='contact/') }}">contact</a>
+            <a href="{{ get_url(path='contact/') }}">{% if lang == "de" %}kontakt{% else %}contact{% endif %}</a>
+            <span class="lang-switcher">
+                {% if lang == "de" %}
+                <a href="{{ config.base_url }}{{ current_path }}">EN</a> | <strong>DE</strong>
+                {% else %}
+                <strong>EN</strong> | <a href="{{ config.base_url }}/de{{ current_path }}">DE</a>
+                {% endif %}
+            </span>
         </nav>
     </header>
     
@@ -25,7 +32,7 @@
     </main>
     
     <footer>
-        <p class="site-info"><em>This site syncs automatically with GitHub (projects) and ORCID (publications). Last build: {{ now() | date(format="%Y-%m-%d") }}</em></p>
+        <p class="site-info"><em>{% if lang == "de" %}Diese Seite synchronisiert sich automatisch mit GitHub (Projekte) und ORCID (Publikationen). Letzter Build: {{ now() | date(format="%Y-%m-%d") }}{% else %}This site syncs automatically with GitHub (projects) and ORCID (publications). Last build: {{ now() | date(format="%Y-%m-%d") }}{% endif %}</em></p>
         <div class="contact-links">
             <a href="https://www.linkedin.com/in/cagatay-gutt" target="_blank">LinkedIn</a>
             <a href="https://orcid.org/0000-0002-1774-532X" target="_blank">ORCID</a>
