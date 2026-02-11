@@ -1,0 +1,44 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH zola 1  "zola 0.22.1" 
+.SH NAME
+zola \- A fast static site generator with everything built\-in
+.SH SYNOPSIS
+\fBzola\fR [\fB\-r\fR|\fB\-\-root\fR] [\fB\-c\fR|\fB\-\-config\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fB\-V\fR|\fB\-\-version\fR] <\fIsubcommands\fR>
+.SH DESCRIPTION
+A fast static site generator with everything built\-in
+.SH OPTIONS
+.TP
+\fB\-r\fR, \fB\-\-root\fR \fI<ROOT>\fR [default: .]
+Directory to use as root of project
+.TP
+\fB\-c\fR, \fB\-\-config\fR \fI<CONFIG>\fR
+Path to a config file other than zola.toml or config.toml in the root of project
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Print version
+.SH SUBCOMMANDS
+.TP
+zola\-init(1)
+Create a new Zola project
+.TP
+zola\-build(1)
+Deletes the output directory if there is one and builds the site
+.TP
+zola\-serve(1)
+Serve the site. Rebuild and reload on change automatically
+.TP
+zola\-check(1)
+Try to build the project without rendering it. Checks links
+.TP
+zola\-completion(1)
+Generate shell completion
+.SH EXTRA
+License: EUPL\-1.2 <https://eupl.eu>
+.SH VERSION
+v0.22.1
+.SH AUTHORS
+Vincent Prouillet <hello@vincentprouillet.com>

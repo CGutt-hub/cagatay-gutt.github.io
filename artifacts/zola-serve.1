@@ -1,0 +1,49 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH zola-serve 1  "serve " 
+.SH NAME
+zola\-serve \- Serve the site. Rebuild and reload on change automatically
+.SH SYNOPSIS
+\fBzola serve\fR [\fB\-i\fR|\fB\-\-interface\fR] [\fB\-p\fR|\fB\-\-port\fR] [\fB\-o\fR|\fB\-\-output\-dir\fR] [\fB\-\-force\fR] [\fB\-u\fR|\fB\-\-base\-url\fR] [\fB\-\-drafts\fR] [\fB\-O\fR|\fB\-\-open\fR] [\fB\-\-store\-html\fR] [\fB\-f\fR|\fB\-\-fast\fR] [\fB\-\-no\-port\-append\fR] [\fB\-\-extra\-watch\-path\fR] [\fB\-d\fR|\fB\-\-debounce\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Serve the site. Rebuild and reload on change automatically
+.SH OPTIONS
+.TP
+\fB\-i\fR, \fB\-\-interface\fR \fI<INTERFACE>\fR [default: 127.0.0.1]
+Interface to bind on
+.TP
+\fB\-p\fR, \fB\-\-port\fR \fI<PORT>\fR [default: 1111]
+Which port to use
+.TP
+\fB\-o\fR, \fB\-\-output\-dir\fR \fI<OUTPUT_DIR>\fR
+Outputs assets of the generated site in the given path (by default \*(Aqpublic\*(Aq dir in project root). HTML/XML will be stored in memory
+.TP
+\fB\-\-force\fR
+Force use of the directory for serving the site even if output directory is non\-empty
+.TP
+\fB\-u\fR, \fB\-\-base\-url\fR \fI<BASE_URL>\fR
+Changes the base_url
+.TP
+\fB\-\-drafts\fR
+Include drafts when loading the site
+.TP
+\fB\-O\fR, \fB\-\-open\fR
+Open site in the default browser
+.TP
+\fB\-\-store\-html\fR
+Also store HTML in the public/ folder (by default HTML is only stored in\-memory)
+.TP
+\fB\-f\fR, \fB\-\-fast\fR
+Only rebuild the minimum on change \- useful when working on a specific page/section
+.TP
+\fB\-\-no\-port\-append\fR
+Default append port to the base url
+.TP
+\fB\-\-extra\-watch\-path\fR \fI<EXTRA_WATCH_PATH>\fR
+Extra path to watch for changes, relative to the project root
+.TP
+\fB\-d\fR, \fB\-\-debounce\fR \fI<DEBOUNCE>\fR [default: 1000]
+Debounce time in milliseconds for the file watcher (at least 1ms)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

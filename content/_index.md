@@ -39,12 +39,44 @@ Participant in Europe's largest hacker association, advocating for digital right
 
 ## Contact
 
-**Research inquiries:** [ORCID](https://orcid.org/0000-0002-1774-532X) — Publications & contact details
+Have a question or want to collaborate? Send me a message using the form below:
 
-**Volt engagement:** [cagatay.gutt@volteuropa.org](mailto:cagatay.gutt@volteuropa.org) — Policy, data analytics & digital topics
+<form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="contact-form">
+<input type="hidden" name="access_key" value="YOUR_ACCESS_KEY_HERE">
+<input type="hidden" name="subject" value="New Contact Form Submission">
+<input type="hidden" name="redirect" value="https://cgutt-hub.github.io/cagatay-gutt.github.io">
 
-**Code discussions:** [GitHub](https://github.com/CGutt-hub) — Open-source projects & collaborations
+<div class="form-group">
+<label for="name">Name *</label>
+<input type="text" id="name" name="name" required>
+</div>
 
-**Networking:** [LinkedIn](https://www.linkedin.com/in/cagatay-gutt) — Professional connections & updates
+<div class="form-group">
+<label for="email">Email *</label>
+<input type="email" id="email" name="email" required>
+</div>
 
-**Location:** Essen, Nordrhein-Westfalen, Deutschland
+<div class="form-group">
+<label for="subject-field">Subject *</label>
+<input type="text" id="subject-field" name="subject-field" required>
+</div>
+
+<div class="form-group">
+<label for="message">Message *</label>
+<textarea id="message" name="message" rows="6" required></textarea>
+</div>
+
+<div class="form-group">
+<input type="checkbox" name="botcheck" class="hidden">
+</div>
+
+<button type="submit" class="submit-btn">Send Message</button>
+</form>
+
+<div class="contact-info">
+<p><strong>Alternative contact methods:</strong></p>
+<p>📚 <a href="https://orcid.org/0000-0002-1774-532X" target="_blank">ORCID</a> — Publications & research profile</p>
+<p>💻 <a href="https://github.com/CGutt-hub" target="_blank">GitHub</a> — Open-source projects</p>
+<p>🔗 <a href="https://www.linkedin.com/in/cagatay-gutt" target="_blank">LinkedIn</a> — Professional networking</p>
+<p>📍 <strong>Location:</strong> Essen, Nordrhein-Westfalen, Deutschland</p>
+</div>
