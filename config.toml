@@ -26,3 +26,8 @@ theme = "catppuccin-mocha"
 [extra]
 # Put all your custom variables here
 author = "Çağatay Özcan Jagiello Gutt"
+
+# Multi-language support
+[languages.de]
+title = "Çağatay Özcan Jagiello Gutt"
+description = "Kognitionswissenschaft-Student (M.Sc.) & Molekularbiologe (B.Sc.) | Künstliche Intelligenz, BCI & HMI Forschung | Physiologisches Computing & KI"

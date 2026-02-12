@@ -11,17 +11,29 @@
     <header>
         <div class="header-content">
             <div class="header-left">
-                <h1><a href="{{ get_url(path='/') }}">Çağatay Özcan Jagiello Gutt</a></h1>
+                <h1><a href="{{ get_url(path='/', lang=lang) }}">Çağatay Özcan Jagiello Gutt</a></h1>
                 <nav>
+                    {% if lang == "de" %}
+                    <a href="{{ get_url(path='/', lang='de') }}">startseite</a>
+                    <a href="{{ get_url(path='cv/', lang='de') }}">lebenslauf</a>
+                    <a href="{{ get_url(path='publications/', lang='de') }}">publikationen</a>
+                    <a href="{{ get_url(path='projects/', lang='de') }}">projekte</a>
+                    <a href="{{ get_url(path='blog/', lang='de') }}">blog</a>
+                    <a href="{{ get_url(path='contact/', lang='de') }}">kontakt</a>
+                    {% else %}
                     <a href="{{ get_url(path='/') }}">home</a>
                     <a href="{{ get_url(path='cv/') }}">cv</a>
                     <a href="{{ get_url(path='publications/') }}">publications</a>
                     <a href="{{ get_url(path='projects/') }}">projects</a>
                     <a href="{{ get_url(path='blog/') }}">blog</a>
                     <a href="{{ get_url(path='contact/') }}">contact</a>
+                    {% endif %}
                 </nav>
             </div>
             <div class="header-right">
+                <button id="lang-toggle" class="lang-switch" aria-label="Toggle language">
+                    <span class="lang-icon">{% if lang == "de" %}EN{% else %}DE{% endif %}</span>
+                </button>
                 <button id="theme-toggle" class="theme-switch" aria-label="Toggle theme">
                     <span class="theme-icon">☀️</span>
                 </button>
@@ -66,6 +78,28 @@
         
         function updateThemeIcon(theme) {
             themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Language switching functionality
+        const langToggle = document.getElementById('lang-toggle');
+        if (langToggle) {
+            langToggle.addEventListener('click', () => {
+                const currentPath = window.location.pathname;
+                const basePath = '{{ config.base_url | safe }}';
+                const basePathParsed = new URL(basePath).pathname.replace(/\/$/, '');
+                
+                // Check if we're on German version
+                if (currentPath.includes('/de/') || currentPath.endsWith('/de')) {
+                    // Switch to English - remove /de/
+                    const newPath = currentPath.replace('/de/', '/').replace(/\/de$/, '/');
+                    window.location.href = newPath;
+                } else {
+                    // Switch to German - add /de/
+                    const pathAfterBase = currentPath.replace(basePathParsed, '');
+                    const newPath = basePathParsed + '/de' + (pathAfterBase || '/');
+                    window.location.href = newPath;
+                }
+            });
         }
     </script>
 </body>
