@@ -24,7 +24,7 @@ The site **automatically** pulls data from:
    ↓
 4. Builds site with Zola
    ↓
-5. Deploys to gh-pages branch
+5. Deploys to GitHub Pages
    ↓
 6. Website updates automatically!
 ```
@@ -74,10 +74,8 @@ zola serve
 
 ### First Time Setup
 1. Go to: **Settings → Pages**
-2. Source: **Deploy from a branch**
-3. Branch: **gh-pages** 
-4. Folder: **/ (root)**
-5. Click **Save**
+2. Source: **GitHub Actions**
+3. That's it! The workflow will automatically deploy when you push to main
 
 ### Requirements
 - Repository must be **public** (for free GitHub accounts)
@@ -118,9 +116,8 @@ Edit files in `content/`:
 
 ## Branch Structure
 
-- **main** - Source code (you edit here)
-- **gh-pages** - Deployed website (auto-generated, don't edit)
-- **copilot/** - Development branches
+- **main** - Source code (you edit here, GitHub Actions deploys from this branch)
+- **copilot/** - Development branches (optional)
 
 ## Advanced
 
