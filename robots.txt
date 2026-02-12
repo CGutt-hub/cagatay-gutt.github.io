@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 Allow: /
-Sitemap: https://cgutt-hub.github.io/cagatay/sitemap.xml
+Sitemap: https://cgutt-hub.github.io/5ha99y/sitemap.xml
