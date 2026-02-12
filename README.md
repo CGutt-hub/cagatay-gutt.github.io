@@ -4,7 +4,7 @@ A static website built with [Zola](https://www.getzola.org/) that automatically 
 
 ## Website URL
 
-**https://cgutt-hub.github.io/cagatay**
+**https://cgutt-hub.github.io/5ha99y**
 
 ## How It Works
 
@@ -106,7 +106,7 @@ Edit files in `content/`:
 ## Troubleshooting
 
 ### Website Not Updating?
-1. Check [Actions tab](https://github.com/CGutt-hub/cagatay/actions) - look for green checkmark ✓
+1. Check [Actions tab](https://github.com/CGutt-hub/5ha99y/actions) - look for green checkmark ✓
 2. If build failed, check error logs
 3. Verify GitHub Pages is enabled in Settings
 4. Clear browser cache (Ctrl+Shift+R)
