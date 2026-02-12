@@ -321,8 +321,10 @@ def generate_auto_blog_posts(
     for repo in github_repos:
         if repo['name'] not in posted['repos']:
             # Delete any existing blog posts for this repo to avoid path collisions
+            # Match files like: YYYY-MM-DD-new-project-{name}.md
             slug = slugify(f"new-project-{repo['name']}")
-            for existing_file in blog_dir.glob(f"*-{slug}.md"):
+            pattern = f"????-??-??-{slug}.md"
+            for existing_file in blog_dir.glob(pattern):
                 existing_file.unlink()
                 print(f"[-] Deleted old blog post: {existing_file.name}")
             
@@ -338,8 +340,10 @@ def generate_auto_blog_posts(
     for work in orcid_works:
         if work['title'] not in posted['publications']:
             # Delete any existing blog posts for this publication to avoid path collisions
+            # Match files like: YYYY-MM-DD-new-publication-{title}.md
             slug = slugify(f"new-publication-{work['title'][:40]}")
-            for existing_file in blog_dir.glob(f"*-{slug}.md"):
+            pattern = f"????-??-??-{slug}.md"
+            for existing_file in blog_dir.glob(pattern):
                 existing_file.unlink()
                 print(f"[-] Deleted old blog post: {existing_file.name}")
             
