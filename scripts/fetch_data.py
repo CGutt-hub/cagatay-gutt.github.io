@@ -44,10 +44,15 @@ class OSFProject(TypedDict):
     created: str
 
 
+class RepoTrackingInfo(TypedDict):
+    last_pushed: str  # ISO timestamp of last push
+    last_posted: str  # YYYY-MM-DD of last blog post
+
+
 class TrackedState(TypedDict):
-    repos: dict[str, str]  # repo_name -> last_pushed_at
+    repos: dict[str, RepoTrackingInfo]  # repo_name -> tracking info
     publications: list[str]  # list of publication titles
-    last_website_commit: str | None  # SHA of last website commit
+    website: RepoTrackingInfo  # website repo tracking info
 
 
 def slugify(text: str) -> str:
@@ -274,15 +279,21 @@ def load_posted_items() -> TrackedState:
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
             # Migrate old format if needed
-            if isinstance(data.get('repos'), list):
-                # Convert list to dict with empty timestamps
-                data['repos'] = {name: '' for name in data['repos']}
+            repos = data.get('repos', {})
+            if isinstance(repos, list):
+                # Convert list to dict with empty tracking info
+                repos = {name: {'last_pushed': '', 'last_posted': ''} for name in repos}
+            elif isinstance(repos, dict):
+                # Ensure all values are proper dicts (not strings from partial migration)
+                for name, val in repos.items():
+                    if not isinstance(val, dict):
+                        repos[name] = {'last_pushed': '', 'last_posted': ''}
             return {
-                'repos': data.get('repos', {}),
+                'repos': repos,
                 'publications': data.get('publications', []),
-                'last_website_commit': data.get('last_website_commit')
+                'website': data.get('website', {'last_pushed': '', 'last_posted': ''})
             }
-    return {'repos': {}, 'publications': [], 'last_website_commit': None}
+    return {'repos': {}, 'publications': [], 'website': {'last_pushed': '', 'last_posted': ''}}
 
 
 def save_posted_items(posted: TrackedState) -> None:
@@ -429,19 +440,22 @@ def generate_auto_blog_posts(
     github_repos: list[GitHubRepo], 
     orcid_works: list[OrcidWork]
 ) -> int:
-    """Generate blog posts for new projects and publications"""
-    posted = load_posted_items()
+    """Generate blog posts for new projects, publications, and updates"""
+    state = load_posted_items()
     blog_dir = Path(__file__).parent.parent / 'content' / 'blog'
     blog_dir.mkdir(exist_ok=True)
     
     new_posts = 0
+    today = datetime.now().strftime('%Y-%m-%d')
     
-    # Check for new GitHub repos
+    # Check for new GitHub repos and repo updates
     for repo in github_repos:
-        if repo['name'] not in posted['repos']:
-            # Delete any existing blog posts for this repo to avoid path collisions
-            # Match files like: YYYY-MM-DD-new-project-{name}.md
-            slug = slugify(f"new-project-{repo['name']}")
+        repo_name = repo['name']
+        pushed_at = repo.get('pushed_at', '')
+        
+        if repo_name not in state['repos']:
+            # New repo - create announcement post
+            slug = slugify(f"new-project-{repo_name}")
             pattern = f"????-??-??-{slug}.md"
             for existing_file in blog_dir.glob(pattern):
                 existing_file.unlink()
@@ -451,15 +465,104 @@ def generate_auto_blog_posts(
             filepath = blog_dir / filename
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)
-            posted['repos'].append(repo['name'])
+            state['repos'][repo_name] = {
+                'last_pushed': pushed_at,
+                'last_posted': today
+            }
             new_posts += 1
-            print(f"[+] Created blog post for project: {repo['name']}")
+            print(f"[+] Created blog post for new project: {repo_name}")
+        
+        elif pushed_at and repo_name != WEBSITE_REPO:
+            # Check if repo was updated since last post
+            repo_state = state['repos'].get(repo_name, {})
+            last_pushed = repo_state.get('last_pushed', '')
+            last_posted = repo_state.get('last_posted', '')
+            
+            # Only post update if pushed_at changed and at least 7 days since last post
+            if pushed_at != last_pushed:
+                days_since_post = 999
+                if last_posted:
+                    try:
+                        last_date = datetime.strptime(last_posted, '%Y-%m-%d')
+                        days_since_post = (datetime.now() - last_date).days
+                    except ValueError:
+                        pass
+                
+                if days_since_post >= 7:
+                    # Fetch recent commits
+                    commits = fetch_recent_commits(repo)
+                    if commits:
+                        # Delete old update posts for this repo
+                        slug = slugify(f"update-{repo_name}")
+                        pattern = f"????-??-??-{slug}.md"
+                        for existing_file in blog_dir.glob(pattern):
+                            existing_file.unlink()
+                            print(f"[-] Deleted old update post: {existing_file.name}")
+                        
+                        filename, content = generate_blog_post_for_repo_update(repo, commits)
+                        filepath = blog_dir / filename
+                        with open(filepath, 'w', encoding='utf-8') as f:
+                            f.write(content)
+                        state['repos'][repo_name] = {
+                            'last_pushed': pushed_at,
+                            'last_posted': today
+                        }
+                        new_posts += 1
+                        print(f"[+] Created blog post for update: {repo_name}")
+                else:
+                    # Update pushed_at but not last_posted
+                    state['repos'][repo_name] = {
+                        'last_pushed': pushed_at,
+                        'last_posted': last_posted
+                    }
+    
+    # Check for website updates (5ha99y repo)
+    website_repo = next((r for r in github_repos if r['name'] == WEBSITE_REPO), None)
+    if website_repo:
+        pushed_at = website_repo.get('pushed_at', '')
+        website_state = state.get('website', {})
+        last_pushed = website_state.get('last_pushed', '')
+        last_posted = website_state.get('last_posted', '')
+        
+        if pushed_at and pushed_at != last_pushed:
+            days_since_post = 999
+            if last_posted:
+                try:
+                    last_date = datetime.strptime(last_posted, '%Y-%m-%d')
+                    days_since_post = (datetime.now() - last_date).days
+                except ValueError:
+                    pass
+            
+            if days_since_post >= 7:
+                commits = fetch_recent_commits(website_repo)
+                if commits:
+                    # Delete old website update posts
+                    slug = slugify(f"website-update")
+                    pattern = f"????-??-??-{slug}.md"
+                    for existing_file in blog_dir.glob(pattern):
+                        existing_file.unlink()
+                        print(f"[-] Deleted old website update post: {existing_file.name}")
+                    
+                    filename, content = generate_blog_post_for_website_update(commits)
+                    filepath = blog_dir / filename
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        f.write(content)
+                    state['website'] = {
+                        'last_pushed': pushed_at,
+                        'last_posted': today
+                    }
+                    new_posts += 1
+                    print(f"[+] Created blog post for website update")
+            else:
+                state['website'] = {
+                    'last_pushed': pushed_at,
+                    'last_posted': last_posted
+                }
     
     # Check for new ORCID publications
     for work in orcid_works:
-        if work['title'] not in posted['publications']:
-            # Delete any existing blog posts for this publication to avoid path collisions
-            # Match files like: YYYY-MM-DD-new-publication-{title}.md
+        if work['title'] not in state['publications']:
+            # Delete any existing blog posts for this publication
             slug = slugify(f"new-publication-{work['title'][:40]}")
             pattern = f"????-??-??-{slug}.md"
             for existing_file in blog_dir.glob(pattern):
@@ -470,11 +573,11 @@ def generate_auto_blog_posts(
             filepath = blog_dir / filename
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)
-            posted['publications'].append(work['title'])
+            state['publications'].append(work['title'])
             new_posts += 1
             print(f"[+] Created blog post for publication: {work['title']}")
     
-    save_posted_items(posted)
+    save_posted_items(state)
     return new_posts
 
 def main():

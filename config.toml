@@ -18,6 +18,11 @@ build_search_index = false
 generate_feeds = true
 feed_filenames = ["rss.xml", "atom.xml"]
 
+# Taxonomies for blog posts
+taxonomies = [
+    { name = "tags", feed = true }
+]
+
 [markdown]
 
 [markdown.highlighting]

@@ -1,9 +1,29 @@
 {
-  "repos": [
-    "cagatay-gutt.github.io",
-    "EmotiView",
-    "AnalysisToolbox",
-    "surveyWorkbench"
-  ],
-  "publications": []
+  "repos": {
+    "cagatay-gutt.github.io": {
+      "last_pushed": "",
+      "last_posted": ""
+    },
+    "EmotiView": {
+      "last_pushed": "",
+      "last_posted": ""
+    },
+    "AnalysisToolbox": {
+      "last_pushed": "",
+      "last_posted": ""
+    },
+    "surveyWorkbench": {
+      "last_pushed": "",
+      "last_posted": ""
+    },
+    "5ha99y": {
+      "last_pushed": "2026-02-12T13:24:02Z",
+      "last_posted": "2026-02-12"
+    }
+  },
+  "publications": [],
+  "website": {
+    "last_pushed": "",
+    "last_posted": ""
+  }
 }

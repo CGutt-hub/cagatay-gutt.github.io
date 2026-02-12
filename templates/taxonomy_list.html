@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}{{ taxonomy.name | title }} | {{ config.title }}{% endblock title %}
+
+{% block content %}
+<div class="content">
+    <h1>{{ taxonomy.name | title }}</h1>
+    
+    <ul class="tag-list">
+    {% for term in terms %}
+        <li>
+            <a href="{{ term.permalink }}">{{ term.name }}</a>
+            <span class="tag-count">({{ term.pages | length }})</span>
+        </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock content %}
