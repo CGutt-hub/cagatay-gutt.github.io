@@ -9,15 +9,24 @@
 </head>
 <body>
     <header>
-        <h1><a href="{{ get_url(path='/') }}">Çağatay Özcan Jagiello Gutt</a></h1>
-        <nav>
-            <a href="{{ get_url(path='/') }}">home</a>
-            <a href="{{ get_url(path='cv/') }}">cv</a>
-            <a href="{{ get_url(path='publications/') }}">publications</a>
-            <a href="{{ get_url(path='projects/') }}">projects</a>
-            <a href="{{ get_url(path='blog/') }}">blog</a>
-            <a href="{{ get_url(path='contact/') }}">contact</a>
-        </nav>
+        <div class="header-content">
+            <div class="header-left">
+                <h1><a href="{{ get_url(path='/') }}">Çağatay Özcan Jagiello Gutt</a></h1>
+                <nav>
+                    <a href="{{ get_url(path='/') }}">home</a>
+                    <a href="{{ get_url(path='cv/') }}">cv</a>
+                    <a href="{{ get_url(path='publications/') }}">publications</a>
+                    <a href="{{ get_url(path='projects/') }}">projects</a>
+                    <a href="{{ get_url(path='blog/') }}">blog</a>
+                    <a href="{{ get_url(path='contact/') }}">contact</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <button id="theme-toggle" class="theme-switch" aria-label="Toggle theme">
+                    <span class="theme-icon">☀️</span>
+                </button>
+            </div>
+        </div>
     </header>
     
     <main>
@@ -34,5 +43,30 @@
         </div>
         <p>&copy; {{ now() | date(format="%Y") }} Çağatay Özcan Jagiello Gutt</p>
     </footer>
+    
+    <script>
+        // Theme switching functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.querySelector('.theme-icon');
+        const html = document.documentElement;
+        
+        // Check for saved theme preference or default to 'dark'
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+        
+        function updateThemeIcon(theme) {
+            themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+    </script>
 </body>
 </html>

@@ -4,20 +4,95 @@
     box-sizing: border-box;
 }
 
+:root {
+    /* Dark theme colors (default) */
+    --bg-color: #1a1a1a;
+    --text-color: #d4d4d4;
+    --heading-color: #f0f0f0;
+    --accent-color: #d4af37;
+    --accent-hover: #e6c04a;
+    --border-color: #333;
+    --code-bg: #0d0d0d;
+    --code-border: #2a2a2a;
+    --code-text: #ce9178;
+    --link-color: #b8b8b8;
+    --footer-color: #666;
+}
+
+html[data-theme='light'] {
+    --bg-color: #ffffff;
+    --text-color: #2a2a2a;
+    --heading-color: #1a1a1a;
+    --accent-color: #c49f31;
+    --accent-hover: #a88a2a;
+    --border-color: #e0e0e0;
+    --code-bg: #f5f5f5;
+    --code-border: #d0d0d0;
+    --code-text: #a05a3c;
+    --link-color: #5a5a5a;
+    --footer-color: #888;
+}
+
 body {
     font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
     line-height: 1.7;
-    color: #d4d4d4;
-    background-color: #1a1a1a;
+    color: var(--text-color);
+    background-color: var(--bg-color);
     max-width: 900px;
     margin: 0 auto;
     padding: 30px;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 header {
-    border-bottom: 2px solid #d4af37;
+    border-bottom: 2px solid var(--accent-color);
     padding-bottom: 25px;
     margin-bottom: 40px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.theme-switch {
+    background: transparent;
+    border: 2px solid var(--accent-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.theme-switch:hover {
+    background-color: var(--accent-color);
+    transform: rotate(180deg);
+}
+
+.theme-switch:active {
+    transform: rotate(180deg) scale(0.95);
+}
+
+.theme-icon {
+    line-height: 1;
+    display: block;
 }
 
 header h1 {
@@ -28,17 +103,17 @@ header h1 {
 }
 
 header h1 a {
-    color: #f0f0f0;
+    color: var(--heading-color);
     text-decoration: none;
 }
 
 header h1 a:hover {
-    color: #d4af37;
+    color: var(--accent-color);
 }
 
 header h1 a::before {
     content: '⟩ ';
-    color: #d4af37;
+    color: var(--accent-color);
 }
 
 nav {
@@ -47,15 +122,15 @@ nav {
 
 nav a {
     margin-right: 20px;
-    color: #b8b8b8;
+    color: var(--link-color);
     text-decoration: none;
     transition: all 0.2s;
     border-bottom: 1px solid transparent;
 }
 
 nav a:hover {
-    color: #d4af37;
-    border-bottom: 1px solid #d4af37;
+    color: var(--accent-color);
+    border-bottom: 1px solid var(--accent-color);
 }
 
 main {
@@ -64,7 +139,7 @@ main {
 
 article h1 {
     margin-bottom: 25px;
-    color: #f0f0f0;
+    color: var(--heading-color);
     font-weight: 600;
     font-size: 1.8em;
 }
@@ -76,26 +151,26 @@ article h1 {
 .content h2 {
     margin-top: 35px;
     margin-bottom: 18px;
-    color: #d4af37;
+    color: var(--accent-color);
     font-weight: 600;
     font-size: 1.3em;
 }
 
 .content h2::before {
     content: '━ ';
-    color: #555;
+    color: var(--border-color);
 }
 
 .content h3 {
     margin-top: 25px;
     margin-bottom: 12px;
-    color: #e8e8e8;
+    color: var(--heading-color);
     font-weight: 500;
 }
 
 .content p {
     margin-bottom: 18px;
-    color: #d4d4d4;
+    color: var(--text-color);
 }
 
 .content ul, .content ol {
@@ -105,72 +180,72 @@ article h1 {
 
 .content li {
     margin-bottom: 8px;
-    color: #d4d4d4;
+    color: var(--text-color);
 }
 
 .content a {
-    color: #d4af37;
+    color: var(--accent-color);
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: all 0.2s;
 }
 
 .content a:hover {
-    border-bottom: 1px solid #d4af37;
+    border-bottom: 1px solid var(--accent-color);
 }
 
 .content code {
-    background-color: #0d0d0d;
+    background-color: var(--code-bg);
     padding: 2px 6px;
     border-radius: 2px;
     font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-    color: #ce9178;
-    border: 1px solid #2a2a2a;
+    color: var(--code-text);
+    border: 1px solid var(--code-border);
 }
 
 .content pre {
-    background-color: #0d0d0d;
+    background-color: var(--code-bg);
     padding: 15px;
     border-radius: 2px;
     overflow-x: auto;
     margin-bottom: 20px;
-    border-left: 2px solid #d4af37;
+    border-left: 2px solid var(--accent-color);
 }
 
 .content pre code {
     background-color: transparent;
     padding: 0;
-    color: #d4d4d4;
+    color: var(--text-color);
     border: none;
 }
 
 .content hr {
     border: none;
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--border-color);
     margin: 30px 0;
 }
 
 .content blockquote {
-    border-left: 2px solid #d4af37;
+    border-left: 2px solid var(--accent-color);
     padding-left: 20px;
     margin: 20px 0;
-    color: #b8b8b8;
+    color: var(--link-color);
     font-style: italic;
-    background-color: #0d0d0d;
+    background-color: var(--code-bg);
     padding: 10px 20px;
 }
 
 .content strong {
-    color: #d4af37;
+    color: var(--accent-color);
     font-weight: 600;
 }
 
 footer {
     margin-top: 60px;
     padding-top: 25px;
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--border-color);
     text-align: center;
-    color: #666;
+    color: var(--footer-color);
     font-size: 0.9em;
 }
 
@@ -180,15 +255,15 @@ footer {
 
 .contact-links a {
     margin: 0 10px;
-    color: #b8b8b8;
+    color: var(--link-color);
     text-decoration: none;
     transition: all 0.2s;
     border-bottom: 1px solid transparent;
 }
 
 .contact-links a:hover {
-    color: #d4af37;
-    border-bottom: 1px solid #d4af37;
+    color: var(--accent-color);
+    border-bottom: 1px solid var(--accent-color);
 }
 
 /* Contact Form Styles */
@@ -196,8 +271,8 @@ footer {
     max-width: 600px;
     margin: 30px 0;
     padding: 25px;
-    background-color: #0d0d0d;
-    border: 1px solid #2a2a2a;
+    background-color: var(--code-bg);
+    border: 1px solid var(--code-border);
     border-radius: 4px;
 }
 
@@ -208,7 +283,7 @@ footer {
 .form-group label {
     display: block;
     margin-bottom: 8px;
-    color: #d4af37;
+    color: var(--accent-color);
     font-weight: 500;
 }
 
@@ -217,10 +292,10 @@ footer {
 .form-group textarea {
     width: 100%;
     padding: 12px;
-    background-color: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background-color: var(--bg-color);
+    border: 1px solid var(--code-border);
     border-radius: 2px;
-    color: #d4d4d4;
+    color: var(--text-color);
     font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
     font-size: 0.95em;
     transition: border-color 0.2s;
@@ -230,7 +305,7 @@ footer {
 .form-group input[type="email"]:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #d4af37;
+    border-color: var(--accent-color);
 }
 
 .form-group textarea {
@@ -243,8 +318,8 @@ footer {
 }
 
 .submit-btn {
-    background-color: #d4af37;
-    color: #1a1a1a;
+    background-color: var(--accent-color);
+    color: var(--bg-color);
     border: none;
     padding: 12px 30px;
     font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
@@ -256,7 +331,7 @@ footer {
 }
 
 .submit-btn:hover {
-    background-color: #e6c04a;
+    background-color: var(--accent-hover);
     transform: translateY(-2px);
 }
 
@@ -267,22 +342,22 @@ footer {
 .contact-info {
     margin-top: 40px;
     padding: 20px;
-    background-color: #0d0d0d;
-    border-left: 2px solid #d4af37;
+    background-color: var(--code-bg);
+    border-left: 2px solid var(--accent-color);
 }
 
 .contact-info p {
     margin-bottom: 10px;
-    color: #d4d4d4;
+    color: var(--text-color);
 }
 
 .contact-info a {
-    color: #d4af37;
+    color: var(--accent-color);
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: all 0.2s;
 }
 
 .contact-info a:hover {
-    border-bottom: 1px solid #d4af37;
+    border-bottom: 1px solid var(--accent-color);
 }
