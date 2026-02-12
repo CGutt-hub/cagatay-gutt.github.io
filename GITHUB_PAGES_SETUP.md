@@ -2,6 +2,25 @@
 
 This guide will help you configure GitHub Pages to work with this repository.
 
+## Quick Setup Checklist ✅
+
+Before you start, here's everything you need to configure in GitHub Settings:
+
+### Required Settings
+- [ ] **Pages → Source**: Set to "GitHub Actions" (not "Deploy from a branch")
+- [ ] **General → Visibility**: Repository must be Public
+- [ ] **Actions → Workflow**: First deployment must complete successfully
+
+### Recommended Settings
+- [ ] **Pages → Enforce HTTPS**: Enable after first deployment (security)
+- [ ] **General → Description**: Add repository description
+- [ ] **General → Website**: Add your Pages URL
+
+### Optional Settings
+- [ ] **Pages → Custom Domain**: Only if using your own domain
+- [ ] **Environments → github-pages**: Review deployment history
+- [ ] **Branches → Protection Rules**: Protect main branch (advanced)
+
 ## Prerequisites
 
 - Repository must be **public** (for free GitHub accounts) or you have GitHub Pro/Team/Enterprise
@@ -16,9 +35,42 @@ This guide will help you configure GitHub Pages to work with this repository.
 
 ### 2. Configure GitHub Pages
 
+When you open the Pages settings, you'll see several configuration options. Here's what you need to set:
+
+#### A. Build and Deployment Source ⭐ REQUIRED
+
 1. In the left sidebar, scroll down and click on **Pages**
 2. Under **Source**, select **GitHub Actions** from the dropdown
-3. That's it! No need to select a branch or folder
+   - This tells GitHub to use the workflow in `.github/workflows/deploy.yml`
+   - ⚠️ Do NOT select "Deploy from a branch" - that's the old method
+
+#### B. Additional Settings (In the same Pages section)
+
+After setting the source, scroll down to see additional options:
+
+**Custom Domain** (Optional)
+- Leave empty if you want to use the default: `cgutt-hub.github.io/cagatay-gutt.github.io`
+- To add a custom domain: Enter your domain (e.g., `www.example.com`) and follow DNS setup instructions
+- See "Custom Domain" section below for detailed setup
+
+**Enforce HTTPS** ✅ RECOMMENDED
+- This option appears after your first successful deployment
+- ✅ **Check this box** to force HTTPS for security
+- This is automatically enabled for `github.io` domains
+
+#### C. Repository Settings to Verify
+
+While in Settings, also check these:
+
+**General Settings:**
+1. **Repository Visibility**: Must be **Public** (for free GitHub accounts)
+   - Go to **Settings** → **General** → scroll to "Danger Zone"
+   - Verify it says "This repository is currently public"
+
+**Environments:** (Auto-created by workflow)
+1. Navigate to **Settings** → **Environments**
+2. You should see a `github-pages` environment after first deployment
+3. No action needed - this is created automatically by the workflow
 
 ### 3. Verify the Workflow
 
@@ -61,6 +113,111 @@ You can also trigger a deployment manually:
 3. Click "Run workflow"
 4. Select `main` branch
 5. Click "Run workflow"
+
+## Complete Settings Reference
+
+This section explains every setting you'll encounter in GitHub Settings related to Pages.
+
+### Settings → Pages (Main Configuration)
+
+#### Build and Deployment
+
+**Source** ⭐ REQUIRED
+- **What it does**: Tells GitHub how to build and deploy your site
+- **What to select**: "GitHub Actions"
+- **Why**: This uses the modern workflow method defined in `.github/workflows/deploy.yml`
+- **Don't select**: "Deploy from a branch" (legacy method)
+
+**Branch** (Only shown when "Deploy from a branch" is selected)
+- **N/A for this project** - We use GitHub Actions, not branch deployment
+
+#### Custom Domain (Optional)
+
+**Custom domain** 
+- **What it does**: Allows using your own domain instead of github.io
+- **Default**: Leave empty to use `cgutt-hub.github.io/cagatay-gutt.github.io`
+- **To use custom domain**:
+  1. Enter your domain (e.g., `www.mysite.com`)
+  2. Create `static/CNAME` file with your domain
+  3. Update `base_url` in `config.toml`
+  4. Configure DNS with your registrar (see Advanced Configuration)
+
+**Enforce HTTPS** ✅ RECOMMENDED
+- **What it does**: Forces all traffic to use secure HTTPS
+- **Default**: Automatically enabled for `*.github.io` domains
+- **When to enable**: After first successful deployment
+- **Why**: Security best practice - protects visitors
+
+#### Deployment Status
+
+**Your site is live at [URL]**
+- **When visible**: After first successful deployment
+- **What it shows**: Your website URL
+- **Deployment history**: Click "View deployments" to see past builds
+
+### Settings → General
+
+#### Repository Details
+
+**Description** ✅ RECOMMENDED
+- **What to add**: Brief description of your site
+- **Example**: "Personal academic website built with Zola"
+- **Why**: Helps visitors understand your project
+
+**Website** ✅ RECOMMENDED  
+- **What to add**: Your GitHub Pages URL
+- **Value**: `https://cgutt-hub.github.io/cagatay-gutt.github.io`
+- **Why**: Provides quick access link from repository
+
+**Topics** (Optional)
+- **What to add**: Tags like `personal-website`, `zola`, `github-pages`
+- **Why**: Makes repository discoverable
+
+#### Visibility & Access
+
+**Repository visibility** ⭐ REQUIRED
+- **Current**: Must be "Public"
+- **Why**: Free GitHub accounts require public repos for Pages
+- **Location**: Settings → General → Danger Zone
+
+### Settings → Environments
+
+**github-pages Environment** (Auto-created)
+- **What it is**: Auto-created after first successful deployment
+- **What it shows**: Deployment history and protection rules
+- **No action needed**: Automatically managed by workflow
+- **Can view**: Recent deployments and their status
+
+#### Environment Settings (Advanced, Optional)
+
+**Deployment branches**
+- **Default**: Only `main` branch can deploy
+- **To modify**: Add/remove branches that can trigger deployments
+
+**Environment protection rules** (Optional)
+- **Required reviewers**: Require approval before deployment
+- **Wait timer**: Add delay before deployment
+- **Custom deployment branches**: Limit which branches can deploy
+
+### Settings → Actions → General
+
+**Workflow permissions** (Usually correct by default)
+- **Required**: "Read and write permissions" 
+- **Or**: "Read repository contents and packages permissions" with Pages checked
+- **Why**: Workflow needs permissions to deploy to Pages
+
+**Actions permissions**
+- **Should be**: "Allow all actions and reusable workflows"
+- **Why**: Workflow uses external actions like `actions/checkout@v4`
+
+### Settings → Branches (Optional but Recommended)
+
+**Branch protection rules for `main`** (Optional)
+- **Why**: Prevents accidental changes to main branch
+- **Common rules**:
+  - Require pull request reviews before merging
+  - Require status checks to pass before merging
+  - Require conversation resolution before merging
 
 ## Troubleshooting
 
@@ -150,6 +307,61 @@ No manual secret configuration is needed.
 - [GitHub Pages Documentation](https://docs.github.com/pages)
 - [GitHub Actions Documentation](https://docs.github.com/actions)
 - [Repository README](README.md) - For development and content editing
+
+## Quick Reference Card
+
+Use this checklist when setting up GitHub Pages:
+
+```
+GITHUB PAGES SETUP - QUICK REFERENCE
+═══════════════════════════════════════════════════════════
+
+📍 NAVIGATION
+   Settings → Pages (main configuration)
+   Settings → General (repository details)
+   Settings → Environments (deployment history)
+   Settings → Actions (permissions)
+
+⭐ REQUIRED SETTINGS
+   ✓ Pages → Source: "GitHub Actions" 
+   ✓ General → Visibility: Public
+   ✓ First workflow run must complete successfully
+
+✅ RECOMMENDED SETTINGS  
+   ✓ Pages → Enforce HTTPS: Checked (after first deploy)
+   ✓ General → Description: Add site description
+   ✓ General → Website: https://cgutt-hub.github.io/cagatay-gutt.github.io
+
+📊 VERIFY AFTER FIRST DEPLOYMENT
+   ✓ Pages → "Your site is live at..." message appears
+   ✓ Environments → "github-pages" environment exists
+   ✓ Actions → "Build and Deploy" workflow succeeded (green ✓)
+   ✓ Visit your site URL to confirm it's working
+
+🔧 OPTIONAL ADVANCED SETTINGS
+   □ Pages → Custom domain (only if using your domain)
+   □ Branches → Branch protection rules  
+   □ Environments → Deployment protection rules
+
+⚠️  COMMON MISTAKES TO AVOID
+   ✗ DON'T select "Deploy from a branch" as source
+   ✗ DON'T make repository private (unless you have Pro)
+   ✗ DON'T forget to enable "Enforce HTTPS"
+   ✗ DON'T skip the first workflow run
+
+🆘 TROUBLESHOOTING CHECKLIST
+   1. Is repository visibility set to Public?
+   2. Is Pages source set to "GitHub Actions"?
+   3. Did the workflow run successfully? (Check Actions tab)
+   4. Did you wait 1-2 minutes after deployment?
+   5. Did you clear browser cache (Ctrl+Shift+R)?
+
+📱 WHERE TO FIND THINGS
+   Deployment URL: Settings → Pages (top of page)
+   Workflow logs: Actions → "Build and Deploy" → Latest run
+   Deployment history: Settings → Environments → github-pages
+   Site status: Settings → Pages → "Your site is live at..."
+```
 
 ## Support
 

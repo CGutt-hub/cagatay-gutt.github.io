@@ -73,9 +73,26 @@ zola serve
 ## GitHub Pages Setup
 
 ### First Time Setup
+
+**Quick Setup:**
 1. Go to: **Settings → Pages**
 2. Source: **GitHub Actions**
 3. That's it! The workflow will automatically deploy when you push to main
+
+**Detailed Setup Guide:**
+- 📖 **[Complete Setup Guide](GITHUB_PAGES_SETUP.md)** - All settings explained
+- 🎯 **[Settings Walkthrough](SETTINGS_WALKTHROUGH.md)** - Visual step-by-step guide
+- ✅ **Quick checklist** - See below
+
+### Settings Checklist
+
+**Required:**
+- [ ] Settings → Pages → Source = "GitHub Actions"
+- [ ] Repository visibility = Public
+
+**Recommended:**
+- [ ] Settings → Pages → Enforce HTTPS (after first deployment)
+- [ ] Settings → General → Add description and website URL
 
 ### Requirements
 - Repository must be **public** (for free GitHub accounts)
