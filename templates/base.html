@@ -18,13 +18,13 @@
                 <nav>
                     {% set current_lang = lang | default(value='en') %}
                     {% if current_lang == "de" %}
-                    <a href="{{ get_url(path='/') }}">startseite</a>
-                    <a href="{{ get_url(path='cv/') }}">lebenslauf</a>
-                    <a href="{{ get_url(path='publications/') }}">publikationen</a>
-                    <a href="{{ get_url(path='projects/') }}">projekte</a>
-                    <a href="{{ get_url(path='blog/') }}">blog</a>
-                    <a href="{{ get_url(path='ssh/') }}">ssh</a>
-                    <a href="{{ get_url(path='contact/') }}">kontakt</a>
+                    <a href="{{ get_url(path='/', lang='de') }}">startseite</a>
+                    <a href="{{ get_url(path='cv/', lang='de') }}">lebenslauf</a>
+                    <a href="{{ get_url(path='publications/', lang='de') }}">publikationen</a>
+                    <a href="{{ get_url(path='projects/', lang='de') }}">projekte</a>
+                    <a href="{{ get_url(path='blog/', lang='de') }}">blog</a>
+                    <a href="{{ get_url(path='ssh/', lang='de') }}">ssh</a>
+                    <a href="{{ get_url(path='contact/', lang='de') }}">kontakt</a>
                     {% else %}
                     <a href="{{ get_url(path='/') }}">home</a>
                     <a href="{{ get_url(path='cv/') }}">cv</a>
