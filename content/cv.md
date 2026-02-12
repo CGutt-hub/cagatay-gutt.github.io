@@ -146,7 +146,7 @@ B.Sc. Molecular Biology, Westphalian University of Applied Sciences (2022) | Gra
 
 ---
 
-## Political Engagement
+## Community and Engagement
 
 **Volt Deutschland** — Active Member
 
