@@ -2,11 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
     <title>Çağatay Özcan Jagiello Gutt - Thoughts &amp; Updates</title>
     <subtitle>Cognitive Science Student (M.Sc.) &amp; Molecular Biologist (B.Sc.) | Artificial Consciousness, BCI &amp; HMI Research | Physiological Computing &amp; AI</subtitle>
-    <link rel="self" type="application/atom+xml" href="https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/atom.xml"/>
-    <link rel="alternate" type="text/html" href="https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/"/>
+    <link rel="self" type="application/atom+xml" href="https://cgutt-hub.github.io/cagatay/blog/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://cgutt-hub.github.io/cagatay/blog/"/>
     <generator uri="https://www.getzola.org/">Zola</generator>
     <updated>2026-02-11T00:00:00+00:00</updated>
-    <id>https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/atom.xml</id>
+    <id>https://cgutt-hub.github.io/cagatay/blog/atom.xml</id>
     <entry xml:lang="en">
         <title>Welcome to My Research Hub</title>
         <published>2026-02-11T00:00:00+00:00</published>
@@ -20,10 +20,10 @@
           </name>
         </author>
         
-        <link rel="alternate" type="text/html" href="https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/welcome/"/>
-        <id>https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/welcome/</id>
+        <link rel="alternate" type="text/html" href="https://cgutt-hub.github.io/cagatay/blog/welcome/"/>
+        <id>https://cgutt-hub.github.io/cagatay/blog/welcome/</id>
         
-        <content type="html" xml:base="https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/welcome/">&lt;p&gt;This website serves as my central scientific presence, automatically syncing with GitHub (active projects), ORCID (publications), and other platforms.&lt;&#x2F;p&gt;
+        <content type="html" xml:base="https://cgutt-hub.github.io/cagatay/blog/welcome/">&lt;p&gt;This website serves as my central scientific presence, automatically syncing with GitHub (active projects), ORCID (publications), and other platforms.&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;what-to-expect&quot;&gt;What to Expect&lt;&#x2F;h2&gt;
 &lt;p&gt;This blog will feature:&lt;&#x2F;p&gt;
 &lt;ul&gt;

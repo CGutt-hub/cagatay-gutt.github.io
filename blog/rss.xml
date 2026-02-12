@@ -2,19 +2,19 @@
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
       <title>Çağatay Özcan Jagiello Gutt - Thoughts &amp; Updates</title>
-      <link>https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/</link>
+      <link>https://cgutt-hub.github.io/cagatay/blog/</link>
       <description>Cognitive Science Student (M.Sc.) &amp; Molecular Biologist (B.Sc.) | Artificial Consciousness, BCI &amp; HMI Research | Physiological Computing &amp; AI</description>
       <generator>Zola</generator>
       <language>en</language>
-      <atom:link href="https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/rss.xml" rel="self" type="application/rss+xml"/>
+      <atom:link href="https://cgutt-hub.github.io/cagatay/blog/rss.xml" rel="self" type="application/rss+xml"/>
       <lastBuildDate>Wed, 11 Feb 2026 00:00:00 +0000</lastBuildDate>
       <item>
           <title>Welcome to My Research Hub</title>
           <pubDate>Wed, 11 Feb 2026 00:00:00 +0000</pubDate>
           <author>Unknown</author>
-          <link>https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/welcome/</link>
-          <guid>https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/welcome/</guid>
-          <description xml:base="https://cgutt-hub.github.io/cagatay-gutt.github.io/blog/welcome/">&lt;p&gt;This website serves as my central scientific presence, automatically syncing with GitHub (active projects), ORCID (publications), and other platforms.&lt;&#x2F;p&gt;
+          <link>https://cgutt-hub.github.io/cagatay/blog/welcome/</link>
+          <guid>https://cgutt-hub.github.io/cagatay/blog/welcome/</guid>
+          <description xml:base="https://cgutt-hub.github.io/cagatay/blog/welcome/">&lt;p&gt;This website serves as my central scientific presence, automatically syncing with GitHub (active projects), ORCID (publications), and other platforms.&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;what-to-expect&quot;&gt;What to Expect&lt;&#x2F;h2&gt;
 &lt;p&gt;This blog will feature:&lt;&#x2F;p&gt;
 &lt;ul&gt;
