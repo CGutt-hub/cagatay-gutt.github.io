@@ -30,8 +30,8 @@ Have a question or want to collaborate? Send me a message using the form below:
 <textarea id="message" name="message" rows="6" required></textarea>
 </div>
 
-<div class="form-group">
-<input type="checkbox" name="botcheck" class="hidden" aria-hidden="true" tabindex="-1">
+<div class="hidden">
+<input type="checkbox" name="botcheck" aria-hidden="true" tabindex="-1">
 </div>
 
 <button type="submit" class="submit-btn">Send Message</button>
