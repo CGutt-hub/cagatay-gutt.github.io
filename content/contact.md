@@ -30,7 +30,7 @@ Have a question or want to collaborate? Send me a message using the form below:
 <textarea id="message" name="message" rows="6" required></textarea>
 </div>
 
-<div class="hidden">
+<div style="display:none!important;visibility:hidden;position:absolute;left:-9999px;">
 <input type="checkbox" name="botcheck" aria-hidden="true" tabindex="-1">
 </div>
 
