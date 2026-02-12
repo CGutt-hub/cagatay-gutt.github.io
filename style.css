@@ -20,17 +20,29 @@
 }
 
 html[data-theme='light'] {
-    --bg-color: #ffffff;
-    --text-color: #2a2a2a;
+    --bg-color: #fafafa;
+    --text-color: #333333;
     --heading-color: #1a1a1a;
-    --accent-color: #c49f31;
-    --accent-hover: #a88a2a;
-    --border-color: #e0e0e0;
-    --code-bg: #f5f5f5;
-    --code-border: #d0d0d0;
-    --code-text: #a05a3c;
-    --link-color: #5a5a5a;
-    --footer-color: #888;
+    --accent-color: #9a7d28;
+    --accent-hover: #7d6420;
+    --border-color: #d0d0d0;
+    --code-bg: #2d2d2d;
+    --code-border: #444444;
+    --code-text: #f0c674;
+    --link-color: #555555;
+    --footer-color: #777;
+}
+
+/* Light mode: keep terminal/code blocks dark for readability */
+html[data-theme='light'] .content pre,
+html[data-theme='light'] .content pre code {
+    color: #d4d4d4;
+}
+
+html[data-theme='light'] .content code {
+    background-color: #2d2d2d;
+    color: #f0c674;
+    border-color: #444444;
 }
 
 body {
@@ -63,7 +75,30 @@ header {
 .header-right {
     display: flex;
     align-items: center;
+    gap: 10px;
     margin-left: 20px;
+}
+
+.lang-switch {
+    background: transparent;
+    border: 2px solid var(--accent-color);
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--accent-color);
+    transition: all 0.3s ease;
+}
+
+.lang-switch:hover {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+}
+
+.lang-icon {
+    line-height: 1;
 }
 
 .theme-switch {

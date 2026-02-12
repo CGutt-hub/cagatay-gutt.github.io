@@ -13,15 +13,20 @@
             <div class="header-left">
                 <h1><a href="https://cgutt-hub.github.io/5ha99y">Çağatay Özcan Jagiello Gutt</a></h1>
                 <nav>
+                    
                     <a href="https://cgutt-hub.github.io/5ha99y">home</a>
                     <a href="https://cgutt-hub.github.io/5ha99y/cv">cv</a>
                     <a href="https://cgutt-hub.github.io/5ha99y/publications">publications</a>
                     <a href="https://cgutt-hub.github.io/5ha99y/projects">projects</a>
                     <a href="https://cgutt-hub.github.io/5ha99y/blog">blog</a>
                     <a href="https://cgutt-hub.github.io/5ha99y/contact">contact</a>
+                    
                 </nav>
             </div>
             <div class="header-right">
+                <button id="lang-toggle" class="lang-switch" aria-label="Toggle language">
+                    <span class="lang-icon">DE</span>
+                </button>
                 <button id="theme-toggle" class="theme-switch" aria-label="Toggle theme">
                     <span class="theme-icon">☀️</span>
                 </button>
@@ -40,6 +45,16 @@
         <hr>
 
         
+            
+            <div class="blog-post-preview">
+                <h3><a href="https:&#x2F;&#x2F;cgutt-hub.github.io&#x2F;5ha99y&#x2F;blog&#x2F;new-project-5ha99y&#x2F;">New Project: 5ha99y</a></h3>
+                <p class="post-meta">February 12, 2026</p>
+                
+                <p>A new project has been added to my open backoffice</p>
+                
+                <p><a href="https:&#x2F;&#x2F;cgutt-hub.github.io&#x2F;5ha99y&#x2F;blog&#x2F;new-project-5ha99y&#x2F;">Read more →</a></p>
+            </div>
+            <hr>
             
             <div class="blog-post-preview">
                 <h3><a href="https:&#x2F;&#x2F;cgutt-hub.github.io&#x2F;5ha99y&#x2F;blog&#x2F;welcome&#x2F;">Welcome to My Research Hub</a></h3>
@@ -90,6 +105,28 @@
         
         function updateThemeIcon(theme) {
             themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Language switching functionality
+        const langToggle = document.getElementById('lang-toggle');
+        if (langToggle) {
+            langToggle.addEventListener('click', () => {
+                const currentPath = window.location.pathname;
+                const basePath = 'https://cgutt-hub.github.io/5ha99y';
+                const basePathParsed = new URL(basePath).pathname.replace(/\/$/, '');
+                
+                // Check if we're on German version
+                if (currentPath.includes('/de/') || currentPath.endsWith('/de')) {
+                    // Switch to English - remove /de/
+                    const newPath = currentPath.replace('/de/', '/').replace(/\/de$/, '/');
+                    window.location.href = newPath;
+                } else {
+                    // Switch to German - add /de/
+                    const pathAfterBase = currentPath.replace(basePathParsed, '');
+                    const newPath = basePathParsed + '/de' + (pathAfterBase || '/');
+                    window.location.href = newPath;
+                }
+            });
         }
     </script>
 </body>
