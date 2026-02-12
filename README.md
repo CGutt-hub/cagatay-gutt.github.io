@@ -2,6 +2,8 @@
 
 A static website built with [Zola](https://www.getzola.org/) that automatically syncs content from your scientific profiles.
 
+> 📚 **New to GitHub Pages setup?** See [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) for all setup guides.
+
 ## Website URL
 
 **https://cgutt-hub.github.io/cagatay-gutt.github.io**
@@ -135,6 +137,16 @@ Edit files in `content/`:
 
 - **main** - Source code (you edit here, GitHub Actions deploys from this branch)
 - **copilot/** - Development branches (optional)
+
+## Documentation
+
+Comprehensive setup guides are available:
+
+- **[📚 Documentation Index](DOCUMENTATION_INDEX.md)** - Start here to find the right guide
+- **[🚀 Quick Start](QUICK_START.md)** - 5-minute setup guide  
+- **[🎯 Settings Walkthrough](SETTINGS_WALKTHROUGH.md)** - Visual step-by-step guide
+- **[📖 Complete Setup Guide](GITHUB_PAGES_SETUP.md)** - Full reference and troubleshooting
+- **[🗺️ Settings Diagram](SETTINGS_DIAGRAM.txt)** - ASCII visual map
 
 ## Advanced
 
