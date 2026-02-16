@@ -223,7 +223,8 @@ nav a:hover, nav a.active {
     z-index: 1000;
 }
 
-.nav-dropdown:hover .dropdown-menu {
+.nav-dropdown:hover .dropdown-menu,
+.nav-dropdown.active .dropdown-menu {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -240,14 +241,6 @@ nav a:hover, nav a.active {
 .dropdown-menu a:hover {
     background: var(--bg-tertiary);
     color: var(--accent-primary);
-}
-
-.dropdown-overview {
-    margin-top: 0.25rem;
-    padding-top: 0.75rem !important;
-    border-top: 1px solid var(--border-primary) !important;
-    font-style: italic;
-    font-size: var(--font-size-xs);
 }
 
 .header-right {

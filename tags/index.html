@@ -23,11 +23,9 @@
                     <a href="https://cgutt-hub.github.io/5ha99y/publications">publications</a>
                     <a href="https://cgutt-hub.github.io/5ha99y/projects">projects</a>
                     <div class="nav-dropdown">
-                        <a href="https://cgutt-hub.github.io/5ha99y/tools" class="dropdown-trigger">tools ▾</a>
+                        <a href="#" class="dropdown-trigger">tools ▾</a>
                         <div class="dropdown-menu">
-                            <a href="https://cgutt-hub.github.io/paper-finder/web/">📄 Paper Finder</a>
-                            <a href="https://github.com/CGutt-hub/searxng5ha99y">🔍 SearXNG</a>
-                            <a href="https://cgutt-hub.github.io/5ha99y/tools" class="dropdown-overview">All Tools →</a>
+                            <a href="https://cgutt-hub.github.io/paper-finder/web/">Paper Finder</a>
                         </div>
                     </div>
                     <a href="https://cgutt-hub.github.io/5ha99y/blog">blog</a>
@@ -135,6 +133,36 @@
             themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
         }
 
+        // Dropdown menu functionality (mobile-friendly)
+        const dropdowns = document.querySelectorAll('.nav-dropdown');
+        
+        dropdowns.forEach(dropdown => {
+            const trigger = dropdown.querySelector('.dropdown-trigger');
+            
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Close other dropdowns
+                dropdowns.forEach(other => {
+                    if (other !== dropdown) {
+                        other.classList.remove('active');
+                    }
+                });
+                
+                // Toggle current dropdown
+                dropdown.classList.toggle('active');
+            });
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-dropdown')) {
+                dropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+            }
+        });
     </script>
 </body>
 </html>
