@@ -1,0 +1,47 @@
+<footer>
+    <div class="footer-content">
+        <div class="footer-main">
+            <p class="site-info">This site syncs automatically with GitHub (projects) and ORCID (publications).</p>
+            <div class="contact-links">
+                <a href="https://www.linkedin.com/in/cagatay-gutt" target="_blank" rel="noopener">LinkedIn</a>
+                <span class="footer-sep">·</span>
+                <a href="https://orcid.org/0000-0002-1774-532X" target="_blank" rel="noopener">ORCID</a>
+                <span class="footer-sep">·</span>
+                <a href="https://github.com/CGutt-hub" target="_blank" rel="noopener">GitHub</a>
+                <span class="footer-sep">·</span>
+                <a href="https://cgutt-hub.github.io/5ha99y/blog/atom.xml" target="_blank" rel="noopener">RSS</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; <span class="current-year"></span> Çağatay Özcan Jagiello Gutt</p>
+            <p class="footer-tech">Built with <a href="https://www.getzola.org/" target="_blank" rel="noopener">Zola</a></p>
+        </div>
+    </div>
+</footer>
+<script>
+    // Update current year
+    document.querySelector('.current-year').textContent = new Date().getFullYear();
+    
+    // Theme switching functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.querySelector('.theme-icon');
+    const html = document.documentElement;
+    
+    // Check for saved theme preference or default to 'dark'
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    html.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+    
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+    });
+    
+    function updateThemeIcon(theme) {
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+</script>
