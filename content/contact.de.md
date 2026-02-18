@@ -6,6 +6,7 @@ title = "Kontakt"
 
 Haben Sie eine Frage oder möchten Sie zusammenarbeiten? Senden Sie mir eine Nachricht über das folgende Formular:
 
+<div class="card">
 <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="contact-form">
 <input type="hidden" name="access_key" value="2cb0577f-8acd-46d2-a940-3d47ff9a507d">
 <input type="hidden" name="redirect" value="https://cgutt-hub.github.io/5ha99y/de/contact">
@@ -36,3 +37,4 @@ Haben Sie eine Frage oder möchten Sie zusammenarbeiten? Senden Sie mir eine Nac
 
 <button type="submit" class="submit-btn">Nachricht senden</button>
 </form>
+</div>
