@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Toolbox | 5ha99y</title>
+    <meta name="description" content="Python toolbox for multimodal physiological data processing and analysis.">
+    <link rel="stylesheet" href="../style.css">
+    <script>
+        // System theme detection - runs before render to prevent flash
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+            } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Header loaded from 5ha99y -->
+    <div id="header-placeholder"></div>
+
+    <main>
+        <div class="content">
+
+            <h1>Analysis Toolbox</h1>
+            <p>Python toolbox for robust processing, feature extraction, and statistical analysis of multimodal physiological data.</p>
+
+            <h2>What is the Analysis Toolbox?</h2>
+
+            <p>The Analysis Toolbox emerged from hands-on research in cognitive neuroscience, specifically developed to tackle the challenges of processing and analyzing complex physiological signals. When working with multimodal data like EEG, fNIRS, and ECG simultaneously, researchers need reliable pipelines that handle preprocessing, artifact removal, feature extraction, and statistical modeling in a coherent workflow.</p>
+
+            <p>This toolbox provides exactly that: a collection of <strong>validated signal processing methods</strong> and <strong>statistical analysis routines</strong> built on top of established scientific Python libraries (NumPy, SciPy, MNE, Statsmodels). It automates common analysis tasks while maintaining flexibility for custom workflows, helping researchers move from raw physiological recordings to interpretable results more efficiently.</p>
+
+            <p>Whether you're studying neural-autonomic synchrony, investigating brain-computer interfaces, or analyzing embodied cognition experiments, the toolbox offers tested building blocks that integrate smoothly into your research pipeline. All methods are documented and follow open science principles, supporting reproducibility and collaborative development.</p>
+
+            <h2>Key Features</h2>
+
+            <ul>
+                <li><strong>Multimodal Signal Processing</strong> — Unified preprocessing for EEG, fNIRS, ECG, PPG, and EDA recordings</li>
+                <li><strong>Feature Extraction</strong> — Automated computation of time-domain, frequency-domain, and complexity features</li>
+                <li><strong>Statistical Analysis</strong> — Built-in routines for univariate and multivariate statistical modeling</li>
+                <li><strong>Neural-Autonomic Integration</strong> — Methods for quantifying synchrony between brain activity and autonomic signals</li>
+                <li><strong>Quality Assurance</strong> — Robust artifact detection and data quality metrics</li>
+                <li><strong>Open Source</strong> — MIT licensed, fully documented, and designed for extension</li>
+            </ul>
+
+            <h2>Download & Documentation</h2>
+
+            <div class="card">
+                <p>The toolbox is available as an open-source Python package on GitHub. Full documentation, installation instructions, and example workflows are included in the repository.</p>
+                
+                <div style="margin-top: 1.5rem;">
+                    <a href="https://github.com/CGutt-hub/AnalysisToolbox" target="_blank" rel="noopener" style="display: inline-block;">
+                        <button type="button">View on GitHub →</button>
+                    </a>
+                </div>
+
+                <p style="margin-top: 1.5rem; font-size: var(--font-size-sm); color: var(--text-muted);">
+                    <strong>Requirements:</strong> Python 3.8+, NumPy, SciPy, MNE-Python, Statsmodels<br>
+                    <strong>License:</strong> MIT<br>
+                    <strong>Status:</strong> Active development
+                </p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer loaded from 5ha99y -->
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Load header
+        fetch('../header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+            });
+
+        // Load footer
+        fetch('../footer.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('footer-placeholder').innerHTML = html;
+            });
+    </script>
+</body>
+</html>
