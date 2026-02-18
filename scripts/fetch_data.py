@@ -62,6 +62,13 @@ def slugify(text: str) -> str:
     text = re.sub(r'[\s_]+', '-', text)
     return text.strip('-')
 
+def sanitize_markdown(text: str) -> str:
+    """Sanitize markdown content to prevent Zola build errors.
+    Fixes empty links like [text]() that cause 'missing URL' errors."""
+    # Replace links with empty URLs: [text]() -> text
+    text = re.sub(r'\[([^\]]*)\]\(\s*\)', r'\1', text)
+    return text
+
 def fetch_github_repos() -> list[GitHubRepo]:
     """Fetch public repositories from GitHub with README content"""
     url = f"https://api.github.com/users/{GITHUB_USERNAME}/repos"
@@ -87,7 +94,7 @@ def fetch_github_repos() -> list[GitHubRepo]:
             try:
                 readme_response = requests.get(readme_url, headers={**headers, 'Accept': 'application/vnd.github.v3.raw'})
                 if readme_response.status_code == 200:
-                    readme_content = readme_response.text.strip()
+                    readme_content = sanitize_markdown(readme_response.text.strip())
             except:
                 pass
             
