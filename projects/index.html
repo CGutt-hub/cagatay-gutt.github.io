@@ -25,7 +25,7 @@
                     <div class="nav-dropdown">
                         <a href="#" class="dropdown-trigger">tools ▾</a>
                         <div class="dropdown-menu">
-                            <a href="https://cgutt-hub.github.io/paper-finder/web/">Paper Finder</a>
+                            <a href="https://cgutt-hub.github.io/paperFinder/">Paper Finder</a>
                         </div>
                     </div>
                     <a href="https://cgutt-hub.github.io/5ha99y/blog">blog</a>
@@ -55,7 +55,7 @@
 <hr />
 <h3 id="5ha99y">5ha99y</h3>
 <p><strong>Language:</strong> Python<br />
-<strong>Last updated:</strong> 2026-02-16</p>
+<strong>Last updated:</strong> 2026-02-18</p>
 <details>
 <summary>View README</summary>
 <h1 id="zola-github-pages-site-scientific-hub">Zola GitHub Pages Site - Scientific Hub</h1>
@@ -192,6 +192,169 @@
 </details>
 <p><a rel="external" href="https://github.com/CGutt-hub/5ha99y">View on GitHub →</a></p>
 <hr />
+<h3 id="paperfinder">paperFinder</h3>
+<p><strong>Language:</strong> Python<br />
+<strong>Last updated:</strong> 2026-02-18</p>
+<details>
+<summary>View README</summary>
+<h1 id="paper-finder-microscope-books">Paper Finder 🔬📚</h1>
+<p><strong>AI-Powered Academic Paper Search Tool with Zotero Integration</strong></p>
+<p>Find exactly the papers you need using semantic search, multi-dimensional filtering, and push them directly to your Zotero library.</p>
+<p><strong>Live Demo</strong>: <a rel="external" href="https://cgutt-hub.github.io/paperFinder">cgutt-hub.github.io/paperFinder</a></p>
+<h2 id="two-ways-to-use">Two Ways to Use</h2>
+<ol>
+<li><strong>Web Version</strong> (recommended) - No installation needed, runs in your browser</li>
+<li><strong>CLI Version</strong> - Python command-line tool for power users</li>
+</ol>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>🔍 Multi-Source Search</strong>: Search Semantic Scholar and arXiv simultaneously</li>
+<li><strong>🤖 AI-Powered Ranking</strong>: Uses OpenAI embeddings to rank papers by semantic relevance</li>
+<li><strong>📊 Multi-Dimensional Filtering</strong>: Filter by year, citations, fields, PDF availability, and more</li>
+<li><strong>📚 Zotero Integration</strong>: Push papers directly to your Zotero library with one command</li>
+<li><strong>🎯 Query Refinement</strong>: AI expands your search terms for better results</li>
+<li><strong>📈 Research Analysis</strong>: Identify research gaps and trends in any field</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Navigate to the project directory</span></span>
+<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> Desktop/paper-finder</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Create a virtual environment (recommended)</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> -m venv venv</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">venv\Scripts\activate</span><span style="color: #9399B2;font-style: italic;">  # Windows</span></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># or: source venv/bin/activate  # Mac/Linux</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Install dependencies</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install -r requirements.txt</span></span></code></pre><h2 id="configuration">Configuration</h2>
+<ol>
+<li>
+<p>Copy the example config file:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">copy</span><span style="color: #A6E3A1;"> .env.example .env</span></span></code></pre></li>
+<li>
+<p>Edit <code>.env</code> and add your API keys:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span># Required for AI features (semantic ranking, query refinement)</span></span>
+<span class="giallo-l"><span>OPENAI_API_KEY=your_openai_key</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span># Required for Zotero integration</span></span>
+<span class="giallo-l"><span>ZOTERO_API_KEY=your_zotero_key</span></span>
+<span class="giallo-l"><span>ZOTERO_USER_ID=your_user_id</span></span></code></pre></li>
+</ol>
+<h3 id="getting-api-keys">Getting API Keys</h3>
+<ul>
+<li><strong>OpenAI</strong>: https://platform.openai.com/api-keys</li>
+<li><strong>Zotero</strong>:
+<ol>
+<li>Go to https://www.zotero.org/settings/keys</li>
+<li>Create a new key with read/write access</li>
+<li>Your User ID is shown on the same page</li>
+</ol>
+</li>
+</ul>
+<h2 id="usage">Usage</h2>
+<h3 id="basic-search">Basic Search</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Simple search</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py search &quot;transformer attention mechanisms&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># With filters</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py search &quot;deep learning&quot; --year-start</span><span style="color: #FAB387;"> 2022</span><span style="color: #A6E3A1;"> --min-citations</span><span style="color: #FAB387;"> 50</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Search specific sources</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py search &quot;quantum computing&quot; --sources arxiv</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Save results to file</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py search &quot;CRISPR applications&quot; -o results.json</span></span></code></pre><h3 id="advanced-search-options">Advanced Search Options</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py search &quot;machine learning healthcare&quot;</span><span style="color: #F5C2E7;"> \</span></span>
+<span class="giallo-l"><span style="color: #A6E3A1;">    --year-start</span><span style="color: #FAB387;"> 2021</span><span style="color: #F5C2E7;"> \</span></span>
+<span class="giallo-l"><span style="color: #A6E3A1;">    --year-end</span><span style="color: #FAB387;"> 2024</span><span style="color: #F5C2E7;"> \</span></span>
+<span class="giallo-l"><span style="color: #A6E3A1;">    --min-citations</span><span style="color: #FAB387;"> 100</span><span style="color: #F5C2E7;"> \</span></span>
+<span class="giallo-l"><span style="color: #A6E3A1;">    --fields &quot;Computer Science&quot;</span><span style="color: #F5C2E7;"> \</span></span>
+<span class="giallo-l"><span style="color: #A6E3A1;">    --pdf-only</span><span style="color: #F5C2E7;"> \</span></span>
+<span class="giallo-l"><span style="color: #A6E3A1;">    --ai-refine</span><span style="color: #F5C2E7;"> \</span></span>
+<span class="giallo-l"><span style="color: #A6E3A1;">    -n</span><span style="color: #FAB387;"> 30</span></span></code></pre><h3 id="push-to-zotero">Push to Zotero</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Push specific papers (after searching)</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py push --indices 1,2,3</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Push all papers to a new collection</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py push --indices all --collection &quot;ML Papers 2024&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Skip duplicates already in library</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py push --indices all --no-duplicates</span></span></code></pre><h3 id="research-analysis">Research Analysis</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Analyze research landscape and identify gaps</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py analyze &quot;quantum machine learning&quot;</span></span></code></pre><h3 id="list-zotero-collections">List Zotero Collections</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py collections</span></span></code></pre><h3 id="check-configuration">Check Configuration</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py status</span></span></code></pre><h2 id="command-reference">Command Reference</h2>
+<table><thead><tr><th>Command</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>search</code></td><td>Search for papers across multiple sources</td></tr>
+<tr><td><code>push</code></td><td>Push found papers to Zotero</td></tr>
+<tr><td><code>analyze</code></td><td>AI analysis of research landscape</td></tr>
+<tr><td><code>collections</code></td><td>List Zotero collections</td></tr>
+<tr><td><code>status</code></td><td>Check API configuration status</td></tr>
+</tbody></table>
+<h3 id="search-options">Search Options</h3>
+<table><thead><tr><th>Option</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>-n, --limit</code></td><td>Maximum number of results (default: 20)</td></tr>
+<tr><td><code>-ys, --year-start</code></td><td>Filter papers from this year</td></tr>
+<tr><td><code>-ye, --year-end</code></td><td>Filter papers up to this year</td></tr>
+<tr><td><code>-c, --min-citations</code></td><td>Minimum citation count</td></tr>
+<tr><td><code>-f, --fields</code></td><td>Fields of study (can use multiple)</td></tr>
+<tr><td><code>-s, --sources</code></td><td>Sources: semantic_scholar, arxiv</td></tr>
+<tr><td><code>--ai-rank/--no-ai-rank</code></td><td>Use AI ranking (default: on)</td></tr>
+<tr><td><code>--ai-refine/--no-ai-refine</code></td><td>AI query expansion</td></tr>
+<tr><td><code>--pdf-only</code></td><td>Only papers with available PDF</td></tr>
+<tr><td><code>-o, --output</code></td><td>Save results to JSON file</td></tr>
+<tr><td><code>-v, --verbose</code></td><td>Show abstracts in output</td></tr>
+</tbody></table>
+<h2 id="how-it-works-1">How It Works</h2>
+<h3 id="semantic-search">Semantic Search</h3>
+<ol>
+<li>Your query is optionally refined by AI to include related terms</li>
+<li>Papers are fetched from Semantic Scholar and arXiv</li>
+<li>Each paper is embedded using OpenAI's text-embedding-3-small model</li>
+<li>Papers are ranked by cosine similarity to your query</li>
+<li>Multi-dimensional filters narrow down results</li>
+</ol>
+<h3 id="zotero-integration">Zotero Integration</h3>
+<p>Papers are converted to Zotero's format with:</p>
+<ul>
+<li>Proper item type (journalArticle, preprint)</li>
+<li>Authors, abstract, year, venue</li>
+<li>DOI and arXiv ID when available</li>
+<li>PDF links attached automatically</li>
+<li>Tags from fields of study</li>
+</ul>
+<h2 id="examples">Examples</h2>
+<h3 id="find-recent-high-impact-ml-papers">Find Recent High-Impact ML Papers</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py search &quot;large language models reasoning&quot;</span><span style="color: #F5C2E7;"> \</span></span>
+<span class="giallo-l"><span style="color: #A6E3A1;">    --year-start</span><span style="color: #FAB387;"> 2023</span><span style="color: #F5C2E7;"> \</span></span>
+<span class="giallo-l"><span style="color: #A6E3A1;">    --min-citations</span><span style="color: #FAB387;"> 100</span><span style="color: #F5C2E7;"> \</span></span>
+<span class="giallo-l"><span style="color: #A6E3A1;">    --ai-refine</span></span></code></pre><h3 id="survey-a-research-area">Survey a Research Area</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py search &quot;federated learning privacy&quot; -n</span><span style="color: #FAB387;"> 50</span><span style="color: #A6E3A1;"> -v -o survey.json</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py analyze &quot;federated learning privacy&quot;</span></span></code></pre><h3 id="build-a-reading-list">Build a Reading List</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py search &quot;reinforcement learning robotics&quot; --pdf-only</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> paper_finder.py push --indices 1-10 --collection &quot;RL Robotics Reading List&quot;</span></span></code></pre><h2 id="troubleshooting-1">Troubleshooting</h2>
+<h3 id="rate-limiting">Rate Limiting</h3>
+<p>If you hit rate limits:</p>
+<ul>
+<li>Semantic Scholar: Get an API key at https://www.semanticscholar.org/product/api</li>
+<li>Wait a few seconds between searches</li>
+</ul>
+<h3 id="no-results">No Results</h3>
+<ul>
+<li>Try broader search terms</li>
+<li>Use <code>--ai-refine</code> to expand your query</li>
+<li>Check if filters are too restrictive</li>
+</ul>
+<h3 id="zotero-errors">Zotero Errors</h3>
+<ul>
+<li>Verify your API key has write permissions</li>
+<li>Check your User ID is correct</li>
+<li>Ensure you're using <code>user</code> library type (not <code>group</code>)</li>
+</ul>
+<h2 id="license">License</h2>
+<p>MIT License</p>
+</details>
+<p><a rel="external" href="https://github.com/CGutt-hub/paperFinder">View on GitHub →</a></p>
+<hr />
 <h3 id="emotiview">EmotiView</h3>
 <p><strong>Language:</strong> Nextflow<br />
 <strong>Last updated:</strong> 2026-02-12</p>
@@ -306,7 +469,7 @@
 <span class="giallo-l"><span>│   ├── analyzers/       # Analysis modules (statistics, feature extraction)</span></span>
 <span class="giallo-l"><span>│   ├── processors/      # Data transformation modules (filtering, epoching)</span></span>
 <span class="giallo-l"><span>│   ├── readers/         # File format readers (XDF, TXT, etc.)</span></span>
-<span class="giallo-l"><span>│   └── utils/           # Infrastructure (Nextflow wrapper, plotting)</span></span></code></pre><h2 id="usage">Usage</h2>
+<span class="giallo-l"><span>│   └── utils/           # Infrastructure (Nextflow wrapper, plotting)</span></span></code></pre><h2 id="usage-1">Usage</h2>
 <h3 id="creating-a-pipeline">Creating a Pipeline</h3>
 <p>Pipelines are defined in Nextflow DSL2. A typical pipeline:</p>
 <ol>
@@ -315,7 +478,7 @@
 <li><strong>Tracks completion</strong> via watchdog threads that monitor terminal processes</li>
 <li><strong>Syncs results</strong> to git when each participant completes</li>
 </ol>
-<h3 id="configuration">Configuration</h3>
+<h3 id="configuration-1">Configuration</h3>
 <p>Pipelines use a <code>parameters.config</code> file to define:</p>
 <ul>
 <li>Input/output directories</li>
@@ -388,7 +551,7 @@
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 Çağatay Özcan Jagiello Gutt</p>
-                <p class="footer-tech">Built with <a href="https://www.getzola.org/" target="_blank" rel="noopener">Zola</a> · Last build: 2026-02-16</p>
+                <p class="footer-tech">Built with <a href="https://www.getzola.org/" target="_blank" rel="noopener">Zola</a> · Last build: 2026-02-18</p>
             </div>
         </div>
     </footer>

@@ -5,8 +5,33 @@
     <link rel="self" type="application/atom+xml" href="https://cgutt-hub.github.io/5ha99y/tags/project/atom.xml"/>
     <link rel="alternate" type="text/html" href="https://cgutt-hub.github.io/5ha99y"/>
     <generator uri="https://www.getzola.org/">Zola</generator>
-    <updated>2026-02-12T00:00:00+00:00</updated>
+    <updated>2026-02-18T00:00:00+00:00</updated>
     <id>https://cgutt-hub.github.io/5ha99y/tags/project/atom.xml</id>
+    <entry xml:lang="en">
+        <title>New Project: paperFinder</title>
+        <published>2026-02-18T00:00:00+00:00</published>
+        <updated>2026-02-18T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://cgutt-hub.github.io/5ha99y/blog/new-project-paperfinder/"/>
+        <id>https://cgutt-hub.github.io/5ha99y/blog/new-project-paperfinder/</id>
+        
+        <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/new-project-paperfinder/">&lt;p&gt;A new project is now available in my &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&quot;&gt;GitHub backoffice&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;paperfinder&quot;&gt;paperFinder&lt;&#x2F;h2&gt;
+&lt;p&gt;No description&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Language:&lt;&#x2F;strong&gt; Python&lt;&#x2F;p&gt;
+&lt;p&gt;This project contains analysis pipelines, data, and documentation following my commitment to open and transparent science.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;paperFinder&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
     <entry xml:lang="en">
         <title>New Project: 5ha99y</title>
         <published>2026-02-12T00:00:00+00:00</published>
