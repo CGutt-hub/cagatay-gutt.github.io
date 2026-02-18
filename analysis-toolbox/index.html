@@ -28,42 +28,46 @@
         <div class="content">
 
             <h1>Analysis Toolbox</h1>
-            <p>Python toolbox for robust processing, feature extraction, and statistical analysis of multimodal physiological data.</p>
+            <p>A versatile Python toolkit for data analysis, statistical modeling, and scientific computing across research domains.</p>
 
             <h2>What is the Analysis Toolbox?</h2>
 
-            <p>The Analysis Toolbox emerged from hands-on research in cognitive neuroscience, specifically developed to tackle the challenges of processing and analyzing complex physiological signals. When working with multimodal data like EEG, fNIRS, and ECG simultaneously, researchers need reliable pipelines that handle preprocessing, artifact removal, feature extraction, and statistical modeling in a coherent workflow.</p>
+            <p>The Analysis Toolbox is a continuously evolving collection of analysis methods and computational tools built for scientific research. While it originated from work with physiological signals (EEG, fNIRS, ECG), it has grown into a <strong>general-purpose analysis framework</strong> designed to handle diverse data analysis challenges across different research domains.</p>
 
-            <p>This toolbox provides exactly that: a collection of <strong>validated signal processing methods</strong> and <strong>statistical analysis routines</strong> built on top of established scientific Python libraries (NumPy, SciPy, MNE, Statsmodels). It automates common analysis tasks while maintaining flexibility for custom workflows, helping researchers move from raw physiological recordings to interpretable results more efficiently.</p>
+            <p>Rather than being a fixed toolkit, it's an <strong>active development project</strong> that expands based on real research needs. Missing modules are added as new analytical challenges arise, and the architecture is designed to accommodate everything from time-series analysis and statistical modeling to machine learning pipelines and custom computational methods.</p>
 
-            <p>Whether you're studying neural-autonomic synchrony, investigating brain-computer interfaces, or analyzing embodied cognition experiments, the toolbox offers tested building blocks that integrate smoothly into your research pipeline. All methods are documented and follow open science principles, supporting reproducibility and collaborative development.</p>
+            <p>The toolbox provides <strong>validated, reusable components</strong> built on scientific Python libraries (NumPy, SciPy, Pandas, Statsmodels). Whether you're processing sensor data, running statistical analyses, building data pipelines, or developing custom algorithms, the toolbox offers tested building blocks that integrate into your workflow. All code follows open science principles and welcomes contributions—if you're missing a module or have suggestions, they're actively considered for implementation.</p>
 
-            <h2>Key Features</h2>
+            <h2>Core Capabilities</h2>
 
             <ul>
-                <li><strong>Multimodal Signal Processing</strong> — Unified preprocessing for EEG, fNIRS, ECG, PPG, and EDA recordings</li>
-                <li><strong>Feature Extraction</strong> — Automated computation of time-domain, frequency-domain, and complexity features</li>
-                <li><strong>Statistical Analysis</strong> — Built-in routines for univariate and multivariate statistical modeling</li>
-                <li><strong>Neural-Autonomic Integration</strong> — Methods for quantifying synchrony between brain activity and autonomic signals</li>
-                <li><strong>Quality Assurance</strong> — Robust artifact detection and data quality metrics</li>
-                <li><strong>Open Source</strong> — MIT licensed, fully documented, and designed for extension</li>
+                <li><strong>Signal Processing</strong> — Time-series analysis, filtering, spectral methods, and feature extraction</li>
+                <li><strong>Statistical Analysis</strong> — Univariate and multivariate testing, regression, and statistical modeling</li>
+                <li><strong>Data Pipeline Tools</strong> — Preprocessing, quality assurance, and automated workflows</li>
+                <li><strong>Machine Learning Integration</strong> — Scikit-learn compatible transformers and utilities</li>
+                <li><strong>Physiological Computing</strong> — Specialized methods for EEG, fNIRS, ECG, and other biosignals</li>
+                <li><strong>Extensible Architecture</strong> — Modular design for adding custom analysis methods</li>
+                <li><strong>Open Development</strong> — MIT licensed, documented, and accepting contributions</li>
             </ul>
 
-            <h2>Download & Documentation</h2>
+            <h2>Download & Installation</h2>
 
             <div class="card">
-                <p>The toolbox is available as an open-source Python package on GitHub. Full documentation, installation instructions, and example workflows are included in the repository.</p>
+                <p>The toolbox is available as an open-source Python package. Download the repository directly or clone it for development. Full documentation and example workflows are included.</p>
                 
-                <div style="margin-top: 1.5rem;">
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="https://github.com/CGutt-hub/AnalysisToolbox/archive/refs/heads/main.zip" style="display: inline-block;">
+                        <button type="button">Download ZIP</button>
+                    </a>
                     <a href="https://github.com/CGutt-hub/AnalysisToolbox" target="_blank" rel="noopener" style="display: inline-block;">
-                        <button type="button">View on GitHub →</button>
+                        <button type="button" style="background: var(--bg-tertiary); color: var(--text-primary);">View on GitHub</button>
                     </a>
                 </div>
 
                 <p style="margin-top: 1.5rem; font-size: var(--font-size-sm); color: var(--text-muted);">
-                    <strong>Requirements:</strong> Python 3.8+, NumPy, SciPy, MNE-Python, Statsmodels<br>
+                    <strong>Requirements:</strong> Python 3.8+, NumPy, SciPy, Pandas, Statsmodels<br>
                     <strong>License:</strong> MIT<br>
-                    <strong>Status:</strong> Active development
+                    <strong>Status:</strong> Active development — suggestions welcome
                 </p>
             </div>
 
