@@ -548,7 +548,7 @@ footer .footer-content {
    ============================================ */
 
 .contact-form {
-    max-width: 600px;
+    width: 100%;
 }
 
 .form-group {
