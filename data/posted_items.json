@@ -19,9 +19,15 @@
     "5ha99y": {
       "last_pushed": "2026-02-12T13:24:02Z",
       "last_posted": "2026-02-12"
+    },
+    "paperFinder": {
+      "last_pushed": "2026-02-18T16:29:57Z",
+      "last_posted": "2026-02-18"
     }
   },
-  "publications": [],
+  "publications": [
+    "Neural-Autonomic Synchrony and Embodied Integration"
+  ],
   "website": {
     "last_pushed": "",
     "last_posted": ""
