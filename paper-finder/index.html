@@ -425,7 +425,7 @@
                     <a href="https://github.com/CGutt-hub/paperFinder" target="_blank" rel="noopener" style="display: inline-block;">
                         <button type="button" style="background: var(--bg-tertiary); color: var(--text-primary);">View on GitHub</button>
                     </a>
-                    <a href="#search-input" style="display: inline-block;">
+                    <a href="#" id="try-online-btn" style="display: inline-block;">
                         <button type="button" style="background: var(--bg-tertiary); color: var(--text-primary);">Try It Online</button>
                     </a>
                 </div>
@@ -437,7 +437,8 @@
                 </p>
             </div>
 
-            <!-- Search -->
+            <!-- Search (hidden by default, toggled by Try It Online) -->
+            <div id="try-online-section" class="hidden">
             <div class="card">
                 <div class="form-group">
                     <label for="search-input">Search Query</label>
@@ -506,6 +507,7 @@
 
             <!-- Empty state -->
             <section id="empty-state" class="hidden"></section>
+            </div><!-- end try-online-section -->
         </div>
     </main>
 
@@ -546,6 +548,17 @@
         // Load components on page load
         loadComponent('../header.html', 'header-placeholder');
         loadComponent('../footer.html', 'footer-placeholder');
+
+        // Try It Online toggle
+        document.getElementById('try-online-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = document.getElementById('try-online-section');
+            section.classList.toggle('hidden');
+            if (!section.classList.contains('hidden')) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.getElementById('search-input').focus();
+            }
+        });
 
         // Example search buttons
         document.querySelectorAll('[data-query]').forEach(btn => {

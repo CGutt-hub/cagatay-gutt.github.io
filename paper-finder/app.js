@@ -29,10 +29,20 @@ function loadSettings() {
         }
     }
     
-    // Populate settings form
-    document.getElementById('openai-key').value = state.settings.openaiKey || '';
-    document.getElementById('zotero-key').value = state.settings.zoteroKey || '';
-    document.getElementById('zotero-user').value = state.settings.zoteroUser || '';
+    // Populate settings form (elements may not exist)
+    const openaiEl = document.getElementById('openai-key');
+    const zoteroKeyEl = document.getElementById('zotero-key');
+    const zoteroUserEl = document.getElementById('zotero-user');
+    if (openaiEl) openaiEl.value = state.settings.openaiKey || '';
+    if (zoteroKeyEl) zoteroKeyEl.value = state.settings.zoteroKey || '';
+    if (zoteroUserEl) zoteroUserEl.value = state.settings.zoteroUser || '';
+}
+
+/** Safely bind an event listener - no-op if element doesn't exist */
+function safeOn(id, event, handler) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener(event, handler);
+    return el;
 }
 
 function saveSettings() {
@@ -701,6 +711,38 @@ function downloadJSON() {
     URL.revokeObjectURL(url);
 }
 
+function downloadBibTeX() {
+    const papers = state.selectedPapers.size > 0
+        ? Array.from(state.selectedPapers).map(i => state.papers[i])
+        : state.papers;
+
+    const bibtex = papers.map((paper, idx) => {
+        const key = (paper.authors?.[0]?.split(' ').pop() || 'unknown') +
+                    (paper.year || '') +
+                    (paper.title?.split(' ')[0]?.toLowerCase() || '');
+        const fields = [
+            `  title     = {${paper.title || ''}}`,
+            `  author    = {${(paper.authors || []).join(' and ')}}`,
+            `  year      = {${paper.year || ''}}`,
+            paper.venue ? `  journal   = {${paper.venue}}` : null,
+            paper.doi ? `  doi       = {${paper.doi}}` : null,
+            paper.url ? `  url       = {${paper.url}}` : null,
+            paper.abstract ? `  abstract  = {${paper.abstract}}` : null,
+        ].filter(Boolean).join(',\n');
+        return `@article{${key},\n${fields}\n}`;
+    }).join('\n\n');
+
+    const blob = new Blob([bibtex], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'papers.bib';
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
 // ============================================
 // Theme Toggle
 // ============================================
@@ -737,20 +779,22 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     
     // Search
-    document.getElementById('search-btn').addEventListener('click', performSearch);
-    document.getElementById('search-input').addEventListener('keypress', (e) => {
+    safeOn('search-btn', 'click', performSearch);
+    safeOn('search-input', 'keypress', (e) => {
         if (e.key === 'Enter') performSearch();
     });
     
     // Filters toggle
-    document.getElementById('filters-toggle').addEventListener('click', () => {
+    safeOn('filters-toggle', 'click', () => {
         const panel = document.getElementById('filters-panel');
         const toggle = document.getElementById('filters-toggle');
-        panel.classList.toggle('hidden');
-        toggle.classList.toggle('active');
-        toggle.querySelector('span').textContent = panel.classList.contains('hidden') 
-            ? '▸ advanced filters' 
-            : '▾ advanced filters';
+        if (panel && toggle) {
+            panel.classList.toggle('hidden');
+            toggle.classList.toggle('active');
+            toggle.querySelector('span').textContent = panel.classList.contains('hidden') 
+                ? '▸ advanced filters' 
+                : '▾ advanced filters';
+        }
     });
     
     // Example searches
@@ -762,7 +806,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Paper selection
-    document.getElementById('results-list').addEventListener('click', (e) => {
+    safeOn('results-list', 'click', (e) => {
         const card = e.target.closest('.paper-card');
         const checkbox = e.target.closest('.paper-checkbox');
         
@@ -781,40 +825,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Select all
-    document.getElementById('select-all-btn').addEventListener('click', selectAllPapers);
+    safeOn('select-all-btn', 'click', selectAllPapers);
     
     // Export buttons
-    document.getElementById('export-zotero-btn').addEventListener('click', exportToZotero);
-    document.getElementById('export-json-btn').addEventListener('click', downloadJSON);
+    safeOn('export-zotero-btn', 'click', exportToZotero);
+    safeOn('export-json-btn', 'click', downloadJSON);
+    safeOn('export-bibtex-btn', 'click', downloadBibTeX);
     
     // Settings modal
-    document.getElementById('settings-btn').addEventListener('click', () => {
-        document.getElementById('settings-modal').classList.remove('hidden');
+    safeOn('settings-btn', 'click', () => {
+        const modal = document.getElementById('settings-modal');
+        if (modal) modal.classList.remove('hidden');
     });
     
-    document.getElementById('settings-close').addEventListener('click', () => {
-        document.getElementById('settings-modal').classList.add('hidden');
+    safeOn('settings-close', 'click', () => {
+        const modal = document.getElementById('settings-modal');
+        if (modal) modal.classList.add('hidden');
     });
     
-    document.getElementById('settings-save').addEventListener('click', () => {
+    safeOn('settings-save', 'click', () => {
         saveSettings();
     });
     
-    document.getElementById('refresh-collections').addEventListener('click', async () => {
+    safeOn('refresh-collections', 'click', async () => {
         const select = document.getElementById('zotero-collection');
-        const collections = await Zotero.getCollections();
-        
-        select.innerHTML = '<option value="">my library (root)</option>' +
-            collections.map(c => `<option value="${c.key}">${escapeHtml(c.name)}</option>`).join('');
+        if (select) {
+            const collections = await Zotero.getCollections();
+            select.innerHTML = '<option value="">my library (root)</option>' +
+                collections.map(c => `<option value="${c.key}">${escapeHtml(c.name)}</option>`).join('');
+        }
     });
     
     // Paper modal
-    document.getElementById('paper-close').addEventListener('click', () => {
+    safeOn('paper-close', 'click', () => {
         document.getElementById('paper-modal').classList.add('hidden');
     });
     
-    document.getElementById('paper-add-zotero').addEventListener('click', async () => {
-        const index = parseInt(document.getElementById('paper-add-zotero').dataset.index);
+    safeOn('paper-add-zotero', 'click', async () => {
+        const btn = document.getElementById('paper-add-zotero');
+        const index = parseInt(btn.dataset.index);
         const paper = state.papers[index];
         
         if (paper) {
@@ -834,6 +883,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // Theme toggle
-    document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+    // Theme toggle (handled by footer, safe to skip if missing)
+    safeOn('theme-toggle', 'click', toggleTheme);
 });
