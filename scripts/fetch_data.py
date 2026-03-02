@@ -376,10 +376,209 @@ def generate_analysis_page(plot_data: list[PlotData]) -> str:
 title = "Real-Time Research Analysis"
 +++
 
+<style>
+.analysis-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.analysis-sidebar {
+    width: 300px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    padding: 15px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+}
+
+.search-box {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.search-box:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.file-explorer {
+    margin-top: 10px;
+}
+
+.explorer-header {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.repo-section {
+    margin-bottom: 15px;
+}
+
+.repo-name {
+    font-weight: bold;
+    color: var(--accent-primary);
+    margin-bottom: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.repo-name:hover {
+    color: var(--accent-hover);
+}
+
+.repo-toggle {
+    font-size: 0.8rem;
+}
+
+.file-list {
+    margin-left: 15px;
+    display: none;
+}
+
+.file-list.expanded {
+    display: block;
+}
+
+.file-item {
+    padding: 5px 8px;
+    margin: 3px 0;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.file-item:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.file-item.active {
+    background: var(--accent-subtle);
+    color: var(--accent-primary);
+    font-weight: bold;
+}
+
+.file-item.hidden-by-search {
+    display: none;
+}
+
+.analysis-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.no-results {
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 20px;
+    text-align: center;
+}
+
+.download-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-left: 10px;
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+.download-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+
+.download-all-container {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.download-all-btn {
+    padding: 10px 20px;
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.download-all-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .analysis-container {
+        flex-direction: column;
+    }
+    
+    .analysis-sidebar {
+        width: 100%;
+        position: relative;
+        max-height: 400px;
+    }
+    
+    .download-all-container {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+}
+</style>
+
 *Live analysis results from deployed experiments. Automatically synchronized from public-facing research repositories.*
 
-<div id="plot-loading">Loading analysis results...</div>
-<div id="plot-container"></div>
+<div class="analysis-container">
+    <aside class="analysis-sidebar">
+        <input type="text" id="search-box" class="search-box" placeholder="Search files...">
+        
+        <div class="file-explorer">
+            <div class="explorer-header">📁 Repositories</div>
+            <div id="file-tree"></div>
+        </div>
+    </aside>
+
+    <main class="analysis-main">
+        <div id="plot-loading">Loading analysis results...</div>
+        <div id="plot-container"></div>
+    </main>
+</div>
 
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 <script>
@@ -391,18 +590,104 @@ const plotsData = """
     
     content += """;
 
+// Build file tree from plot data
+function buildFileTree() {
+    const fileTree = document.getElementById('file-tree');
+    
+    // Group by repository
+    const repoMap = {};
+    plotsData.forEach((plot, index) => {
+        if (!repoMap[plot.repo_name]) {
+            repoMap[plot.repo_name] = [];
+        }
+        repoMap[plot.repo_name].push({ ...plot, index });
+    });
+    
+    // Create tree structure
+    Object.keys(repoMap).sort().forEach(repoName => {
+        const repoSection = document.createElement('div');
+        repoSection.className = 'repo-section';
+        
+        const repoHeader = document.createElement('div');
+        repoHeader.className = 'repo-name';
+        repoHeader.innerHTML = `<span class="repo-toggle">▶</span> ${repoName}`;
+        
+        const fileList = document.createElement('div');
+        fileList.className = 'file-list';
+        
+        repoMap[repoName].forEach(plot => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.textContent = plot.file_path;
+            fileItem.dataset.index = plot.index;
+            fileItem.dataset.repoName = plot.repo_name;
+            fileItem.dataset.filePath = plot.file_path;
+            
+            fileItem.onclick = () => {
+                // Scroll to plot
+                const plotElement = document.getElementById(`plot-${plot.index}`);
+                if (plotElement) {
+                    plotElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                    // Highlight active file
+                    document.querySelectorAll('.file-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    fileItem.classList.add('active');
+                }
+            };
+            
+            fileList.appendChild(fileItem);
+        });
+        
+        // Toggle expansion
+        repoHeader.onclick = () => {
+            const isExpanded = fileList.classList.toggle('expanded');
+            repoHeader.querySelector('.repo-toggle').textContent = isExpanded ? '▼' : '▶';
+        };
+        
+        repoSection.appendChild(repoHeader);
+        repoSection.appendChild(fileList);
+        fileTree.appendChild(repoSection);
+    });
+    
+    // Expand first repo by default
+    if (fileTree.firstChild) {
+        fileTree.firstChild.querySelector('.repo-name').click();
+    }
+}
+
+// Search functionality
+document.getElementById('search-box')?.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    const fileItems = document.querySelectorAll('.file-item');
+    
+    fileItems.forEach(item => {
+        const repoName = item.dataset.repoName.toLowerCase();
+        const filePath = item.dataset.filePath.toLowerCase();
+        const matches = repoName.includes(query) || filePath.includes(query);
+        
+        if (matches || query === '') {
+            item.classList.remove('hidden-by-search');
+        } else {
+            item.classList.add('hidden-by-search');
+        }
+    });
+});
+
 // Render all analysis results
 function renderPlots() {
     const container = document.getElementById('plot-container');
     const loading = document.getElementById('plot-loading');
     
     if (plotsData.length === 0) {
-        container.innerHTML = '<p><em>No deployed experiments yet. Results will appear here once experiments are ready for public deployment.</em></p>' +
+        container.innerHTML = '<div class="no-results">' +
+                            '<p><em>No deployed experiments yet. Results will appear here once experiments are ready for public deployment.</em></p>' +
                             '<h3>About This Page</h3>' +
                             '<p>This page displays real-time analysis results from deployed research experiments. ' +
                             'Experiments appear here after analysis pipelines have been validated, pilots completed, and proposals approved.</p>' +
                             '<h3>Deployment Workflow</h3>' +
-                            '<ol>' +
+                            '<ol style="text-align: left; display: inline-block;">' +
                             '<li><strong>Analysis Structure</strong> — Pipeline is developed and matured in backoffice</li>' +
                             '<li><strong>Pilot Testing</strong> — Protocol is validated with pilot participants</li>' +
                             '<li><strong>Proposal Approval</strong> — Research proposal is submitted and approved</li>' +
@@ -410,19 +695,24 @@ function renderPlots() {
                             '<li><strong>Real-Time Updates</strong> — Analysis results sync automatically as data is collected</li>' +
                             '</ol>' +
                             '<p><strong>Analysis Toolbox</strong> generates JSON representations at each processing step, ' +
-                            'enabling transparent observation of data collection and analysis as it happens.</p>';
+                            'enabling transparent observation of data collection and analysis as it happens.</p>' +
+                            '</div>';
         loading.style.display = 'none';
         return;
     }
     
     loading.style.display = 'none';
     
+    // Build file tree
+    buildFileTree();
+    
     plotsData.forEach((plotItem, index) => {
         // Create section for each analysis result
         const section = document.createElement('div');
         section.style.marginBottom = '40px';
-        section.style.borderBottom = '1px solid #ccc';
+        section.style.borderBottom = '1px solid var(--border-primary)';
         section.style.paddingBottom = '20px';
+        section.id = `plot-section-${index}`;
         
         // Add metadata
         const header = document.createElement('div');
@@ -438,6 +728,7 @@ function renderPlots() {
         plotDiv.id = `plot-${index}`;
         plotDiv.style.width = '100%';
         plotDiv.style.height = '600px';
+        plotDiv.style.marginTop = '15px';
         section.appendChild(plotDiv);
         
         container.appendChild(section);
@@ -458,11 +749,11 @@ function renderPlots() {
                 Plotly.newPlot(`plot-${index}`, [plotData], {}, {responsive: true});
             } else {
                 // Unknown format - show JSON
-                plotDiv.innerHTML = `<pre style="background: #f5f5f5; padding: 15px; overflow: auto;">${JSON.stringify(plotData, null, 2)}</pre>`;
+                plotDiv.innerHTML = `<pre style="background: var(--code-bg); padding: 15px; overflow: auto; border-radius: 4px;">${JSON.stringify(plotData, null, 2)}</pre>`;
             }
         } catch (error) {
             plotDiv.innerHTML = `<p style="color: red;">Error rendering analysis: ${error.message}</p>` +
-                              `<details><summary>View raw JSON</summary><pre style="background: #f5f5f5; padding: 15px; overflow: auto;">${JSON.stringify(plotItem.plot_data, null, 2)}</pre></details>`;
+                              `<details><summary>View raw JSON</summary><pre style="background: var(--bg-tertiary); padding: 15px; overflow: auto;">${JSON.stringify(plotItem.plot_data, null, 2)}</pre></details>`;
         }
     });
 }
