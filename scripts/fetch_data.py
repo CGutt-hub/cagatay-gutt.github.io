@@ -495,6 +495,11 @@ const plotsData = """
     
     content += """;
 
+// Load jsPDF library for PDF generation
+const jsPDFScript = document.createElement('script');
+jsPDFScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+document.head.appendChild(jsPDFScript);
+
 // Download functions for open data sharing
 function downloadJSON(data, filename) {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -511,6 +516,122 @@ function downloadJSON(data, filename) {
 function downloadPlotData(plotItem) {
     const filename = `${plotItem.repo_name}_${plotItem.file_path.replace(/\\//g, '_')}`;
     downloadJSON(plotItem, filename);
+}
+
+async function findParquetFile(plotItem) {
+    // Try to find associated parquet file by checking common patterns
+    const basePath = plotItem.file_path.replace(/\\.json$/, '').replace(/[_-]?(plot|figure|viz|visual|chart|graph)s?/i, '');
+    const dirPath = plotItem.file_path.substring(0, plotItem.file_path.lastIndexOf('/'));
+    
+    const possiblePaths = [
+        basePath + '.parquet',
+        basePath + '_data.parquet',
+        dirPath + '/data.parquet',
+        dirPath + '/processed_data.parquet',
+        'data.parquet',
+        'processed_data.parquet'
+    ];
+    
+    // Try to fetch each possible parquet file
+    for (const path of possiblePaths) {
+        try {
+            const url = `https://raw.githubusercontent.com/CGutt-hub/${plotItem.repo_name}/main/${path}`;
+            const response = await fetch(url);
+            if (response.ok) {
+                return await response.arrayBuffer();
+            }
+        } catch (e) {
+            continue;
+        }
+    }
+    return null;
+}
+
+async function downloadPlotPDFA(plotItem, plotIndex) {
+    try {
+        // Wait for jsPDF to load
+        if (typeof jsPDF === 'undefined') {
+            await new Promise(resolve => {
+                const checkInterval = setInterval(() => {
+                    if (typeof jsPDF !== 'undefined') {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 100);
+            });
+        }
+        
+        const { jsPDF } = window.jspdf;
+        
+        // Convert plot to image
+        const plotContainer = document.getElementById(`plot-container-${plotIndex}`);
+        const plotImage = await Plotly.toImage(plotContainer, {
+            format: 'png',
+            width: 1200,
+            height: 800
+        });
+        
+        // Create PDF document
+        const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4'
+        });
+        
+        // Add metadata
+        pdf.setProperties({
+            title: plotItem.file_path,
+            subject: `Research data from ${plotItem.repo_name}`,
+            author: 'Çağatay Özcan Jagiello Gutt',
+            keywords: 'research, open data, analysis',
+            creator: 'Open Data - 5ha99y'
+        });
+        
+        // Add title
+        pdf.setFontSize(16);
+        pdf.text(plotItem.file_path, 10, 15);
+        
+        // Add repository info
+        pdf.setFontSize(10);
+        pdf.text(`Repository: ${plotItem.repo_name}`, 10, 22);
+        pdf.text(`Updated: ${new Date(plotItem.updated).toLocaleString()}`, 10, 27);
+        
+        // Add plot image
+        pdf.addImage(plotImage, 'PNG', 10, 35, 277, 185);
+        
+        // Try to fetch and attach parquet file
+        const parquetData = await findParquetFile(plotItem);
+        if (parquetData) {
+            // Add note about attached data
+            pdf.setFontSize(8);
+            pdf.text('Source data downloaded separately as parquet file', 10, 225);
+            
+            // Download PDF first
+            const pdfFilename = `${plotItem.repo_name.replace(/\\//g, '_')}_${plotItem.file_path.replace(/\\//g, '_').replace('.json', '')}.pdf`;
+            pdf.save(pdfFilename);
+            
+            // Then download parquet
+            const parquetBlob = new Blob([parquetData], { type: 'application/octet-stream' });
+            const parquetFilename = `${plotItem.repo_name.replace(/\\//g, '_')}_data.parquet`;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(parquetBlob);
+            a.download = parquetFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            alert('Downloaded PDF and source parquet data file');
+        } else {
+            // Just download PDF
+            const pdfFilename = `${plotItem.repo_name.replace(/\\//g, '_')}_${plotItem.file_path.replace(/\\//g, '_').replace('.json', '')}.pdf`;
+            pdf.save(pdfFilename);
+            alert('Downloaded PDF (no parquet source file found)');
+        }
+        
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert(`Error generating PDF: ${error.message}`);
+    }
 }
 
 function downloadAllData() {
@@ -686,7 +807,10 @@ function renderPlots() {
                 <p>
                     <strong>Last Updated:</strong> ${new Date(plotItem.updated).toLocaleString()}
                     <button class="download-btn" onclick="downloadPlotData(plotsData[${index}])">
-                        📥 Download Data
+                        📥 JSON
+                    </button>
+                    <button class="download-btn" onclick="downloadPlotPDFA(plotsData[${index}], ${index})">
+                        📄 PDF/A + Parquet
                     </button>
                 </p>
             </div>

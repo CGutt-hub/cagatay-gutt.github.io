@@ -1,5 +1,5 @@
 +++
-title = "Open Data"
+title = "Offene Daten"
 template = "analysis.html"
 +++
 
