@@ -28,7 +28,8 @@ For me, developing knowledge and technology is not just a scientific challenge, 
 **Brain-Computer Interfaces** — Neural signal processing and interaction  
 **Human-Machine Interaction** — Intuitive, adaptive interfaces  
 **Physiological Computing** — Biological signals for adaptive systems  
-**Embodied Cognition** — Body-environment integration
+**Embodied Cognition** — Body-environment integration  
+**Neurodivergence** — Neurotransmitter dynamics and system-level differences
 
 ---
 

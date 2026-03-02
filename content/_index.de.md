@@ -28,7 +28,8 @@ Für mich ist die Entwicklung von Wissen und Technologie nicht nur eine wissensc
 **Brain-Computer-Interfaces** — Neuronale Signalverarbeitung und Interaktion  
 **Mensch-Maschine-Interaktion** — Intuitive, adaptive Schnittstellen  
 **Physiologisches Computing** — Biologische Signale für adaptive Systeme  
-**Verkörperte Kognition** — Körper-Umwelt-Integration
+**Verkörperte Kognition** — Körper-Umwelt-Integration  
+**Neurodivergenz** — Neurotransmitter-Dynamik und systemische Unterschiede
 
 ---
 
