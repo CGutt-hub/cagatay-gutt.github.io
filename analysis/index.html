@@ -250,12 +250,52 @@
 <span class="giallo-l"></span>
 <span class="giallo-l"><span>&lt;main class=&quot;analysis-main&quot;&gt;</span></span>
 <span class="giallo-l"><span>    &lt;div id=&quot;plot-loading&quot;&gt;Loading analysis results...&lt;/div&gt;</span></span>
+<span class="giallo-l"><span>    &lt;div id=&quot;download-all-section&quot; style=&quot;display: none;&quot;&gt;</span></span>
+<span class="giallo-l"><span>        &lt;div class=&quot;download-all-container&quot;&gt;</span></span>
+<span class="giallo-l"><span>            &lt;div&gt;</span></span>
+<span class="giallo-l"><span>                &lt;strong&gt;Open Data Export&lt;/strong&gt;</span></span>
+<span class="giallo-l"><span>                &lt;p style=&quot;margin: 5px 0; color: var(--text-secondary); font-size: 0.85rem;&quot;&gt;</span></span>
+<span class="giallo-l"><span>                    Download all analysis data for independent verification and open-source analysis</span></span>
+<span class="giallo-l"><span>                &lt;/p&gt;</span></span>
+<span class="giallo-l"><span>            &lt;/div&gt;</span></span>
+<span class="giallo-l"><span>            &lt;button id=&quot;download-all-btn&quot; class=&quot;download-all-btn&quot;&gt;📥 Download All Data (JSON)&lt;/button&gt;</span></span>
+<span class="giallo-l"><span>        &lt;/div&gt;</span></span>
+<span class="giallo-l"><span>    &lt;/div&gt;</span></span>
 <span class="giallo-l"><span>    &lt;div id=&quot;plot-container&quot;&gt;&lt;/div&gt;</span></span>
 <span class="giallo-l"><span>&lt;/main&gt;</span></span></code></pre></div>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 <script>
 // Analysis data embedded from research repositories
 const plotsData = [];
+
+// Download functions for open data sharing
+function downloadJSON(data, filename) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function downloadPlotData(plotItem) {
+    const filename = `${plotItem.repo_name}_${plotItem.file_path.replace(/\//g, '_')}`;
+    downloadJSON(plotItem, filename);
+}
+
+function downloadAllData() {
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `research-analysis-export_${timestamp}.json`;
+    const exportData = {
+        export_date: new Date().toISOString(),
+        total_plots: plotsData.length,
+        data: plotsData
+    };
+    downloadJSON(exportData, filename);
+}
 
 // Build file tree from plot data
 function buildFileTree() {
@@ -370,6 +410,10 @@ function renderPlots() {
     
     loading.style.display = 'none';
     
+    // Show download all section
+    document.getElementById('download-all-section').style.display = 'block';
+    document.getElementById('download-all-btn').onclick = downloadAllData;
+    
     // Build file tree
     buildFileTree();
     
@@ -386,7 +430,10 @@ function renderPlots() {
         header.innerHTML = `
             <h3>📊 ${plotItem.file_path}</h3>
             <p><strong>Repository:</strong> <a href="${plotItem.repo_url}" target="_blank">${plotItem.repo_name}</a></p>
-            <p><strong>Last Updated:</strong> ${new Date(plotItem.updated).toLocaleString()}</p>
+            <p>
+                <strong>Last Updated:</strong> ${new Date(plotItem.updated).toLocaleString()}
+                <button class="download-btn" onclick="downloadPlotData(plotsData[${index}])">📥 Download Data (JSON)</button>
+            </p>
         `;
         section.appendChild(header);
         
