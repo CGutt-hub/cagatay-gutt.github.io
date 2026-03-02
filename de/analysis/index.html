@@ -913,11 +913,22 @@ const downloadSection = document.getElementById('download-all-section');</p>
 <span class="giallo-l"><span>        pipelineSummary.style.cursor = &#39;pointer&#39;;</span></span>
 <span class="giallo-l"><span>        pipelineSummary.style.fontWeight = &#39;bold&#39;;</span></span>
 <span class="giallo-l"><span>        pipelineSummary.style.marginBottom = &#39;15px&#39;;</span></span>
-<span class="giallo-l"><span>        pipelineSummary.textContent = `🔄 Pipeline Execution Tree (${plotItem.pipeline_trace.total_processes} processes, ${plotItem.pipeline_trace.total_tasks} tasks)`;</span></span>
+<span class="giallo-l"><span>        pipelineSummary.textContent = `🔄 Analysis Pipeline (${plotItem.pipeline_trace.total_processes} processes, ${plotItem.pipeline_trace.total_tasks} tasks completed)`;</span></span>
 <span class="giallo-l"><span>        </span></span>
 <span class="giallo-l"><span>        const pipelineContent = document.createElement(&#39;div&#39;);</span></span>
 <span class="giallo-l"><span>        pipelineContent.className = &#39;pipeline-content&#39;;</span></span>
 <span class="giallo-l"><span>        pipelineContent.style.marginTop = &#39;15px&#39;;</span></span>
+<span class="giallo-l"><span>        </span></span>
+<span class="giallo-l"><span>        // Add explanatory note</span></span>
+<span class="giallo-l"><span>        const note = document.createElement(&#39;div&#39;);</span></span>
+<span class="giallo-l"><span>        note.style.fontSize = &#39;0.85em&#39;;</span></span>
+<span class="giallo-l"><span>        note.style.color = &#39;var(--text-secondary)&#39;;</span></span>
+<span class="giallo-l"><span>        note.style.marginBottom = &#39;15px&#39;;</span></span>
+<span class="giallo-l"><span>        note.style.padding = &#39;8px 12px&#39;;</span></span>
+<span class="giallo-l"><span>        note.style.background = &#39;var(--bg-tertiary, #e9ecef)&#39;;</span></span>
+<span class="giallo-l"><span>        note.style.borderRadius = &#39;4px&#39;;</span></span>
+<span class="giallo-l"><span>        note.innerHTML = &#39;📊 This shows the complete analysis workflow from a participant run. Each process represents a step in the data processing pipeline.&#39;;</span></span>
+<span class="giallo-l"><span>        pipelineContent.appendChild(note);</span></span>
 <span class="giallo-l"><span>        </span></span>
 <span class="giallo-l"><span>        // Create visual pipeline tree</span></span>
 <span class="giallo-l"><span>        const pipelineTree = document.createElement(&#39;div&#39;);</span></span>
@@ -937,18 +948,18 @@ const downloadSection = document.getElementById('download-all-section');</p>
 <span class="giallo-l"><span>            processNode.style.background = &#39;var(--bg-primary, white)&#39;;</span></span>
 <span class="giallo-l"><span>            processNode.style.border = &#39;2px solid&#39;;</span></span>
 <span class="giallo-l"><span>            </span></span>
-<span class="giallo-l"><span>            // Color based on status</span></span>
-<span class="giallo-l"><span>            let borderColor = &#39;#6c757d&#39;;</span></span>
-<span class="giallo-l"><span>            let statusIcon = &#39;⚪&#39;;</span></span>
-<span class="giallo-l"><span>            if (process.status === &#39;COMPLETED&#39;) {</span></span>
-<span class="giallo-l"><span>                borderColor = &#39;#28a745&#39;;</span></span>
-<span class="giallo-l"><span>                statusIcon = &#39;✅&#39;;</span></span>
-<span class="giallo-l"><span>            } else if (process.status === &#39;FAILED&#39;) {</span></span>
+<span class="giallo-l"><span>            // Color based on status (only final states visible in public repo)</span></span>
+<span class="giallo-l"><span>            let borderColor = &#39;#28a745&#39;;  // Default: completed</span></span>
+<span class="giallo-l"><span>            let statusIcon = &#39;✅&#39;;</span></span>
+<span class="giallo-l"><span>            if (process.status === &#39;FAILED&#39;) {</span></span>
 <span class="giallo-l"><span>                borderColor = &#39;#dc3545&#39;;</span></span>
 <span class="giallo-l"><span>                statusIcon = &#39;❌&#39;;</span></span>
-<span class="giallo-l"><span>            } else if (process.status === &#39;RUNNING&#39;) {</span></span>
-<span class="giallo-l"><span>                borderColor = &#39;#007bff&#39;;</span></span>
-<span class="giallo-l"><span>                statusIcon = &#39;⏳&#39;;</span></span>
+<span class="giallo-l"><span>            } else if (process.status === &#39;CACHED&#39;) {</span></span>
+<span class="giallo-l"><span>                borderColor = &#39;#17a2b8&#39;;</span></span>
+<span class="giallo-l"><span>                statusIcon = &#39;💾&#39;;</span></span>
+<span class="giallo-l"><span>            } else if (process.status === &#39;COMPLETED&#39;) {</span></span>
+<span class="giallo-l"><span>                borderColor = &#39;#28a745&#39;;</span></span>
+<span class="giallo-l"><span>                statusIcon = &#39;✅&#39;;</span></span>
 <span class="giallo-l"><span>            }</span></span>
 <span class="giallo-l"><span>            processNode.style.borderColor = borderColor;</span></span>
 <span class="giallo-l"><span>            </span></span>

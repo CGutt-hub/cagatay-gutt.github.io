@@ -26,11 +26,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/website-update/">&lt;p&gt;This website has been updated with the following changes:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-changes&quot;&gt;Recent Changes&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;9ead605&lt;&#x2F;code&gt; Update pipeline visualization to show only final states (COMPLETED&#x2F;FAILED&#x2F;CACHED&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;2b5cabe&lt;&#x2F;code&gt; Move download buttons to sidebar and add pipeline tree visualization&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;da54833&lt;&#x2F;code&gt; Add Nextflow pipeline tree visualization and grayscale PDF&#x2F;A with embedded parqu&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;dd00a4a&lt;&#x2F;code&gt; Fix Open Data page title and add PDF&#x2F;A export with parquet&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;4feb553&lt;&#x2F;code&gt; fix: update navigation labels for analysis and open data pages&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;da3d686&lt;&#x2F;code&gt; fix: streamline GitHub API token handling and improve type annotations&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The site continues to sync automatically with GitHub (projects) and ORCID (publications).&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;5ha99y&quot;&gt;View source on GitHub →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
