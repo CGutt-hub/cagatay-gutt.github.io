@@ -833,14 +833,64 @@ function buildFileTree() {
         repoMap[repoName].forEach(plot => {
             const fileItem = document.createElement('div');
             fileItem.className = 'file-item';
-            fileItem.textContent = plot.file_path;
             fileItem.dataset.index = plot.index;
             fileItem.dataset.repoName = plot.repo_name;
             fileItem.dataset.filePath = plot.file_path;
             
-            fileItem.onclick = () => {
+            // Create file name span
+            const fileName = document.createElement('span');
+            fileName.textContent = plot.file_path;
+            fileName.style.flex = '1';
+            fileName.style.cursor = 'pointer';
+            fileName.onclick = () => {
                 showPlot(plot.index);
             };
+            
+            // Create download buttons container
+            const downloadBtns = document.createElement('div');
+            downloadBtns.style.display = 'flex';
+            downloadBtns.style.gap = '4px';
+            downloadBtns.style.marginLeft = '8px';
+            
+            // JSON download button
+            const jsonBtn = document.createElement('button');
+            jsonBtn.innerHTML = '📥';
+            jsonBtn.title = 'Download JSON';
+            jsonBtn.className = 'sidebar-download-btn';
+            jsonBtn.style.padding = '2px 6px';
+            jsonBtn.style.fontSize = '0.75em';
+            jsonBtn.style.border = '1px solid var(--border-primary)';
+            jsonBtn.style.borderRadius = '3px';
+            jsonBtn.style.background = 'var(--bg-tertiary)';
+            jsonBtn.style.cursor = 'pointer';
+            jsonBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadPlotData(plotsData[plot.index]);
+            };
+            
+            // PDF/A download button
+            const pdfBtn = document.createElement('button');
+            pdfBtn.innerHTML = '📄';
+            pdfBtn.title = 'Download PDF/A + Parquet';
+            pdfBtn.className = 'sidebar-download-btn';
+            pdfBtn.style.padding = '2px 6px';
+            pdfBtn.style.fontSize = '0.75em';
+            pdfBtn.style.border = '1px solid var(--border-primary)';
+            pdfBtn.style.borderRadius = '3px';
+            pdfBtn.style.background = 'var(--bg-tertiary)';
+            pdfBtn.style.cursor = 'pointer';
+            pdfBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadPlotPDFA(plotsData[plot.index], plot.index);
+            };
+            
+            downloadBtns.appendChild(jsonBtn);
+            downloadBtns.appendChild(pdfBtn);
+            
+            fileItem.appendChild(fileName);
+            fileItem.appendChild(downloadBtns);
+            fileItem.style.display = 'flex';
+            fileItem.style.alignItems = 'center';
             
             fileList.appendChild(fileItem);
         });
@@ -862,7 +912,7 @@ function buildFileTree() {
     if (fileTree.firstChild) {
         const firstRepo = fileTree.firstChild.querySelector('.repo-name');
         firstRepo.click();
-        const firstFile = fileTree.firstChild.querySelector('.file-item');
+        const firstFile = fileTree.firstChild.querySelector('.file-item span');
         if (firstFile) {
             firstFile.click();
         }
@@ -964,15 +1014,7 @@ function renderPlots() {
             <h2>📊 ${plotItem.file_path}</h2>
             <div class="plot-meta">
                 <p><strong>Repository:</strong> <a href="${plotItem.repo_url}" target="_blank">${plotItem.repo_name}</a></p>
-                <p>
-                    <strong>Last Updated:</strong> ${new Date(plotItem.updated).toLocaleString()}
-                    <button class="download-btn" onclick="downloadPlotData(plotsData[${index}])">
-                        📥 JSON
-                    </button>
-                    <button class="download-btn" onclick="downloadPlotPDFA(plotsData[${index}], ${index})">
-                        📄 PDF/A + Parquet
-                    </button>
-                </p>
+                <p><strong>Last Updated:</strong> ${new Date(plotItem.updated).toLocaleString()}</p>
             </div>
         `;
         plotDisplay.appendChild(header);

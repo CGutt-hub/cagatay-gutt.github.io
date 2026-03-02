@@ -139,14 +139,38 @@
     color: var(--text-primary);
 }
 
+.file-item:hover .sidebar-download-btn {
+    opacity: 1;
+}
+
 .file-item.active {
     background: var(--accent-primary);
     color: white;
     font-weight: 600;
 }
 
+.file-item.active .sidebar-download-btn {
+    background: white;
+    border-color: white;
+    opacity: 0.9;
+}
+
 .file-item.hidden-by-search {
     display: none;
+}
+
+.sidebar-download-btn {
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+.sidebar-download-btn:hover {
+    opacity: 1 !important;
+    transform: scale(1.1);
+}
+
+.sidebar-download-btn:active {
+    transform: scale(0.95);
 }
 
 .analysis-main {
