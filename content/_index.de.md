@@ -16,11 +16,11 @@ Wissenschaftliche Hilfskraft @ IfADo - Leibniz-Institut für Arbeitsforschung an
 
 ## Forschungsphilosophie
 
-Meine Forschung wird von einer Faszination für **Bewusstsein** – sowohl biologisches als auch künstliches – und einem festen Bekenntnis zur **offenen und transparenten Wissenschaft** angetrieben. Ich glaube, dass die tiefgreifendsten Fortschritte in KI, Brain-Computer-Interfaces (BCI) und Mensch-Maschine-Interaktion (HMI) aus einem kollaborativen Ansatz entstehen werden, der Prinzipien der **verkörperten Kognition** tief integriert.
+Meine Forschung wird von einem festen Bekenntnis zur **offenen und transparenten Wissenschaft** angetrieben. Ich glaube, dass die tiefgreifendsten Fortschritte aus kollaborativen Ansätzen entstehen, die Erkenntnisse über mehrere Skalen und Disziplinen hinweg integrieren, von molekularen Mechanismen bis zum Verhalten komplexer Systeme.
 
-Mein akademischer Weg von der **Molekularbiologie** zur **Kognitionswissenschaft** hat mir eine multiskalare Perspektive gegeben, um diese Herausforderungen anzugehen. Ich nutze **physiologisches Computing** (EEG, fNIRS, etc.) und Open-Source Python-Toolboxen als meine primären Methoden, um die Dynamik bewusster Erfahrung zu erforschen.
+Mein akademischer Weg von der **Molekularbiologie** zur **Kognitionswissenschaft** hat mir eine multiskalare Perspektive gegeben, um komplexe Fragen anzugehen. Ich nutze quantitative Methoden und Open-Source-Tools als meine primären Ansätze zur Erforschung biologischer und computationaler Systeme.
 
-Für mich ist die Entwicklung verantwortungsvoller Technologie nicht nur eine technische Herausforderung, sondern ein **ethisches Gebot**. Eine verkörperte, physiologische Perspektive ist entscheidend für die Schaffung von Systemen, die nicht nur effektiv, sondern auch transparent, fair und respektvoll gegenüber menschlicher Autonomie sind.
+Für mich ist die Entwicklung von Wissen und Technologie nicht nur eine wissenschaftliche Herausforderung, sondern ein **ethisches Gebot**. Transparente, reproduzierbare Forschung ist entscheidend für die Schaffung von Lösungen, die nicht nur effektiv, sondern auch fair, zugänglich und respektvoll gegenüber menschlicher Autonomie und gesellschaftlichen Bedürfnissen sind.
 
 ## Forschungsschwerpunkte
 
