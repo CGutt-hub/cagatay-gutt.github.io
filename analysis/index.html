@@ -51,10 +51,7 @@
     
     <main>
         
-<article>
-    <h1>Real-Time Research Analysis</h1>
-    <div class="content">
-        <style>
+<style>
 /* Analysis Toolbox-inspired layout adapted for in-page use */
 .analysis-layout {
     display: flex;
@@ -376,300 +373,290 @@
     }
 }
 </style>
+
 <div class="analysis-layout">
     <div class="analysis-top-bar">
         <h1>📊 Real-Time Research Analysis</h1>
     </div>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>&lt;div class=&quot;analysis-body&quot;&gt;</span></span>
-<span class="giallo-l"><span>    &lt;aside class=&quot;analysis-sidebar&quot;&gt;</span></span>
-<span class="giallo-l"><span>        &lt;div class=&quot;search-container&quot;&gt;</span></span>
-<span class="giallo-l"><span>            &lt;input type=&quot;text&quot; id=&quot;search-box&quot; class=&quot;search-box&quot; placeholder=&quot;🔍 Search files...&quot;&gt;</span></span>
-<span class="giallo-l"><span>        &lt;/div&gt;</span></span>
-<span class="giallo-l"><span>        </span></span>
-<span class="giallo-l"><span>        &lt;div class=&quot;file-explorer&quot;&gt;</span></span>
-<span class="giallo-l"><span>            &lt;div class=&quot;explorer-header&quot;&gt;📁 Repositories&lt;/div&gt;</span></span>
-<span class="giallo-l"><span>            &lt;div id=&quot;file-tree&quot;&gt;&lt;/div&gt;</span></span>
-<span class="giallo-l"><span>        &lt;/div&gt;</span></span>
-<span class="giallo-l"><span>    &lt;/aside&gt;</span></span>
-<span class="giallo-l"></span>
-<span class="giallo-l"><span>    &lt;main class=&quot;analysis-main&quot;&gt;</span></span>
-<span class="giallo-l"><span>        &lt;div id=&quot;empty-state&quot; class=&quot;empty-state&quot;&gt;</span></span>
-<span class="giallo-l"><span>            &lt;h2&gt;Select a plot from the sidebar&lt;/h2&gt;</span></span>
-<span class="giallo-l"><span>            &lt;p&gt;Click on any analysis file to view its interactive visualization.&lt;/p&gt;</span></span>
-<span class="giallo-l"><span>        &lt;/div&gt;</span></span>
-<span class="giallo-l"><span>        </span></span>
-<span class="giallo-l"><span>        &lt;div id=&quot;download-all-section&quot; class=&quot;download-all-section&quot;&gt;</span></span>
-<span class="giallo-l"><span>            &lt;div&gt;</span></span>
-<span class="giallo-l"><span>                &lt;strong&gt;Open Data Export&lt;/strong&gt;</span></span>
-<span class="giallo-l"><span>                &lt;p style=&quot;margin: 5px 0 0 0; color: var(--text-secondary); font-size: 0.9rem;&quot;&gt;</span></span>
-<span class="giallo-l"><span>                    Download all analysis data for independent verification and open-source analysis</span></span>
-<span class="giallo-l"><span>                &lt;/p&gt;</span></span>
-<span class="giallo-l"><span>            &lt;/div&gt;</span></span>
-<span class="giallo-l"><span>            &lt;button id=&quot;download-all-btn&quot; class=&quot;download-all-btn&quot;&gt;📥 Download All Data&lt;/button&gt;</span></span>
-<span class="giallo-l"><span>        &lt;/div&gt;</span></span>
-<span class="giallo-l"><span>        </span></span>
-<span class="giallo-l"><span>        &lt;div id=&quot;plot-displays&quot;&gt;&lt;/div&gt;</span></span>
-<span class="giallo-l"><span>    &lt;/main&gt;</span></span>
-<span class="giallo-l"><span>&lt;/div&gt;</span></span></code></pre></div>
+    
+    <div class="analysis-body">
+        <aside class="analysis-sidebar">
+            <div class="search-container">
+                <input type="text" id="search-box" class="search-box" placeholder="🔍 Search files...">
+            </div>
+            
+            <div class="file-explorer">
+                <div class="explorer-header">📁 Repositories</div>
+                <div id="file-tree"></div>
+            </div>
+        </aside>
+
+        <main class="analysis-main">
+            <div id="empty-state" class="empty-state">
+                <h2>Select a plot from the sidebar</h2>
+                <p>Click on any analysis file to view its interactive visualization.</p>
+            </div>
+            
+            <div id="download-all-section" class="download-all-section">
+                <div>
+                    <strong>Open Data Export</strong>
+                    <p style="margin: 5px 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">
+                        Download all analysis data for independent verification and open-source analysis
+                    </p>
+                </div>
+                <button id="download-all-btn" class="download-all-btn">📥 Download All Data</button>
+            </div>
+            
+            <div id="plot-displays"></div>
+        </main>
+    </div>
+</div>
+
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 <script>
 // Analysis data embedded from research repositories
-const plotsData = [];
-
-// Download functions for open data sharing
+<p>const plotsData = [];</p>
+<p>// Download functions for open data sharing
 function downloadJSON(data, filename) {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-function downloadPlotData(plotItem) {
-    const filename = `${plotItem.repo_name}_${plotItem.file_path.replace(/\//g, '_')}`;
-    downloadJSON(plotItem, filename);
-}
-
-function downloadAllData() {
-    const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `research-analysis-export_${timestamp}.json`;
-    const exportData = {
-        export_date: new Date().toISOString(),
-        total_plots: plotsData.length,
-        data: plotsData
-    };
-    downloadJSON(exportData, filename);
-}
-
-// Build file tree from plot data
+const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = filename;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+}</p>
+<p>function downloadPlotData(plotItem) {
+const filename = <code>${plotItem.repo_name}_${plotItem.file_path.replace(/\//g, '_')}</code>;
+downloadJSON(plotItem, filename);
+}</p>
+<p>function downloadAllData() {
+const timestamp = new Date().toISOString().split('T')[0];
+const filename = <code>research-analysis-export_${timestamp}.json</code>;
+const exportData = {
+export_date: new Date().toISOString(),
+total_plots: plotsData.length,
+data: plotsData
+};
+downloadJSON(exportData, filename);
+}</p>
+<p>// Build file tree from plot data
 function buildFileTree() {
-    const fileTree = document.getElementById('file-tree');
-    
-    // Group by repository
-    const repoMap = {};
-    plotsData.forEach((plot, index) => {
-        if (!repoMap[plot.repo_name]) {
-            repoMap[plot.repo_name] = [];
-        }
-        repoMap[plot.repo_name].push({ ...plot, index });
-    });
-    
-    // Create tree structure
-    Object.keys(repoMap).sort().forEach(repoName => {
-        const repoSection = document.createElement('div');
-        repoSection.className = 'repo-section';
-        
-        const repoHeader = document.createElement('div');
-        repoHeader.className = 'repo-name';
-        repoHeader.innerHTML = `<span class="repo-toggle">▶</span> 📁 ${repoName}`;
-        
-        const fileList = document.createElement('div');
-        fileList.className = 'file-list';
-        
-        repoMap[repoName].forEach(plot => {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            fileItem.textContent = plot.file_path;
-            fileItem.dataset.index = plot.index;
-            fileItem.dataset.repoName = plot.repo_name;
-            fileItem.dataset.filePath = plot.file_path;
-            
-            fileItem.onclick = () => {
-                showPlot(plot.index);
-            };
-            
-            fileList.appendChild(fileItem);
-        });
-        
-        // Toggle expansion
-        repoHeader.onclick = () => {
-            const isExpanded = fileList.classList.toggle('expanded');
-            const toggleIcon = repoHeader.querySelector('.repo-toggle');
-            toggleIcon.textContent = isExpanded ? '▼' : '▶';
-            toggleIcon.classList.toggle('expanded', isExpanded);
-        };
-        
-        repoSection.appendChild(repoHeader);
-        repoSection.appendChild(fileList);
-        fileTree.appendChild(repoSection);
-    });
-    
-    // Expand first repo and show first plot by default
-    if (fileTree.firstChild) {
-        const firstRepo = fileTree.firstChild.querySelector('.repo-name');
-        firstRepo.click();
-        const firstFile = fileTree.firstChild.querySelector('.file-item');
-        if (firstFile) {
-            firstFile.click();
-        }
-    }
-}
-
-// Show a specific plot
+const fileTree = document.getElementById('file-tree');</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>// Group by repository</span></span>
+<span class="giallo-l"><span>const repoMap = {};</span></span>
+<span class="giallo-l"><span>plotsData.forEach((plot, index) =&gt; {</span></span>
+<span class="giallo-l"><span>    if (!repoMap[plot.repo_name]) {</span></span>
+<span class="giallo-l"><span>        repoMap[plot.repo_name] = [];</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>    repoMap[plot.repo_name].push({ ...plot, index });</span></span>
+<span class="giallo-l"><span>});</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>// Create tree structure</span></span>
+<span class="giallo-l"><span>Object.keys(repoMap).sort().forEach(repoName =&gt; {</span></span>
+<span class="giallo-l"><span>    const repoSection = document.createElement(&#39;div&#39;);</span></span>
+<span class="giallo-l"><span>    repoSection.className = &#39;repo-section&#39;;</span></span>
+<span class="giallo-l"><span>    </span></span>
+<span class="giallo-l"><span>    const repoHeader = document.createElement(&#39;div&#39;);</span></span>
+<span class="giallo-l"><span>    repoHeader.className = &#39;repo-name&#39;;</span></span>
+<span class="giallo-l"><span>    repoHeader.innerHTML = `&lt;span class=&quot;repo-toggle&quot;&gt;▶&lt;/span&gt; 📁 ${repoName}`;</span></span>
+<span class="giallo-l"><span>    </span></span>
+<span class="giallo-l"><span>    const fileList = document.createElement(&#39;div&#39;);</span></span>
+<span class="giallo-l"><span>    fileList.className = &#39;file-list&#39;;</span></span>
+<span class="giallo-l"><span>    </span></span>
+<span class="giallo-l"><span>    repoMap[repoName].forEach(plot =&gt; {</span></span>
+<span class="giallo-l"><span>        const fileItem = document.createElement(&#39;div&#39;);</span></span>
+<span class="giallo-l"><span>        fileItem.className = &#39;file-item&#39;;</span></span>
+<span class="giallo-l"><span>        fileItem.textContent = plot.file_path;</span></span>
+<span class="giallo-l"><span>        fileItem.dataset.index = plot.index;</span></span>
+<span class="giallo-l"><span>        fileItem.dataset.repoName = plot.repo_name;</span></span>
+<span class="giallo-l"><span>        fileItem.dataset.filePath = plot.file_path;</span></span>
+<span class="giallo-l"><span>        </span></span>
+<span class="giallo-l"><span>        fileItem.onclick = () =&gt; {</span></span>
+<span class="giallo-l"><span>            showPlot(plot.index);</span></span>
+<span class="giallo-l"><span>        };</span></span>
+<span class="giallo-l"><span>        </span></span>
+<span class="giallo-l"><span>        fileList.appendChild(fileItem);</span></span>
+<span class="giallo-l"><span>    });</span></span>
+<span class="giallo-l"><span>    </span></span>
+<span class="giallo-l"><span>    // Toggle expansion</span></span>
+<span class="giallo-l"><span>    repoHeader.onclick = () =&gt; {</span></span>
+<span class="giallo-l"><span>        const isExpanded = fileList.classList.toggle(&#39;expanded&#39;);</span></span>
+<span class="giallo-l"><span>        const toggleIcon = repoHeader.querySelector(&#39;.repo-toggle&#39;);</span></span>
+<span class="giallo-l"><span>        toggleIcon.textContent = isExpanded ? &#39;▼&#39; : &#39;▶&#39;;</span></span>
+<span class="giallo-l"><span>        toggleIcon.classList.toggle(&#39;expanded&#39;, isExpanded);</span></span>
+<span class="giallo-l"><span>    };</span></span>
+<span class="giallo-l"><span>    </span></span>
+<span class="giallo-l"><span>    repoSection.appendChild(repoHeader);</span></span>
+<span class="giallo-l"><span>    repoSection.appendChild(fileList);</span></span>
+<span class="giallo-l"><span>    fileTree.appendChild(repoSection);</span></span>
+<span class="giallo-l"><span>});</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>// Expand first repo and show first plot by default</span></span>
+<span class="giallo-l"><span>if (fileTree.firstChild) {</span></span>
+<span class="giallo-l"><span>    const firstRepo = fileTree.firstChild.querySelector(&#39;.repo-name&#39;);</span></span>
+<span class="giallo-l"><span>    firstRepo.click();</span></span>
+<span class="giallo-l"><span>    const firstFile = fileTree.firstChild.querySelector(&#39;.file-item&#39;);</span></span>
+<span class="giallo-l"><span>    if (firstFile) {</span></span>
+<span class="giallo-l"><span>        firstFile.click();</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>}</p>
+<p>// Show a specific plot
 function showPlot(index) {
-    // Update active state in sidebar
-    document.querySelectorAll('.file-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    const activeItem = document.querySelector(`[data-index="${index}"]`);
-    if (activeItem) {
-        activeItem.classList.add('active');
-    }
-    
-    // Hide empty state and all plots
-    document.getElementById('empty-state').style.display = 'none';
-    document.querySelectorAll('.plot-display').forEach(plot => {
-        plot.classList.remove('active');
-    });
-    
-    // Show selected plot
-    const plotDisplay = document.getElementById(`plot-${index}`);
-    if (plotDisplay) {
-        plotDisplay.classList.add('active');
-    }
-}
-
-// Search functionality
-document.getElementById('search-box')?.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase();
-    const fileItems = document.querySelectorAll('.file-item');
-    
-    fileItems.forEach(item => {
-        const repoName = item.dataset.repoName.toLowerCase();
-        const filePath = item.dataset.filePath.toLowerCase();
-        const matches = repoName.includes(query) || filePath.includes(query);
-        
-        if (matches || query === '') {
-            item.classList.remove('hidden-by-search');
-        } else {
-            item.classList.add('hidden-by-search');
-        }
-    });
+// Update active state in sidebar
+document.querySelectorAll('.file-item').forEach(item =&gt; {
+item.classList.remove('active');
 });
-
-// Render all analysis results
+const activeItem = document.querySelector(<code>[data-index="${index}"]</code>);
+if (activeItem) {
+activeItem.classList.add('active');
+}</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>// Hide empty state and all plots</span></span>
+<span class="giallo-l"><span>document.getElementById(&#39;empty-state&#39;).style.display = &#39;none&#39;;</span></span>
+<span class="giallo-l"><span>document.querySelectorAll(&#39;.plot-display&#39;).forEach(plot =&gt; {</span></span>
+<span class="giallo-l"><span>    plot.classList.remove(&#39;active&#39;);</span></span>
+<span class="giallo-l"><span>});</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>// Show selected plot</span></span>
+<span class="giallo-l"><span>const plotDisplay = document.getElementById(`plot-${index}`);</span></span>
+<span class="giallo-l"><span>if (plotDisplay) {</span></span>
+<span class="giallo-l"><span>    plotDisplay.classList.add(&#39;active&#39;);</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>}</p>
+<p>// Search functionality
+document.getElementById('search-box')?.addEventListener('input', (e) =&gt; {
+const query = e.target.value.toLowerCase();
+const fileItems = document.querySelectorAll('.file-item');</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>fileItems.forEach(item =&gt; {</span></span>
+<span class="giallo-l"><span>    const repoName = item.dataset.repoName.toLowerCase();</span></span>
+<span class="giallo-l"><span>    const filePath = item.dataset.filePath.toLowerCase();</span></span>
+<span class="giallo-l"><span>    const matches = repoName.includes(query) || filePath.includes(query);</span></span>
+<span class="giallo-l"><span>    </span></span>
+<span class="giallo-l"><span>    if (matches || query === &#39;&#39;) {</span></span>
+<span class="giallo-l"><span>        item.classList.remove(&#39;hidden-by-search&#39;);</span></span>
+<span class="giallo-l"><span>    } else {</span></span>
+<span class="giallo-l"><span>        item.classList.add(&#39;hidden-by-search&#39;);</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>});</span></span></code></pre>
+<p>});</p>
+<p>// Render all analysis results
 function renderPlots() {
-    const plotDisplays = document.getElementById('plot-displays');
-    const emptyState = document.getElementById('empty-state');
-    const downloadSection = document.getElementById('download-all-section');
-    
-    if (plotsData.length === 0) {
-        emptyState.innerHTML = `
-            <h2>No deployed experiments yet</h2>
-            <p><em>Results will appear here once experiments are ready for public deployment.</em></p>
-            <hr style="margin: 30px 0; border: none; border-top: 1px solid var(--border-primary);">
-            <h3>About This Page</h3>
-            <p style="max-width: 600px; margin: 15px auto;">
-                This page displays real-time analysis results from deployed research experiments. 
-                Experiments appear here after analysis pipelines have been validated, pilots completed, and proposals approved.
-            </p>
-            <h3 style="margin-top: 30px;">Deployment Workflow</h3>
-            <ol style="text-align: left; max-width: 600px; margin: 15px auto; line-height: 1.8;">
-                <li><strong>Analysis Structure</strong> — Pipeline is developed and matured in backoffice</li>
-                <li><strong>Pilot Testing</strong> — Protocol is validated with pilot participants</li>
-                <li><strong>Proposal Approval</strong> — Research proposal is submitted and approved</li>
-                <li><strong>Public Deployment</strong> — Experiment moves to public-facing repository</li>
-                <li><strong>Real-Time Updates</strong> — Analysis results sync automatically as data is collected</li>
-            </ol>
-            <p style="max-width: 600px; margin: 20px auto;">
-                <strong>Analysis Toolbox</strong> generates JSON representations at each processing step, 
-                enabling transparent observation of data collection and analysis as it happens.
-            </p>
-        `;
-        return;
-    }
-    
-    // Hide empty state and show download section
-    emptyState.style.display = 'none';
-    downloadSection.classList.add('visible');
-    document.getElementById('download-all-btn').onclick = downloadAllData;
-    
-    // Build file tree
-    buildFileTree();
-    
-    // Create a display for each plot
-    plotsData.forEach((plotItem, index) => {
-        const plotDisplay = document.createElement('div');
-        plotDisplay.className = 'plot-display';
-        plotDisplay.id = `plot-${index}`;
-        
-        // Header with metadata
-        const header = document.createElement('div');
-        header.className = 'plot-header';
-        header.innerHTML = `
-            <h2>📊 ${plotItem.file_path}</h2>
-            <div class="plot-meta">
-                <p><strong>Repository:</strong> <a href="${plotItem.repo_url}" target="_blank">${plotItem.repo_name}</a></p>
-                <p>
-                    <strong>Last Updated:</strong> ${new Date(plotItem.updated).toLocaleString()}
-                    <button class="download-btn" onclick="downloadPlotData(plotsData[${index}])">
-                        📥 Download Data
-                    </button>
-                </p>
-            </div>
-        `;
-        plotDisplay.appendChild(header);
-        
-        // Plot container
-        const plotContainer = document.createElement('div');
-        plotContainer.className = 'plot-container';
-        plotContainer.id = `plot-container-${index}`;
-        plotDisplay.appendChild(plotContainer);
-        
-        plotDisplays.appendChild(plotDisplay);
-        
-        // Render plot with Plotly
-        try {
-            const plotData = plotItem.plot_data;
-            
-            // Handle different JSON formats from Analysis Toolbox
-            if (plotData.data && plotData.layout) {
-                // Plotly JSON format (preferred)
-                Plotly.newPlot(`plot-container-${index}`, plotData.data, plotData.layout, {responsive: true});
-            } else if (Array.isArray(plotData)) {
-                // Array of traces
-                Plotly.newPlot(`plot-container-${index}`, plotData, {}, {responsive: true});
-            } else if (plotData.x && plotData.y) {
-                // Simple x, y data
-                Plotly.newPlot(`plot-container-${index}`, [plotData], {}, {responsive: true});
-            } else {
-                // Unknown format - show JSON
-                plotContainer.innerHTML = `
-                    <pre style="background: var(--code-bg); padding: 15px; overflow: auto; border-radius: 4px; height: 100%;">
-                        ${JSON.stringify(plotData, null, 2)}
-                    </pre>
-                `;
-            }
-        } catch (error) {
-            plotContainer.innerHTML = `
-                <div style="padding: 20px; color: var(--text-secondary);">
-                    <p style="color: red; margin-bottom: 10px;">⚠️ Error rendering analysis: ${error.message}</p>
-                    <details>
-                        <summary style="cursor: pointer; margin-bottom: 10px;">View raw JSON</summary>
-                        <pre style="background: var(--bg-tertiary); padding: 15px; overflow: auto; border-radius: 4px;">
-                            ${JSON.stringify(plotItem.plot_data, null, 2)}
-                        </pre>
-                    </details>
-                </div>
-            `;
-        }
-    });
-}
-
-// Render when page loads
+const plotDisplays = document.getElementById('plot-displays');
+const emptyState = document.getElementById('empty-state');
+const downloadSection = document.getElementById('download-all-section');</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>if (plotsData.length === 0) {</span></span>
+<span class="giallo-l"><span>    emptyState.innerHTML = `</span></span>
+<span class="giallo-l"><span>        &lt;h2&gt;No deployed experiments yet&lt;/h2&gt;</span></span>
+<span class="giallo-l"><span>        &lt;p&gt;&lt;em&gt;Results will appear here once experiments are ready for public deployment.&lt;/em&gt;&lt;/p&gt;</span></span>
+<span class="giallo-l"><span>        &lt;hr style=&quot;margin: 30px 0; border: none; border-top: 1px solid var(--border-primary);&quot;&gt;</span></span>
+<span class="giallo-l"><span>        &lt;h3&gt;About This Page&lt;/h3&gt;</span></span>
+<span class="giallo-l"><span>        &lt;p style=&quot;max-width: 600px; margin: 15px auto;&quot;&gt;</span></span>
+<span class="giallo-l"><span>            This page displays real-time analysis results from deployed research experiments. </span></span>
+<span class="giallo-l"><span>            Experiments appear here after analysis pipelines have been validated, pilots completed, and proposals approved.</span></span>
+<span class="giallo-l"><span>        &lt;/p&gt;</span></span>
+<span class="giallo-l"><span>        &lt;h3 style=&quot;margin-top: 30px;&quot;&gt;Deployment Workflow&lt;/h3&gt;</span></span>
+<span class="giallo-l"><span>        &lt;ol style=&quot;text-align: left; max-width: 600px; margin: 15px auto; line-height: 1.8;&quot;&gt;</span></span>
+<span class="giallo-l"><span>            &lt;li&gt;&lt;strong&gt;Analysis Structure&lt;/strong&gt; — Pipeline is developed and matured in backoffice&lt;/li&gt;</span></span>
+<span class="giallo-l"><span>            &lt;li&gt;&lt;strong&gt;Pilot Testing&lt;/strong&gt; — Protocol is validated with pilot participants&lt;/li&gt;</span></span>
+<span class="giallo-l"><span>            &lt;li&gt;&lt;strong&gt;Proposal Approval&lt;/strong&gt; — Research proposal is submitted and approved&lt;/li&gt;</span></span>
+<span class="giallo-l"><span>            &lt;li&gt;&lt;strong&gt;Public Deployment&lt;/strong&gt; — Experiment moves to public-facing repository&lt;/li&gt;</span></span>
+<span class="giallo-l"><span>            &lt;li&gt;&lt;strong&gt;Real-Time Updates&lt;/strong&gt; — Analysis results sync automatically as data is collected&lt;/li&gt;</span></span>
+<span class="giallo-l"><span>        &lt;/ol&gt;</span></span>
+<span class="giallo-l"><span>        &lt;p style=&quot;max-width: 600px; margin: 20px auto;&quot;&gt;</span></span>
+<span class="giallo-l"><span>            &lt;strong&gt;Analysis Toolbox&lt;/strong&gt; generates JSON representations at each processing step, </span></span>
+<span class="giallo-l"><span>            enabling transparent observation of data collection and analysis as it happens.</span></span>
+<span class="giallo-l"><span>        &lt;/p&gt;</span></span>
+<span class="giallo-l"><span>    `;</span></span>
+<span class="giallo-l"><span>    return;</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>// Hide empty state and show download section</span></span>
+<span class="giallo-l"><span>emptyState.style.display = &#39;none&#39;;</span></span>
+<span class="giallo-l"><span>downloadSection.classList.add(&#39;visible&#39;);</span></span>
+<span class="giallo-l"><span>document.getElementById(&#39;download-all-btn&#39;).onclick = downloadAllData;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>// Build file tree</span></span>
+<span class="giallo-l"><span>buildFileTree();</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>// Create a display for each plot</span></span>
+<span class="giallo-l"><span>plotsData.forEach((plotItem, index) =&gt; {</span></span>
+<span class="giallo-l"><span>    const plotDisplay = document.createElement(&#39;div&#39;);</span></span>
+<span class="giallo-l"><span>    plotDisplay.className = &#39;plot-display&#39;;</span></span>
+<span class="giallo-l"><span>    plotDisplay.id = `plot-${index}`;</span></span>
+<span class="giallo-l"><span>    </span></span>
+<span class="giallo-l"><span>    // Header with metadata</span></span>
+<span class="giallo-l"><span>    const header = document.createElement(&#39;div&#39;);</span></span>
+<span class="giallo-l"><span>    header.className = &#39;plot-header&#39;;</span></span>
+<span class="giallo-l"><span>    header.innerHTML = `</span></span>
+<span class="giallo-l"><span>        &lt;h2&gt;📊 ${plotItem.file_path}&lt;/h2&gt;</span></span>
+<span class="giallo-l"><span>        &lt;div class=&quot;plot-meta&quot;&gt;</span></span>
+<span class="giallo-l"><span>            &lt;p&gt;&lt;strong&gt;Repository:&lt;/strong&gt; &lt;a href=&quot;${plotItem.repo_url}&quot; target=&quot;_blank&quot;&gt;${plotItem.repo_name}&lt;/a&gt;&lt;/p&gt;</span></span>
+<span class="giallo-l"><span>            &lt;p&gt;</span></span>
+<span class="giallo-l"><span>                &lt;strong&gt;Last Updated:&lt;/strong&gt; ${new Date(plotItem.updated).toLocaleString()}</span></span>
+<span class="giallo-l"><span>                &lt;button class=&quot;download-btn&quot; onclick=&quot;downloadPlotData(plotsData[${index}])&quot;&gt;</span></span>
+<span class="giallo-l"><span>                    📥 Download Data</span></span>
+<span class="giallo-l"><span>                &lt;/button&gt;</span></span>
+<span class="giallo-l"><span>            &lt;/p&gt;</span></span>
+<span class="giallo-l"><span>        &lt;/div&gt;</span></span>
+<span class="giallo-l"><span>    `;</span></span>
+<span class="giallo-l"><span>    plotDisplay.appendChild(header);</span></span>
+<span class="giallo-l"><span>    </span></span>
+<span class="giallo-l"><span>    // Plot container</span></span>
+<span class="giallo-l"><span>    const plotContainer = document.createElement(&#39;div&#39;);</span></span>
+<span class="giallo-l"><span>    plotContainer.className = &#39;plot-container&#39;;</span></span>
+<span class="giallo-l"><span>    plotContainer.id = `plot-container-${index}`;</span></span>
+<span class="giallo-l"><span>    plotDisplay.appendChild(plotContainer);</span></span>
+<span class="giallo-l"><span>    </span></span>
+<span class="giallo-l"><span>    plotDisplays.appendChild(plotDisplay);</span></span>
+<span class="giallo-l"><span>    </span></span>
+<span class="giallo-l"><span>    // Render plot with Plotly</span></span>
+<span class="giallo-l"><span>    try {</span></span>
+<span class="giallo-l"><span>        const plotData = plotItem.plot_data;</span></span>
+<span class="giallo-l"><span>        </span></span>
+<span class="giallo-l"><span>        // Handle different JSON formats from Analysis Toolbox</span></span>
+<span class="giallo-l"><span>        if (plotData.data &amp;&amp; plotData.layout) {</span></span>
+<span class="giallo-l"><span>            // Plotly JSON format (preferred)</span></span>
+<span class="giallo-l"><span>            Plotly.newPlot(`plot-container-${index}`, plotData.data, plotData.layout, {responsive: true});</span></span>
+<span class="giallo-l"><span>        } else if (Array.isArray(plotData)) {</span></span>
+<span class="giallo-l"><span>            // Array of traces</span></span>
+<span class="giallo-l"><span>            Plotly.newPlot(`plot-container-${index}`, plotData, {}, {responsive: true});</span></span>
+<span class="giallo-l"><span>        } else if (plotData.x &amp;&amp; plotData.y) {</span></span>
+<span class="giallo-l"><span>            // Simple x, y data</span></span>
+<span class="giallo-l"><span>            Plotly.newPlot(`plot-container-${index}`, [plotData], {}, {responsive: true});</span></span>
+<span class="giallo-l"><span>        } else {</span></span>
+<span class="giallo-l"><span>            // Unknown format - show JSON</span></span>
+<span class="giallo-l"><span>            plotContainer.innerHTML = `</span></span>
+<span class="giallo-l"><span>                &lt;pre style=&quot;background: var(--code-bg); padding: 15px; overflow: auto; border-radius: 4px; height: 100%;&quot;&gt;</span></span>
+<span class="giallo-l"><span>                    ${JSON.stringify(plotData, null, 2)}</span></span>
+<span class="giallo-l"><span>                &lt;/pre&gt;</span></span>
+<span class="giallo-l"><span>            `;</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"><span>    } catch (error) {</span></span>
+<span class="giallo-l"><span>        plotContainer.innerHTML = `</span></span>
+<span class="giallo-l"><span>            &lt;div style=&quot;padding: 20px; color: var(--text-secondary);&quot;&gt;</span></span>
+<span class="giallo-l"><span>                &lt;p style=&quot;color: red; margin-bottom: 10px;&quot;&gt;⚠️ Error rendering analysis: ${error.message}&lt;/p&gt;</span></span>
+<span class="giallo-l"><span>                &lt;details&gt;</span></span>
+<span class="giallo-l"><span>                    &lt;summary style=&quot;cursor: pointer; margin-bottom: 10px;&quot;&gt;View raw JSON&lt;/summary&gt;</span></span>
+<span class="giallo-l"><span>                    &lt;pre style=&quot;background: var(--bg-tertiary); padding: 15px; overflow: auto; border-radius: 4px;&quot;&gt;</span></span>
+<span class="giallo-l"><span>                        ${JSON.stringify(plotItem.plot_data, null, 2)}</span></span>
+<span class="giallo-l"><span>                    &lt;/pre&gt;</span></span>
+<span class="giallo-l"><span>                &lt;/details&gt;</span></span>
+<span class="giallo-l"><span>            &lt;/div&gt;</span></span>
+<span class="giallo-l"><span>        `;</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>});</span></span></code></pre>
+<p>}</p>
+<p>// Render when page loads
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', renderPlots);
+document.addEventListener('DOMContentLoaded', renderPlots);
 } else {
-    renderPlots();
-}
-</script>
+renderPlots();
+}</p>
 
-    </div>
-</article>
+</script>
 
     </main>
     
