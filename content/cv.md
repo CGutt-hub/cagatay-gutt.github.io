@@ -31,9 +31,11 @@ title = "CV"
 ### Apprenticeship as Chemical Technical Assistant (CTA)
 **[Technische Berufliche Schule 1](https://www.tbs1.de/), Bochum** | *August 2014 - June 2017* | Grade: 2.8
 
-**Qualification:** State-certified Chemical Technical Assistant (CTA)
+**Qualifications:** State-certified Chemical Technical Assistant (CTA) · University of Applied Sciences Entrance Qualification
 
-**Additional Qualification:** University of Applied Sciences Entrance Qualification
+**Focus Area:** Chemical Technical Assistance
+
+**Vocational Thesis:** *(Title to be added)*
 
 ---
 
@@ -49,14 +51,14 @@ title = "CV"
 - Applied advanced signal processing and statistical methods to quantify neural-autonomic synchrony, linking prefrontal brain activity with autonomic nervous system dynamics
 
 ### Scientific Research Assistant
-**[Department of Ergonomics](https://www.ifado.de/en/research/ergonomics/), [IfADo](https://www.ifado.de/en/), Dortmund**  
+**[Department of Ergonomics](https://www.ifado.de/en/research/ergonomics), [IfADo](https://www.ifado.de/en/), Dortmund**  
 *February 2023 - Present*
 
 - Operated complex experimental setup for socio-technical interaction studies ("Walking and Seeing" project), including data acquisition and preliminary analysis
 - Provided versatile research support across multiple departmental projects, from participant screening to data management
 
 ### Student Research Assistant
-**CardioScienceLab, [University Clinic](https://www.uk-essen.de/), Essen**  
+**[CardioScienceLab](https://cardiosciencelabs.uk-essen.de/), [University Clinic](https://www.uk-essen.de/), Essen**  
 *April 2023 - March 2024*
 
 - Acquired patient medical records and prepared corresponding blood samples for transport to collaborating institution (ISAS)
@@ -147,6 +149,12 @@ M.Sc. Cognitive Science, Ruhr-Universität Bochum (2024)
 ### Bachelor's Thesis
 **Einfluss des Proteininhibitors Leupeptin auf funktionelle Inhibitoren der sauren Sphingomyelinase im Rahmen der Angiogenese**  
 B.Sc. Molecular Biology, Westphalian University of Applied Sciences (2022) | Grade: 2.6
+
+[Download PDF →](#) *(Coming soon)*
+
+### Vocational Thesis
+***(Title to be added)***  
+CTA Apprenticeship, Technische Berufliche Schule 1, Bochum (2017)
 
 [Download PDF →](#) *(Coming soon)*
 

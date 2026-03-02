@@ -31,9 +31,11 @@ title = "Lebenslauf"
 ### Ausbildung zum Chemisch-technischen Assistenten (CTA)
 **[Technische Berufliche Schule 1](https://www.tbs1.de/), Bochum** | *August 2014 - Juni 2017* | Note: 2,8
 
-**Qualifikation:** Staatlich geprüfter Chemisch-technischer Assistent (CTA)
+**Qualifikationen:** Staatlich geprüfter Chemisch-technischer Assistent (CTA) · Fachhochschulreife
 
-**Zusatzqualifikation:** Fachhochschulreife
+**Schwerpunkt:** Chemisch-technische Assistenz
+
+**Facharbeit:** *(Titel noch zu ergänzen)*
 
 ---
 
@@ -49,14 +51,14 @@ title = "Lebenslauf"
 - Anwendung fortgeschrittener Signalverarbeitungs- und statistischer Methoden zur Quantifizierung neural-autonomer Synchronie, Verknüpfung präfrontaler Hirnaktivität mit Dynamiken des autonomen Nervensystems
 
 ### Wissenschaftliche Hilfskraft
-**[Abteilung Ergonomie](https://www.ifado.de/forschung/ergonomie/), [IfADo](https://www.ifado.de/), Dortmund**  
+**[Abteilung Ergonomie](https://www.ifado.de/forschung/ergonomie), [IfADo](https://www.ifado.de/), Dortmund**  
 *Februar 2023 - Aktuell*
 
 - Bedienung komplexer experimenteller Aufbauten für soziotechnische Interaktionsstudien ("Walking and Seeing"-Projekt), einschließlich Datenerfassung und vorläufiger Analyse
 - Vielseitige Forschungsunterstützung über mehrere Abteilungsprojekte hinweg, von Probandenscreening bis Datenmanagement
 
 ### Studentische Hilfskraft
-**CardioScienceLab, [Universitätsklinikum](https://www.uk-essen.de/), Essen**  
+**[CardioScienceLab](https://cardiosciencelabs.uk-essen.de/), [Universitätsklinikum](https://www.uk-essen.de/), Essen**  
 *April 2023 - März 2024*
 
 - Erfassung von Patientenakten und Vorbereitung entsprechender Blutproben für den Transport zu kooperierender Institution (ISAS)
@@ -147,6 +149,12 @@ M.Sc. Kognitionswissenschaft, Ruhr-Universität Bochum (2024)
 ### Bachelorarbeit
 **Einfluss des Proteininhibitors Leupeptin auf funktionelle Inhibitoren der sauren Sphingomyelinase im Rahmen der Angiogenese**  
 B.Sc. Molekularbiologie, Westfälische Hochschule (2022) | Note: 2,6
+
+[PDF herunterladen →](#) *(Demnächst verfügbar)*
+
+### Facharbeit
+***(Titel noch zu ergänzen)***  
+CTA-Ausbildung, Technische Berufliche Schule 1, Bochum (2017)
 
 [PDF herunterladen →](#) *(Demnächst verfügbar)*
 
