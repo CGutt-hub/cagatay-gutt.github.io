@@ -175,7 +175,7 @@ Engagement with Europe's largest hacker association on digital rights, privacy, 
 
 ## Philosophy
 
-I am committed to **open and transparent science**, believing that the most profound advancements in AI, Brain-Computer Interfaces, and Human-Machine Interaction emerge from collaborative approaches grounded in embodied cognition. My background spanning molecular biology to cognitive science provides a multi-scale perspective on consciousness—both biological and artificial.
+I am committed to **open and transparent science**, believing that the most profound advancements emerge from collaborative, interdisciplinary approaches. My background spanning molecular biology to cognitive science has instilled a multi-scale perspective on complex problems, emphasizing the value of integrating insights across different levels of analysis and fields of study.
 
 ---
 
