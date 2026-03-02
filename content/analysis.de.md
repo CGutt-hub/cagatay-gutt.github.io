@@ -254,14 +254,64 @@ function buildFileTree() {
         repoMap[repoName].forEach(plot => {
             const fileItem = document.createElement('div');
             fileItem.className = 'file-item';
-            fileItem.textContent = plot.file_path;
             fileItem.dataset.index = plot.index;
             fileItem.dataset.repoName = plot.repo_name;
             fileItem.dataset.filePath = plot.file_path;
             
-            fileItem.onclick = () => {
+            // Create file name span
+            const fileName = document.createElement('span');
+            fileName.textContent = plot.file_path;
+            fileName.style.flex = '1';
+            fileName.style.cursor = 'pointer';
+            fileName.onclick = () => {
                 showPlot(plot.index);
             };
+            
+            // Create download buttons container
+            const downloadBtns = document.createElement('div');
+            downloadBtns.style.display = 'flex';
+            downloadBtns.style.gap = '4px';
+            downloadBtns.style.marginLeft = '8px';
+            
+            // JSON download button
+            const jsonBtn = document.createElement('button');
+            jsonBtn.innerHTML = '📥';
+            jsonBtn.title = 'Download JSON';
+            jsonBtn.className = 'sidebar-download-btn';
+            jsonBtn.style.padding = '2px 6px';
+            jsonBtn.style.fontSize = '0.75em';
+            jsonBtn.style.border = '1px solid var(--border-primary)';
+            jsonBtn.style.borderRadius = '3px';
+            jsonBtn.style.background = 'var(--bg-tertiary)';
+            jsonBtn.style.cursor = 'pointer';
+            jsonBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadPlotData(plotsData[plot.index]);
+            };
+            
+            // PDF/A download button
+            const pdfBtn = document.createElement('button');
+            pdfBtn.innerHTML = '📄';
+            pdfBtn.title = 'Download PDF/A + Parquet';
+            pdfBtn.className = 'sidebar-download-btn';
+            pdfBtn.style.padding = '2px 6px';
+            pdfBtn.style.fontSize = '0.75em';
+            pdfBtn.style.border = '1px solid var(--border-primary)';
+            pdfBtn.style.borderRadius = '3px';
+            pdfBtn.style.background = 'var(--bg-tertiary)';
+            pdfBtn.style.cursor = 'pointer';
+            pdfBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadPlotPDFA(plotsData[plot.index], plot.index);
+            };
+            
+            downloadBtns.appendChild(jsonBtn);
+            downloadBtns.appendChild(pdfBtn);
+            
+            fileItem.appendChild(fileName);
+            fileItem.appendChild(downloadBtns);
+            fileItem.style.display = 'flex';
+            fileItem.style.alignItems = 'center';
             
             fileList.appendChild(fileItem);
         });
@@ -283,7 +333,7 @@ function buildFileTree() {
     if (fileTree.firstChild) {
         const firstRepo = fileTree.firstChild.querySelector('.repo-name');
         firstRepo.click();
-        const firstFile = fileTree.firstChild.querySelector('.file-item');
+        const firstFile = fileTree.firstChild.querySelector('.file-item span');
         if (firstFile) {
             firstFile.click();
         }
@@ -385,15 +435,7 @@ function renderPlots() {
             <h2>📊 ${plotItem.file_path}</h2>
             <div class="plot-meta">
                 <p><strong>Repository:</strong> <a href="${plotItem.repo_url}" target="_blank">${plotItem.repo_name}</a></p>
-                <p>
-                    <strong>Last Updated:</strong> ${new Date(plotItem.updated).toLocaleString()}
-                    <button class="download-btn" onclick="downloadPlotData(plotsData[${index}])">
-                        📥 JSON
-                    </button>
-                    <button class="download-btn" onclick="downloadPlotPDFA(plotsData[${index}], ${index})">
-                        📄 PDF/A + Parquet
-                    </button>
-                </p>
+                <p><strong>Last Updated:</strong> ${new Date(plotItem.updated).toLocaleString()}</p>
             </div>
         `;
         plotDisplay.appendChild(header);
@@ -434,6 +476,101 @@ function renderPlots() {
             readmeSection.appendChild(summary);
             readmeSection.appendChild(readmeContent);
             plotDisplay.appendChild(readmeSection);
+        }
+        
+        // Add Pipeline Tree section if available
+        if (plotItem.pipeline_trace && plotItem.pipeline_trace.processes) {
+            const pipelineSection = document.createElement('details');
+            pipelineSection.className = 'pipeline-section';
+            pipelineSection.style.margin = '15px 0';
+            pipelineSection.style.padding = '15px';
+            pipelineSection.style.background = 'var(--bg-secondary, #f0f4f8)';
+            pipelineSection.style.borderRadius = '4px';
+            pipelineSection.style.border = '1px solid var(--border-primary, #ddd)';
+            pipelineSection.setAttribute('open', '');
+            
+            const pipelineSummary = document.createElement('summary');
+            pipelineSummary.style.cursor = 'pointer';
+            pipelineSummary.style.fontWeight = 'bold';
+            pipelineSummary.style.marginBottom = '15px';
+            pipelineSummary.textContent = `🔄 Analysis Pipeline (${plotItem.pipeline_trace.total_processes} processes, ${plotItem.pipeline_trace.total_tasks} tasks completed)`;
+            
+            const pipelineContent = document.createElement('div');
+            pipelineContent.className = 'pipeline-content';
+            pipelineContent.style.marginTop = '15px';
+            
+            // Add explanatory note
+            const note = document.createElement('div');
+            note.style.fontSize = '0.85em';
+            note.style.color = 'var(--text-secondary)';
+            note.style.marginBottom = '15px';
+            note.style.padding = '8px 12px';
+            note.style.background = 'var(--bg-tertiary, #e9ecef)';
+            note.style.borderRadius = '4px';
+            note.innerHTML = '📊 This shows the complete analysis workflow from a participant run. Each process represents a step in the data processing pipeline.';
+            pipelineContent.appendChild(note);
+            
+            // Create visual pipeline tree
+            const pipelineTree = document.createElement('div');
+            pipelineTree.style.display = 'flex';
+            pipelineTree.style.flexDirection = 'column';
+            pipelineTree.style.gap = '10px';
+            pipelineTree.style.fontFamily = 'var(--font-mono, monospace)';
+            pipelineTree.style.fontSize = '0.9em';
+            
+            plotItem.pipeline_trace.processes.forEach((process, idx) => {
+                const processNode = document.createElement('div');
+                processNode.style.display = 'flex';
+                processNode.style.alignItems = 'center';
+                processNode.style.gap = '10px';
+                processNode.style.padding = '10px';
+                processNode.style.borderRadius = '6px';
+                processNode.style.background = 'var(--bg-primary, white)';
+                processNode.style.border = '2px solid';
+                
+                // Color based on status (only final states visible in public repo)
+                let borderColor = '#28a745';  // Default: completed
+                let statusIcon = '✅';
+                if (process.status === 'FAILED') {
+                    borderColor = '#dc3545';
+                    statusIcon = '❌';
+                } else if (process.status === 'CACHED') {
+                    borderColor = '#17a2b8';
+                    statusIcon = '💾';
+                } else if (process.status === 'COMPLETED') {
+                    borderColor = '#28a745';
+                    statusIcon = '✅';
+                }
+                processNode.style.borderColor = borderColor;
+                
+                // Add connection line to previous process
+                if (idx > 0) {
+                    const connector = document.createElement('div');
+                    connector.style.width = '2px';
+                    connector.style.height = '10px';
+                    connector.style.background = '#6c757d';
+                    connector.style.marginLeft = '30px';
+                    pipelineTree.appendChild(connector);
+                }
+                
+                // Process content
+                processNode.innerHTML = `
+                    <span style="font-size: 1.2em;">${statusIcon}</span>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: var(--text-primary);">${process.name}</div>
+                        <div style="font-size: 0.85em; color: var(--text-secondary);">
+                            Status: ${process.status} | Tasks: ${process.total_tasks}
+                        </div>
+                    </div>
+                `;
+                
+                pipelineTree.appendChild(processNode);
+            });
+            
+            pipelineContent.appendChild(pipelineTree);
+            pipelineSection.appendChild(pipelineSummary);
+            pipelineSection.appendChild(pipelineContent);
+            plotDisplay.appendChild(pipelineSection);
         }
         
         // Plot container
