@@ -70,11 +70,11 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/website-update/">&lt;p&gt;This website has been updated with the following changes:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-changes&quot;&gt;Recent Changes&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;4feb553&lt;&#x2F;code&gt; fix: update navigation labels for analysis and open data pages&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;da3d686&lt;&#x2F;code&gt; fix: streamline GitHub API token handling and improve type annotations&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;c6536d8&lt;&#x2F;code&gt; fix: use dedicated template for analysis page to prevent HTML escaping&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;8b45441&lt;&#x2F;code&gt; fix: redesign analysis page to work within normal page flow&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;e200385&lt;&#x2F;code&gt; feat: redesign analysis page with Analysis Toolbox-inspired layout&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;338e23f&lt;&#x2F;code&gt; feat: add analysis page link to navigation for improved accessibility&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The site continues to sync automatically with GitHub (projects) and ORCID (publications).&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;5ha99y&quot;&gt;View source on GitHub →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
