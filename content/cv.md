@@ -148,11 +148,26 @@ B.Sc. Molecular Biology, Westphalian University of Applied Sciences (2022) | Gra
 
 ## Community and Engagement
 
-**Volt Deutschland** — Active Member
+### Volt Europa — Policy & Data Analytics
+*January 2026 - Present*
 
-Focus on data analytics and digital policy, advocating for open and transparent governance, evidence-based decision-making, and responsible technology use in public institutions.
+Active member focused on policy development and data-driven decision-making for progressive, evidence-based European policy:
 
-**Chaos Computer Club (CCC)** — Participant
+**Policy Roadmap Development**
+- Developing comprehensive policy roadmaps towards **open infrastructures** that promote accessibility, economic equality, and knowledge democratization
+- Working on frameworks for transparent, accessible, and community-driven systems that reduce monopolistic barriers and enable broad participation
+- Researching and drafting policies that foster open innovation, combat gatekeeping, and support startup ecosystems around collaborative, open models
+- Addressing challenges in the Economy and Innovation sector with particular emphasis on accessibility and economic equality
+- Policy documents and proposals *(Coming soon - pending approval for public transparency)*
+
+**Data Analysis & Evidence-Based Policy**
+- Conducting quantitative data analysis to support evidence-based policy decisions
+- Building analytical frameworks to evaluate policy impacts and inform strategic planning
+- Collaborating with teams across Volt Europa to translate data insights into actionable policy recommendations
+
+**Focus Areas:** Open governance, accessibility, economic equality, innovation infrastructure, knowledge democratization, evidence-based decision-making
+
+### Chaos Computer Club (CCC) — Participant
 
 Engagement with Europe's largest hacker association on digital rights, privacy, and technological transparency.
 

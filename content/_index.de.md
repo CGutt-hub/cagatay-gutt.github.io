@@ -35,7 +35,7 @@ Für mich ist die Entwicklung verantwortungsvoller Technologie nicht nur eine te
 ## Gemeinschaft & Engagement
 
 ### Volt Europa
-Aktives Mitglied für progressive, evidenzbasierte Politik und europäische Zusammenarbeit. Ich konzentriere mich auf **Datenanalyse** und **Digitalpolitik** und setze mich für offene und transparente Governance, evidenzbasierte Entscheidungsfindung und den verantwortungsvollen Einsatz von Technologie in öffentlichen Institutionen ein.
+Aktives Mitglied für progressive, evidenzbasierte Politik und europäische Zusammenarbeit. Ich konzentriere mich auf die **Entwicklung von Policy-Roadmaps** für offene Infrastrukturen, die Zugänglichkeit, wirtschaftliche Gleichheit und Demokratisierung von Wissen fördern, sowie auf **Datenanalyse**-Arbeit zur Unterstützung evidenzbasierter Entscheidungsfindung. Mein Engagement liegt in der Förderung offener und transparenter Governance, dem Abbau von Barrieren beim Zugang zu Wissen und wirtschaftlicher Teilhabe sowie der Unterstützung gemeinschaftsgetriebener Innovation.
 
 ### Chaos Computer Club (CCC)
 Teilnehmer an Europas größter Hackervereinigung, die sich für digitale Rechte, Datenschutz und technologische Transparenz einsetzt. Das Engagement des CCC für offenes Wissen und ethische Technologie stimmt tief mit meinen wissenschaftlichen und politischen Werten überein.

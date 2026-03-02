@@ -148,11 +148,26 @@ B.Sc. Molekularbiologie, Westfälische Hochschule (2022) | Note: 2,6
 
 ## Gemeinschaft und Engagement
 
-**Volt Deutschland** — Aktives Mitglied
+### Volt Europa — Politik & Datenanalyse
+*Januar 2026 - Aktuell*
 
-Fokus auf Datenanalyse und Digitalpolitik, Einsatz für offene und transparente Governance, evidenzbasierte Entscheidungsfindung und verantwortungsvollen Technologieeinsatz in öffentlichen Institutionen.
+Aktives Mitglied mit Fokus auf Politikentwicklung und datengesteuerter Entscheidungsfindung für progressive, evidenzbasierte europäische Politik:
 
-**Chaos Computer Club (CCC)** — Teilnehmer
+**Policy-Roadmap-Entwicklung**
+- Entwicklung umfassender Policy-Roadmaps für **offene Infrastrukturen**, die Zugänglichkeit, wirtschaftliche Gleichheit und Demokratisierung von Wissen fördern
+- Arbeit an Rahmenbedingungen für transparente, zugängliche und gemeinschaftsgetriebene Systeme, die monopolistische Barrieren reduzieren und breite Teilhabe ermöglichen
+- Forschung und Entwurf von Policys, die offene Innovation fördern, Gatekeeping bekämpfen und Startup-Ökosysteme rund um kollaborative, offene Modelle unterstützen
+- Bearbeitung von Herausforderungen im Bereich Wirtschaft und Innovation mit besonderem Schwerpunkt auf Zugänglichkeit und wirtschaftlicher Gleichheit
+- Policy-Dokumente und Vorschläge *(Demnächst verfügbar - vorbehaltlich Genehmigung für öffentliche Transparenz)*
+
+**Datenanalyse & Evidenzbasierte Politik**
+- Durchführung quantitativer Datenanalysen zur Unterstützung evidenzbasierter Politikentscheidungen
+- Aufbau analytischer Rahmenwerke zur Bewertung von Policy-Auswirkungen und zur Information strategischer Planung
+- Zusammenarbeit mit Teams in ganz Volt Europa zur Übersetzung von Datenerkenntnissen in umsetzbare Politikempfehlungen
+
+**Schwerpunkte:** Offene Governance, Zugänglichkeit, wirtschaftliche Gleichheit, Innovationsinfrastruktur, Demokratisierung von Wissen, evidenzbasierte Entscheidungsfindung
+
+### Chaos Computer Club (CCC) — Teilnehmer
 
 Engagement bei Europas größter Hackervereinigung für digitale Rechte, Datenschutz und technologische Transparenz.
 
