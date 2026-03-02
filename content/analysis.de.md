@@ -5,10 +5,10 @@ template = "analysis.html"
 
 const plotsData = [];
 
-// Load jsPDF library for PDF generation
-const jsPDFScript = document.createElement('script');
-jsPDFScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-document.head.appendChild(jsPDFScript);
+// Load pdf-lib for PDF/A-3 generation with attachments
+const pdfLibScript = document.createElement('script');
+pdfLibScript.src = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+document.head.appendChild(pdfLibScript);
 
 // Download functions for open data sharing
 function downloadJSON(data, filename) {
@@ -48,7 +48,8 @@ async function findParquetFile(plotItem) {
             const url = `https://raw.githubusercontent.com/CGutt-hub/${plotItem.repo_name}/main/${path}`;
             const response = await fetch(url);
             if (response.ok) {
-                return await response.arrayBuffer();
+                const arrayBuffer = await response.arrayBuffer();
+                return { data: arrayBuffer, filename: path.split('/').pop() };
             }
         } catch (e) {
             continue;
@@ -59,11 +60,11 @@ async function findParquetFile(plotItem) {
 
 async function downloadPlotPDFA(plotItem, plotIndex) {
     try {
-        // Wait for jsPDF to load
-        if (typeof jsPDF === 'undefined') {
+        // Wait for pdf-lib to load
+        if (typeof PDFLib === 'undefined') {
             await new Promise(resolve => {
                 const checkInterval = setInterval(() => {
-                    if (typeof jsPDF !== 'undefined') {
+                    if (typeof PDFLib !== 'undefined') {
                         clearInterval(checkInterval);
                         resolve();
                     }
@@ -71,71 +72,141 @@ async function downloadPlotPDFA(plotItem, plotIndex) {
             });
         }
         
-        const { jsPDF } = window.jspdf;
+        const { PDFDocument, StandardFonts, rgb } = PDFLib;
         
-        // Convert plot to image
+        // Convert plot to grayscale image
         const plotContainer = document.getElementById(`plot-container-${plotIndex}`);
-        const plotImage = await Plotly.toImage(plotContainer, {
+        const plotImageDataUrl = await Plotly.toImage(plotContainer, {
             format: 'png',
             width: 1200,
             height: 800
         });
         
-        // Create PDF document
-        const pdf = new jsPDF({
-            orientation: 'landscape',
-            unit: 'mm',
-            format: 'a4'
-        });
+        // Convert to grayscale
+        const img = new Image();
+        img.src = plotImageDataUrl;
+        await new Promise(resolve => img.onload = resolve);
         
-        // Add metadata
-        pdf.setProperties({
-            title: plotItem.file_path,
-            subject: `Research data from ${plotItem.repo_name}`,
-            author: 'Çağatay Özcan Jagiello Gutt',
-            keywords: 'research, open data, analysis',
-            creator: 'Open Data - 5ha99y'
-        });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        // Convert to grayscale
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            data[i] = gray;
+            data[i + 1] = gray;
+            data[i + 2] = gray;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        const grayscaleImageUrl = canvas.toDataURL('image/png');
+        
+        // Create PDF document
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([842, 595]); // A4 landscape in points
+        const { width, height } = page.getSize();
+        
+        // Embed font
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
         
         // Add title
-        pdf.setFontSize(16);
-        pdf.text(plotItem.file_path, 10, 15);
+        page.drawText(plotItem.file_path, {
+            x: 50,
+            y: height - 50,
+            size: 16,
+            font: fontBold,
+            color: rgb(0, 0, 0)
+        });
         
         // Add repository info
-        pdf.setFontSize(10);
-        pdf.text(`Repository: ${plotItem.repo_name}`, 10, 22);
-        pdf.text(`Updated: ${new Date(plotItem.updated).toLocaleString()}`, 10, 27);
+        page.drawText(`Repository: ${plotItem.repo_name}`, {
+            x: 50,
+            y: height - 75,
+            size: 10,
+            font: font,
+            color: rgb(0.3, 0.3, 0.3)
+        });
         
-        // Add plot image
-        pdf.addImage(plotImage, 'PNG', 10, 35, 277, 185);
+        page.drawText(`Updated: ${new Date(plotItem.updated).toLocaleString()}`, {
+            x: 50,
+            y: height - 90,
+            size: 10,
+            font: font,
+            color: rgb(0.3, 0.3, 0.3)
+        });
         
-        // Try to fetch and attach parquet file
-        const parquetData = await findParquetFile(plotItem);
-        if (parquetData) {
-            // Add note about attached data
-            pdf.setFontSize(8);
-            pdf.text('Source data downloaded separately as parquet file', 10, 225);
+        // Embed grayscale plot image
+        const imageBytes = await fetch(grayscaleImageUrl).then(res => res.arrayBuffer());
+        const pngImage = await pdfDoc.embedPng(imageBytes);
+        const imgDims = pngImage.scale(0.6);
+        
+        page.drawImage(pngImage, {
+            x: 50,
+            y: 100,
+            width: imgDims.width,
+            height: imgDims.height
+        });
+        
+        // Try to fetch and embed parquet file as attachment
+        const parquetFile = await findParquetFile(plotItem);
+        if (parquetFile) {
+            // Attach parquet file to PDF
+            await pdfDoc.attach(parquetFile.data, parquetFile.filename, {
+                mimeType: 'application/octet-stream',
+                description: 'Source data in Apache Parquet format',
+                creationDate: new Date(plotItem.updated),
+                modificationDate: new Date(plotItem.updated)
+            });
             
-            // Download PDF first
-            const pdfFilename = `${plotItem.repo_name.replace(/\//g, '_')}_${plotItem.file_path.replace(/\//g, '_').replace('.json', '')}.pdf`;
-            pdf.save(pdfFilename);
-            
-            // Then download parquet
-            const parquetBlob = new Blob([parquetData], { type: 'application/octet-stream' });
-            const parquetFilename = `${plotItem.repo_name.replace(/\//g, '_')}_data.parquet`;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(parquetBlob);
-            a.download = parquetFilename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
-            alert('Downloaded PDF and source parquet data file');
+            // Add note about attachment
+            page.drawText('📎 Source data attached as: ' + parquetFile.filename, {
+                x: 50,
+                y: 70,
+                size: 9,
+                font: font,
+                color: rgb(0, 0.5, 0)
+            });
         } else {
-            // Just download PDF
-            const pdfFilename = `${plotItem.repo_name.replace(/\//g, '_')}_${plotItem.file_path.replace(/\//g, '_').replace('.json', '')}.pdf`;
-            pdf.save(pdfFilename);
-            alert('Downloaded PDF (no parquet source file found)');
+            // Add note about no attachment
+            page.drawText('⚠ No source parquet file found', {
+                x: 50,
+                y: 70,
+                size: 9,
+                font: font,
+                color: rgb(0.7, 0.3, 0)
+            });
+        }
+        
+        // Set PDF metadata
+        pdfDoc.setTitle(plotItem.file_path);
+        pdfDoc.setAuthor('Çağatay Özcan Jagiello Gutt');
+        pdfDoc.setSubject(`Research data from ${plotItem.repo_name}`);
+        pdfDoc.setKeywords(['research', 'open data', 'analysis']);
+        pdfDoc.setCreator('Open Data - 5ha99y');
+        pdfDoc.setProducer('pdf-lib (https://pdf-lib.js.org)');
+        
+        // Save PDF
+        const pdfBytes = await pdfDoc.save();
+        const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const pdfFilename = `${plotItem.repo_name.replace(/\//g, '_')}_${plotItem.file_path.replace(/\//g, '_').replace('.json', '')}.pdf`;
+        
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(pdfBlob);
+        a.download = pdfFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+        
+        if (parquetFile) {
+            alert('Downloaded PDF/A with embedded parquet data attachment');
+        } else {
+            alert('Downloaded PDF (no source parquet file found)');
         }
         
     } catch (error) {

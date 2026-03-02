@@ -70,6 +70,7 @@ class PlotData(TypedDict):
     updated: str
     repo_url: str
     readme: str | None  # Optional README content from plot directory
+    pipeline_trace: dict[str, Any] | None  # Nextflow pipeline execution tree
 
 
 def slugify(text: str) -> str:
@@ -196,8 +197,74 @@ def fetch_osf_projects() -> list[OSFProject]:
         return []
 
 
+def parse_nextflow_trace(trace_content: str) -> dict[str, Any]:
+    """Parse Nextflow trace file to extract pipeline structure"""
+    import csv
+    from io import StringIO
+    
+    try:
+        # Parse trace file (TSV format)
+        reader = csv.DictReader(StringIO(trace_content), delimiter='\t')
+        rows = list(reader)
+        
+        if not rows:
+            return {}
+        
+        # Build pipeline tree structure
+        processes: dict[str, dict[str, Any]] = {}
+        process_order: list[str] = []
+        
+        for row in rows:
+            process_name = row.get('name', 'unknown')
+            task_id = row.get('task_id', '')
+            status = row.get('status', 'UNKNOWN')
+            duration = row.get('duration', '')
+            cpus = row.get('cpus', '1')
+            memory = row.get('memory', '')
+            
+            # Group by process name (removing task number suffix)
+            base_process = process_name.split('(')[0].strip() if '(' in process_name else process_name
+            
+            if base_process not in processes:
+                processes[base_process] = {
+                    'name': base_process,
+                    'tasks': [],
+                    'status': status,
+                    'avg_duration': 0,
+                    'total_tasks': 0
+                }
+                process_order.append(base_process)
+            
+            processes[base_process]['tasks'].append({
+                'id': task_id,
+                'name': process_name,
+                'status': status,
+                'duration': duration,
+                'cpus': cpus,
+                'memory': memory
+            })
+            processes[base_process]['total_tasks'] += 1
+            
+            # Update process status (failed > running > completed)
+            if status == 'FAILED':
+                processes[base_process]['status'] = 'FAILED'
+            elif status == 'RUNNING' and processes[base_process]['status'] != 'FAILED':
+                processes[base_process]['status'] = 'RUNNING'
+        
+        return {
+            'processes': list(processes.values()),
+            'process_order': process_order,
+            'total_processes': len(processes),
+            'total_tasks': sum(p['total_tasks'] for p in processes.values())
+        }
+    
+    except Exception as e:
+        print(f"  Error parsing Nextflow trace: {e}")
+        return {}
+
+
 def search_repo_for_plots(repo_name: str, repo_url: str, updated: str) -> list[PlotData]:
-    """Search a repository for plot JSON files and associated READMEs"""
+    """Search a repository for plot JSON files, READMEs, and Nextflow traces"""
     
     # Search for files with .json extension in common plot directories
     search_paths = [
@@ -208,6 +275,27 @@ def search_repo_for_plots(repo_name: str, repo_url: str, updated: str) -> list[P
     plot_files: list[PlotData] = []
     # Track directories that have plots and their READMEs
     readme_cache: dict[str, str | None] = {}
+    pipeline_trace: dict[str, Any] | None = None
+    
+    # First, try to find Nextflow trace file
+    try:
+        trace_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/.nextflow.log"
+        trace_response = requests.get(trace_url, headers=GITHUB_HEADERS)
+        if trace_response.status_code == 404:
+            # Try trace.txt in root
+            trace_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/trace.txt"
+            trace_response = requests.get(trace_url, headers=GITHUB_HEADERS)
+        
+        if trace_response.status_code == 200:
+            trace_data = trace_response.json()
+            if 'content' in trace_data:
+                import base64
+                trace_content = base64.b64decode(trace_data['content']).decode('utf-8')
+                pipeline_trace = parse_nextflow_trace(trace_content)
+                if pipeline_trace:
+                    print(f"  Found Nextflow trace with {pipeline_trace.get('total_processes', 0)} processes")
+    except Exception as e:
+        print(f"  No Nextflow trace found: {e}")
     
     for search_path in search_paths:
         try:
@@ -278,7 +366,8 @@ def search_repo_for_plots(repo_name: str, repo_url: str, updated: str) -> list[P
                                     'plot_data': plot_json,
                                     'updated': updated,
                                     'repo_url': repo_url,
-                                    'readme': readme_content
+                                    'readme': readme_content,
+                                    'pipeline_trace': pipeline_trace
                                 })
                                 print(f"  Found plot: {repo_name}/{search_path}/{item['name']}" if search_path else f"  Found plot: {repo_name}/{item['name']}")
                         except Exception as e:
@@ -495,10 +584,10 @@ const plotsData = """
     
     content += """;
 
-// Load jsPDF library for PDF generation
-const jsPDFScript = document.createElement('script');
-jsPDFScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-document.head.appendChild(jsPDFScript);
+// Load pdf-lib for PDF/A-3 generation with attachments
+const pdfLibScript = document.createElement('script');
+pdfLibScript.src = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+document.head.appendChild(pdfLibScript);
 
 // Download functions for open data sharing
 function downloadJSON(data, filename) {
@@ -538,7 +627,8 @@ async function findParquetFile(plotItem) {
             const url = `https://raw.githubusercontent.com/CGutt-hub/${plotItem.repo_name}/main/${path}`;
             const response = await fetch(url);
             if (response.ok) {
-                return await response.arrayBuffer();
+                const arrayBuffer = await response.arrayBuffer();
+                return { data: arrayBuffer, filename: path.split('/').pop() };
             }
         } catch (e) {
             continue;
@@ -549,11 +639,11 @@ async function findParquetFile(plotItem) {
 
 async function downloadPlotPDFA(plotItem, plotIndex) {
     try {
-        // Wait for jsPDF to load
-        if (typeof jsPDF === 'undefined') {
+        // Wait for pdf-lib to load
+        if (typeof PDFLib === 'undefined') {
             await new Promise(resolve => {
                 const checkInterval = setInterval(() => {
-                    if (typeof jsPDF !== 'undefined') {
+                    if (typeof PDFLib !== 'undefined') {
                         clearInterval(checkInterval);
                         resolve();
                     }
@@ -561,71 +651,141 @@ async function downloadPlotPDFA(plotItem, plotIndex) {
             });
         }
         
-        const { jsPDF } = window.jspdf;
+        const { PDFDocument, StandardFonts, rgb } = PDFLib;
         
-        // Convert plot to image
+        // Convert plot to grayscale image
         const plotContainer = document.getElementById(`plot-container-${plotIndex}`);
-        const plotImage = await Plotly.toImage(plotContainer, {
+        const plotImageDataUrl = await Plotly.toImage(plotContainer, {
             format: 'png',
             width: 1200,
             height: 800
         });
         
-        // Create PDF document
-        const pdf = new jsPDF({
-            orientation: 'landscape',
-            unit: 'mm',
-            format: 'a4'
-        });
+        // Convert to grayscale
+        const img = new Image();
+        img.src = plotImageDataUrl;
+        await new Promise(resolve => img.onload = resolve);
         
-        // Add metadata
-        pdf.setProperties({
-            title: plotItem.file_path,
-            subject: `Research data from ${plotItem.repo_name}`,
-            author: 'Çağatay Özcan Jagiello Gutt',
-            keywords: 'research, open data, analysis',
-            creator: 'Open Data - 5ha99y'
-        });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        // Convert to grayscale
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            data[i] = gray;
+            data[i + 1] = gray;
+            data[i + 2] = gray;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        const grayscaleImageUrl = canvas.toDataURL('image/png');
+        
+        // Create PDF document
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([842, 595]); // A4 landscape in points
+        const { width, height } = page.getSize();
+        
+        // Embed font
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
         
         // Add title
-        pdf.setFontSize(16);
-        pdf.text(plotItem.file_path, 10, 15);
+        page.drawText(plotItem.file_path, {
+            x: 50,
+            y: height - 50,
+            size: 16,
+            font: fontBold,
+            color: rgb(0, 0, 0)
+        });
         
         // Add repository info
-        pdf.setFontSize(10);
-        pdf.text(`Repository: ${plotItem.repo_name}`, 10, 22);
-        pdf.text(`Updated: ${new Date(plotItem.updated).toLocaleString()}`, 10, 27);
+        page.drawText(`Repository: ${plotItem.repo_name}`, {
+            x: 50,
+            y: height - 75,
+            size: 10,
+            font: font,
+            color: rgb(0.3, 0.3, 0.3)
+        });
         
-        // Add plot image
-        pdf.addImage(plotImage, 'PNG', 10, 35, 277, 185);
+        page.drawText(`Updated: ${new Date(plotItem.updated).toLocaleString()}`, {
+            x: 50,
+            y: height - 90,
+            size: 10,
+            font: font,
+            color: rgb(0.3, 0.3, 0.3)
+        });
         
-        // Try to fetch and attach parquet file
-        const parquetData = await findParquetFile(plotItem);
-        if (parquetData) {
-            // Add note about attached data
-            pdf.setFontSize(8);
-            pdf.text('Source data downloaded separately as parquet file', 10, 225);
+        // Embed grayscale plot image
+        const imageBytes = await fetch(grayscaleImageUrl).then(res => res.arrayBuffer());
+        const pngImage = await pdfDoc.embedPng(imageBytes);
+        const imgDims = pngImage.scale(0.6);
+        
+        page.drawImage(pngImage, {
+            x: 50,
+            y: 100,
+            width: imgDims.width,
+            height: imgDims.height
+        });
+        
+        // Try to fetch and embed parquet file as attachment
+        const parquetFile = await findParquetFile(plotItem);
+        if (parquetFile) {
+            // Attach parquet file to PDF
+            await pdfDoc.attach(parquetFile.data, parquetFile.filename, {
+                mimeType: 'application/octet-stream',
+                description: 'Source data in Apache Parquet format',
+                creationDate: new Date(plotItem.updated),
+                modificationDate: new Date(plotItem.updated)
+            });
             
-            // Download PDF first
-            const pdfFilename = `${plotItem.repo_name.replace(/\\//g, '_')}_${plotItem.file_path.replace(/\\//g, '_').replace('.json', '')}.pdf`;
-            pdf.save(pdfFilename);
-            
-            // Then download parquet
-            const parquetBlob = new Blob([parquetData], { type: 'application/octet-stream' });
-            const parquetFilename = `${plotItem.repo_name.replace(/\\//g, '_')}_data.parquet`;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(parquetBlob);
-            a.download = parquetFilename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
-            alert('Downloaded PDF and source parquet data file');
+            // Add note about attachment
+            page.drawText('📎 Source data attached as: ' + parquetFile.filename, {
+                x: 50,
+                y: 70,
+                size: 9,
+                font: font,
+                color: rgb(0, 0.5, 0)
+            });
         } else {
-            // Just download PDF
-            const pdfFilename = `${plotItem.repo_name.replace(/\\//g, '_')}_${plotItem.file_path.replace(/\\//g, '_').replace('.json', '')}.pdf`;
-            pdf.save(pdfFilename);
-            alert('Downloaded PDF (no parquet source file found)');
+            // Add note about no attachment
+            page.drawText('⚠ No source parquet file found', {
+                x: 50,
+                y: 70,
+                size: 9,
+                font: font,
+                color: rgb(0.7, 0.3, 0)
+            });
+        }
+        
+        // Set PDF metadata
+        pdfDoc.setTitle(plotItem.file_path);
+        pdfDoc.setAuthor('Çağatay Özcan Jagiello Gutt');
+        pdfDoc.setSubject(`Research data from ${plotItem.repo_name}`);
+        pdfDoc.setKeywords(['research', 'open data', 'analysis']);
+        pdfDoc.setCreator('Open Data - 5ha99y');
+        pdfDoc.setProducer('pdf-lib (https://pdf-lib.js.org)');
+        
+        // Save PDF
+        const pdfBytes = await pdfDoc.save();
+        const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const pdfFilename = `${plotItem.repo_name.replace(/\\//g, '_')}_${plotItem.file_path.replace(/\\//g, '_').replace('.json', '')}.pdf`;
+        
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(pdfBlob);
+        a.download = pdfFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+        
+        if (parquetFile) {
+            alert('Downloaded PDF/A with embedded parquet data attachment');
+        } else {
+            alert('Downloaded PDF (no source parquet file found)');
         }
         
     } catch (error) {
@@ -853,6 +1013,90 @@ function renderPlots() {
             readmeSection.appendChild(summary);
             readmeSection.appendChild(readmeContent);
             plotDisplay.appendChild(readmeSection);
+        }
+        
+        // Add Pipeline Tree section if available
+        if (plotItem.pipeline_trace && plotItem.pipeline_trace.processes) {
+            const pipelineSection = document.createElement('details');
+            pipelineSection.className = 'pipeline-section';
+            pipelineSection.style.margin = '15px 0';
+            pipelineSection.style.padding = '15px';
+            pipelineSection.style.background = 'var(--bg-secondary, #f0f4f8)';
+            pipelineSection.style.borderRadius = '4px';
+            pipelineSection.style.border = '1px solid var(--border-primary, #ddd)';
+            pipelineSection.setAttribute('open', '');
+            
+            const pipelineSummary = document.createElement('summary');
+            pipelineSummary.style.cursor = 'pointer';
+            pipelineSummary.style.fontWeight = 'bold';
+            pipelineSummary.style.marginBottom = '15px';
+            pipelineSummary.textContent = `🔄 Pipeline Execution Tree (${plotItem.pipeline_trace.total_processes} processes, ${plotItem.pipeline_trace.total_tasks} tasks)`;
+            
+            const pipelineContent = document.createElement('div');
+            pipelineContent.className = 'pipeline-content';
+            pipelineContent.style.marginTop = '15px';
+            
+            // Create visual pipeline tree
+            const pipelineTree = document.createElement('div');
+            pipelineTree.style.display = 'flex';
+            pipelineTree.style.flexDirection = 'column';
+            pipelineTree.style.gap = '10px';
+            pipelineTree.style.fontFamily = 'var(--font-mono, monospace)';
+            pipelineTree.style.fontSize = '0.9em';
+            
+            plotItem.pipeline_trace.processes.forEach((process, idx) => {
+                const processNode = document.createElement('div');
+                processNode.style.display = 'flex';
+                processNode.style.alignItems = 'center';
+                processNode.style.gap = '10px';
+                processNode.style.padding = '10px';
+                processNode.style.borderRadius = '6px';
+                processNode.style.background = 'var(--bg-primary, white)';
+                processNode.style.border = '2px solid';
+                
+                // Color based on status
+                let borderColor = '#6c757d';
+                let statusIcon = '⚪';
+                if (process.status === 'COMPLETED') {
+                    borderColor = '#28a745';
+                    statusIcon = '✅';
+                } else if (process.status === 'FAILED') {
+                    borderColor = '#dc3545';
+                    statusIcon = '❌';
+                } else if (process.status === 'RUNNING') {
+                    borderColor = '#007bff';
+                    statusIcon = '⏳';
+                }
+                processNode.style.borderColor = borderColor;
+                
+                // Add connection line to previous process
+                if (idx > 0) {
+                    const connector = document.createElement('div');
+                    connector.style.width = '2px';
+                    connector.style.height = '10px';
+                    connector.style.background = '#6c757d';
+                    connector.style.marginLeft = '30px';
+                    pipelineTree.appendChild(connector);
+                }
+                
+                // Process content
+                processNode.innerHTML = `
+                    <span style="font-size: 1.2em;">${statusIcon}</span>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: var(--text-primary);">${process.name}</div>
+                        <div style="font-size: 0.85em; color: var(--text-secondary);">
+                            Status: ${process.status} | Tasks: ${process.total_tasks}
+                        </div>
+                    </div>
+                `;
+                
+                pipelineTree.appendChild(processNode);
+            });
+            
+            pipelineContent.appendChild(pipelineTree);
+            pipelineSection.appendChild(pipelineSummary);
+            pipelineSection.appendChild(pipelineContent);
+            plotDisplay.appendChild(pipelineSection);
         }
         
         // Plot container
