@@ -31,9 +31,9 @@ title = "Lebenslauf"
 ### Ausbildung zum Chemisch-technischen Assistenten (CTA)
 **[Technische Berufliche Schule 1](https://www.tbs1.de/), Bochum** | *August 2014 - Juni 2017* | Note: 2,8
 
-**Qualifikationen:** Staatlich geprüfter Chemisch-technischer Assistent (CTA) · Fachhochschulreife
+**Qualifikation:** Staatlich geprüfter Chemisch-technischer Assistent (CTA)
 
-**Schwerpunkt:** Chemisch-technische Assistenz
+**Schwerpunkt:** Chemische und naturwissenschaftliche Laborarbeit
 
 **Facharbeit:** *(Titel noch zu ergänzen)*
 

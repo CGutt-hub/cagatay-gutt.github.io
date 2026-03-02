@@ -31,9 +31,9 @@ title = "CV"
 ### Apprenticeship as Chemical Technical Assistant (CTA)
 **[Technische Berufliche Schule 1](https://www.tbs1.de/), Bochum** | *August 2014 - June 2017* | Grade: 2.8
 
-**Qualifications:** State-certified Chemical Technical Assistant (CTA) · University of Applied Sciences Entrance Qualification
+**Qualification:** State-certified Chemical Technical Assistant (CTA)
 
-**Focus Area:** Chemical Technical Assistance
+**Focus Area:** Chemical and Natural Sciences Laboratory Work
 
 **Vocational Thesis:** *(Title to be added)*
 
