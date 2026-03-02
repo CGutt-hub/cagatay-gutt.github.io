@@ -183,4 +183,4 @@ I am committed to **open and transparent science**, believing that the most prof
 
 **Climbing & Bouldering** — Recreational rock climbing and bouldering for physical balance and problem-solving
 
-**Music** — Multi-instrumentalist with formal piano training and self-taught experience across guitar, harmonica, drums, and various folk instruments including tin whistle and mouth harp
+**Music** — Amateur multi-instrumentalist with piano training and experience across guitar, harmonica, drums, and folk instruments
