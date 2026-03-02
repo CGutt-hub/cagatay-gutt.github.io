@@ -167,9 +167,9 @@ Aktives Mitglied mit Fokus auf Politikentwicklung und datengesteuerter Entscheid
 
 **Schwerpunkte:** Offene Governance, Zugänglichkeit, wirtschaftliche Gleichheit, Innovationsinfrastruktur, Demokratisierung von Wissen, evidenzbasierte Entscheidungsfindung
 
-### Chaos Computer Club (CCC) — Teilnehmer
+### Chaos Computer Club (CCC) — Unterstützendes Mitglied
 
-Engagement bei Europas größter Hackervereinigung für digitale Rechte, Datenschutz und technologische Transparenz.
+Unterstützende Mitgliedschaft in Europas größter Hackervereinigung mit Fokus auf digitale Rechte, Datenschutz und technologische Transparenz. Die Übereinstimmung mit CCC-Werten spiegelt sich in Politikarbeit wider, die offene Infrastrukturen und ethischen Technologieeinsatz fördert.
 
 ---
 

@@ -39,4 +39,4 @@ For me, developing knowledge and technology is not just a scientific challenge, 
 Active member working toward progressive, evidence-based policy and European cooperation. I focus on **policy roadmap development** and **data analysis** within the Economy and Innovation sector, advocating for open and transparent governance, evidence-based decision-making, and the responsible use of technology in public institutions.
 
 ### Chaos Computer Club (CCC)
-Participant in Europe's largest hacker association, advocating for digital rights, privacy, and technological transparency. The CCC's commitment to open knowledge and ethical technology aligns deeply with my scientific and political values.
+Supporting member of Europe's largest hacker association, advocating for digital rights, privacy, and technological transparency. The CCC's commitment to open knowledge and ethical technology aligns deeply with my scientific and political values, which I advance through policy work and occasional use of CCC infrastructure for open-source projects.

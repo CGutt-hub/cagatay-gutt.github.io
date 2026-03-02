@@ -167,9 +167,9 @@ Active member focused on policy development and data-driven decision-making for 
 
 **Focus Areas:** Open governance, accessibility, economic equality, innovation infrastructure, knowledge democratization, evidence-based decision-making
 
-### Chaos Computer Club (CCC) — Participant
+### Chaos Computer Club (CCC) — Supporting Member
 
-Engagement with Europe's largest hacker association on digital rights, privacy, and technological transparency.
+Supporting membership in Europe's largest hacker association focused on digital rights, privacy, and technological transparency. Alignment with CCC values is reflected in policy work promoting open infrastructure and ethical technology use.
 
 ---
 
