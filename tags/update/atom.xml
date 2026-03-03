@@ -5,12 +5,12 @@
     <link rel="self" type="application/atom+xml" href="https://cgutt-hub.github.io/5ha99y/tags/update/atom.xml"/>
     <link rel="alternate" type="text/html" href="https://cgutt-hub.github.io/5ha99y"/>
     <generator uri="https://www.getzola.org/">Zola</generator>
-    <updated>2026-03-02T00:00:00+00:00</updated>
+    <updated>2026-03-03T00:00:00+00:00</updated>
     <id>https://cgutt-hub.github.io/5ha99y/tags/update/atom.xml</id>
     <entry xml:lang="en">
         <title>Project Update: AnalysisToolbox</title>
-        <published>2026-03-02T00:00:00+00:00</published>
-        <updated>2026-03-02T00:00:00+00:00</updated>
+        <published>2026-03-03T00:00:00+00:00</published>
+        <updated>2026-03-03T00:00:00+00:00</updated>
         
         <author>
           <name>
@@ -26,11 +26,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-analysistoolbox/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;AnalysisToolbox&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;78a6ba6&lt;&#x2F;code&gt; fix: write pipeline.log to EV_results&#x2F; (output_dir) instead of EV_analysis&#x2F; (lau&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;09b295c&lt;&#x2F;code&gt; fix: meta.json path in git sync; remove JS sidecar references in comments&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;5d9922d&lt;&#x2F;code&gt; Enhance Nextflow pipeline with improved logging and HTML serving&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;64610e9&lt;&#x2F;code&gt; Add interactive plotter and HTML server for EmotiView archives&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;5847b6e&lt;&#x2F;code&gt; Refactor and enhance data processing scripts&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;451c89a&lt;&#x2F;code&gt; feat: Add participant discovery workflow with logging and git synchronization&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;6d36904&lt;&#x2F;code&gt; Add group analyzer and Nextflow template for data analysis pipelines&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -39,8 +39,8 @@
     </entry>
     <entry xml:lang="en">
         <title>Project Update: EmotiView</title>
-        <published>2026-03-02T00:00:00+00:00</published>
-        <updated>2026-03-02T00:00:00+00:00</updated>
+        <published>2026-03-03T00:00:00+00:00</published>
+        <updated>2026-03-03T00:00:00+00:00</updated>
         
         <author>
           <name>
@@ -56,7 +56,7 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-emotiview/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;EmotiView&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;code&gt;9300eb1&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@8e8&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;4a23ce5&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@404&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -65,8 +65,8 @@
     </entry>
     <entry xml:lang="en">
         <title>Project Update: surveyWorkbench</title>
-        <published>2026-03-02T00:00:00+00:00</published>
-        <updated>2026-03-02T00:00:00+00:00</updated>
+        <published>2026-03-03T00:00:00+00:00</published>
+        <updated>2026-03-03T00:00:00+00:00</updated>
         
         <author>
           <name>
@@ -95,8 +95,8 @@
     </entry>
     <entry xml:lang="en">
         <title>Website Update</title>
-        <published>2026-03-02T00:00:00+00:00</published>
-        <updated>2026-03-02T00:00:00+00:00</updated>
+        <published>2026-03-03T00:00:00+00:00</published>
+        <updated>2026-03-03T00:00:00+00:00</updated>
         
         <author>
           <name>
