@@ -265,11 +265,52 @@ def parse_nextflow_trace(trace_content: str) -> dict[str, Any]:
 
 
 def search_repo_for_participants(repo_name: str, repo_url: str, updated: str) -> list[PlotData]:
-    """Search for participant-based parquet datasets and list individual parquet files"""
+    """Search for AnalysisToolbox HTML viewers or fall back to listing parquet files"""
     plot_files: list[PlotData] = []
     
     try:
-        # Check for EV_results directory
+        # First, check for AnalysisToolbox viewer (e.g., EV_results/.bin/EV_results.html)
+        # Try common patterns: {PREFIX}_results/.bin/{PREFIX}_results.html
+        results_patterns = [
+            ('EV_results', 'EV_results'),
+            ('results', repo_name),
+            (f"{repo_name}_results", f"{repo_name}_results"),
+        ]
+        
+        for results_dir, viewer_base in results_patterns:
+            bin_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/{results_dir}/.bin"
+            bin_response = requests.get(bin_url, headers=GITHUB_HEADERS)
+            
+            if bin_response.status_code == 200:
+                bin_contents = bin_response.json()
+                if isinstance(bin_contents, list):
+                    # Look for HTML viewer
+                    viewer_file = f"{viewer_base}.html"
+                    html_viewer = next((item for item in bin_contents 
+                                       if item.get('name') == viewer_file), None)
+                    
+                    if html_viewer:
+                        # Found AnalysisToolbox viewer! 
+                        viewer_url = f"https://{GITHUB_USERNAME.lower()}.github.io/{repo_name}/{results_dir}/.bin/{viewer_file}"
+                        print(f"  ✓ Found AnalysisToolbox viewer: {results_dir}/.bin/{viewer_file}")
+                        
+                        plot_files.append({
+                            'repo_name': repo_name,
+                            'file_path': f"{results_dir}/.bin/{viewer_file}",
+                            'plot_data': {
+                                'type': 'html_viewer',
+                                'viewer_url': viewer_url,
+                                'results_dir': results_dir
+                            },
+                            'updated': updated,
+                            'repo_url': repo_url,
+                            'readme': None,
+                            'pipeline_trace': None
+                        })
+                        
+                        return plot_files  # Return immediately - viewer found!
+        
+        # Fallback: Check for EV_results directory with participant data
         results_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/EV_results"
         response = requests.get(results_url, headers=GITHUB_HEADERS)
         
@@ -291,7 +332,7 @@ def search_repo_for_participants(repo_name: str, repo_url: str, updated: str) ->
                     # Scan each participant folder for parquet files
                     for participant in participant_folders[:5]:  # Limit to first 5 to avoid rate limits
                         participant_name = participant['name']
-                        folder_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/EV_results/{participant_name}"
+                        folder_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/EV_results/{participant_name}/plots"
                         
                         try:
                             folder_resp = requests.get(folder_url, headers=GITHUB_HEADERS)
@@ -305,7 +346,7 @@ def search_repo_for_participants(repo_name: str, repo_url: str, updated: str) ->
                                 ]
                                 
                                 for pfile in parquet_files:
-                                    file_path = f"EV_results/{participant_name}/{pfile['name']}"
+                                    file_path = f"EV_results/{participant_name}/plots/{pfile['name']}"
                                     plot_files.append({
                                         'repo_name': repo_name,
                                         'file_path': file_path,
