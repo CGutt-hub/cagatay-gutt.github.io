@@ -681,72 +681,64 @@ function renderPlots() {
             
             // Handle AnalysisToolbox HTML viewers
             if (plotData.type === 'html_viewer') {
-                const cloneUrl = `https://github.com/${plotItem.repo_name.includes('/') ? plotItem.repo_name : 'CGutt-hub/' + plotItem.repo_name}.git`;
-                const zipUrl = `${plotItem.repo_url}/archive/refs/heads/main.zip`;
+                const repoPath = plotItem.repo_name.includes('/') ? plotItem.repo_name : 'CGutt-hub/' + plotItem.repo_name;
                 
                 plotContainer.innerHTML = `
-                    <div style="padding: 30px;">
-                        <div style="text-align: center; margin-bottom: 30px;">
-                            <h3 style="margin-bottom: 15px; color: var(--text-primary);">
+                    <div style="padding: 40px; text-align: center;">
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="margin-bottom: 15px; color: var(--text-primary); font-size: 1.5em;">
                                 📊 Interactive Analysis Viewer
                             </h3>
-                            <p style="color: var(--text-secondary); margin-bottom: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
-                                This project uses the <strong>AnalysisToolbox</strong> framework with a 
-                                pre-built HTML viewer that loads parquet data through a local service.
+                            <p style="color: var(--text-secondary); margin-bottom: 25px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+                                This project uses the <strong>AnalysisToolbox</strong> framework with an 
+                                interactive HTML viewer for exploring analysis results. The viewer includes 
+                                built-in export functionality for PNG, SVG, and PDF formats.
                             </p>
                         </div>
                         
-                        <div style="background: var(--bg-secondary, #f8f9fa); border: 2px solid var(--accent-primary); border-radius: 8px; padding: 25px; max-width: 700px; margin: 0 auto;">
-                            <h4 style="margin: 0 0 20px 0; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.3em;">🚀</span> Access the Interactive Interface
+                        <div style="background: var(--bg-secondary, #f8f9fa); border: 2px solid var(--accent-primary); border-radius: 8px; padding: 30px; max-width: 600px; margin: 0 auto 30px auto;">
+                            <h4 style="margin: 0 0 20px 0; color: var(--text-primary); font-size: 1.2em;">
+                                🚀 Open Viewer
                             </h4>
                             
-                            <div style="background: var(--bg-primary, white); border-radius: 6px; padding: 20px; margin-bottom: 20px;">
-                                <p style="margin: 0 0 15px 0; font-weight: 600; color: var(--text-primary);">Option 1: GitHub Pages (if enabled)</p>
-                                <a href="${plotData.viewer_url}" 
-                                   target="_blank" 
-                                   rel="noopener noreferrer"
-                                   style="display: inline-block; padding: 12px 24px; background: var(--accent-primary); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s;">
-                                    🌐 Open Viewer (Pages)
-                                </a>
-                                <p style="font-size: 0.85em; color: var(--text-muted); margin-top: 10px;">
-                                    Requires GitHub Pages to be enabled for the repository
-                                </p>
-                            </div>
+                            <a href="${plotData.viewer_url}" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               style="display: inline-block; padding: 14px 32px; background: var(--accent-primary); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 1.05em; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                🌐 Launch Interactive Viewer
+                            </a>
                             
-                            <div style="background: var(--bg-primary, white); border-radius: 6px; padding: 20px;">
-                                <p style="margin: 0 0 15px 0; font-weight: 600; color: var(--text-primary);">Option 2: Local Access (full functionality)</p>
-                                <ol style="text-align: left; margin: 0 0 15px 0; padding-left: 20px; line-height: 1.8; color: var(--text-secondary);">
-                                    <li>Clone or download the repository</li>
-                                    <li>Navigate to <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px; font-size: 0.9em;">${plotData.results_dir}/</code></li>
-                                    <li>Run the serve script: <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px; font-size: 0.9em;">python -m http.server 8000</code></li>
-                                    <li>Open viewer at <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px; font-size: 0.9em;">http://localhost:8000/.bin/${plotItem.repo_name}_results.html</code></li>
-                                </ol>
-                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <a href="${zipUrl}" 
-                                       download
-                                       style="display: inline-block; padding: 10px 16px; background: var(--bg-secondary); border: 2px solid var(--accent-primary); color: var(--accent-primary); text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 0.9em; transition: all 0.3s;">
-                                        📦 Download ZIP
-                                    </a>
-                                    <button onclick="navigator.clipboard.writeText('git clone ${cloneUrl}').then(() => { this.textContent = '✅ Copied!'; setTimeout(() => this.textContent = '📋 Copy Git Clone', 2000); });"
-                                            style="padding: 10px 16px; background: var(--bg-primary); border: 2px solid var(--border-primary); color: var(--text-primary); border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9em; transition: all 0.3s;">
-                                        📋 Copy Git Clone
-                                    </button>
+                            <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 15px; line-height: 1.5;">
+                                Opens in new tab • Full functionality with GitHub Pages
+                            </p>
+                            
+                            <details style="margin-top: 20px; text-align: left;">
+                                <summary style="cursor: pointer; font-weight: 600; color: var(--text-secondary); padding: 8px; background: var(--bg-primary); border-radius: 4px;">
+                                    📝 Local Access Instructions
+                                </summary>
+                                <div style="margin-top: 15px; padding: 15px; background: var(--bg-primary); border-radius: 4px; font-size: 0.9em; line-height: 1.7; color: var(--text-secondary);">
+                                    <p style="margin: 0 0 10px 0;">If GitHub Pages is not enabled:</p>
+                                    <ol style="margin: 0; padding-left: 20px;">
+                                        <li>Get the repository from <a href="${plotItem.repo_url}" target="_blank" style="color: var(--accent-primary);">Projects section</a></li>
+                                        <li>Navigate to <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px;">${plotData.results_dir}/</code></li>
+                                        <li>Run: <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px;">./${plotData.results_dir}.sh</code></li>
+                                        <li>Viewer opens at <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px;">http://localhost:8080</code></li>
+                                    </ol>
                                 </div>
-                            </div>
+                            </details>
                         </div>
                         
-                        <div style="margin-top: 30px; padding: 20px; background: var(--bg-secondary); border-radius: 6px; max-width: 700px; margin-left: auto; margin-right: auto;">
-                            <h4 style="margin: 0 0 15px 0; color: var(--text-primary);">Viewer Features</h4>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 0.9em; color: var(--text-secondary);">
-                                <div>• Interactive Plotly.js plots</div>
-                                <div>• Pipeline process tree</div>
-                                <div>• Parquet file visualization</div>
-                                <div>• Participant organization</div>
-                                <div>• Export (PNG/SVG/PDF)</div>
-                                <div>• Dark/Light themes</div>
-                                <div>• Search & filtering</div>
-                                <div>• Execution logs</div>
+                        <div style="max-width: 700px; margin: 0 auto; padding: 25px; background: var(--bg-tertiary, #f0f0f0); border-radius: 8px;">
+                            <h4 style="margin: 0 0 15px 0; color: var(--text-primary);">Built-in Viewer Features</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 0.9em; color: var(--text-secondary); text-align: left;">
+                                <div>✓ Interactive Plotly plots</div>
+                                <div>✓ Export PNG/SVG/PDF</div>
+                                <div>✓ Pipeline process tree</div>
+                                <div>✓ Parquet visualization</div>
+                                <div>✓ Participant organization</div>
+                                <div>✓ Search & filtering</div>
+                                <div>✓ Dark/Light themes</div>
+                                <div>✓ Execution logs</div>
                             </div>
                         </div>
                     </div>
