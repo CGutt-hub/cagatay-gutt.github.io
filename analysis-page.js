@@ -653,31 +653,22 @@ function renderPlots() {
     });
 }
 
-// Initialize page: load data and render
+// Initialize page: data is already loaded via window.plotsData
 function initAnalysisPage() {
-    // Load plot data from JSON file (absolute path from root)
-    const dataPath = '/data/analysis_plots.json';
+    // Check if data was embedded at build time
+    if (typeof window.plotsData === 'undefined') {
+        console.error('Plot data not found - was it embedded at build time?');
+        const emptyState = document.getElementById('empty-state');
+        emptyState.innerHTML = `
+            <h2>⚠️ Error Loading Data</h2>
+            <p>Analysis data was not embedded during site build.</p>
+            <p style="color: var(--text-secondary); font-size: 0.9em;">Please rebuild the site with fetch_data.py</p>
+        `;
+        return;
+    }
     
-    fetch(dataPath)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            plotsData = data;
-            renderPlots();
-        })
-        .catch(error => {
-            console.error('Error loading analysis data:', error);
-            const emptyState = document.getElementById('empty-state');
-            emptyState.innerHTML = `
-                <h2>⚠️ Error Loading Data</h2>
-                <p>Could not load analysis data from server.</p>
-                <p style="color: var(--text-secondary); font-size: 0.9em;">${error.message}</p>
-            `;
-        });
+    plotsData = window.plotsData;
+    renderPlots();
 }
 
 // Start when page loads
