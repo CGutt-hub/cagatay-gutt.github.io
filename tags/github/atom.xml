@@ -5,12 +5,12 @@
     <link rel="self" type="application/atom+xml" href="https://cgutt-hub.github.io/5ha99y/tags/github/atom.xml"/>
     <link rel="alternate" type="text/html" href="https://cgutt-hub.github.io/5ha99y"/>
     <generator uri="https://www.getzola.org/">Zola</generator>
-    <updated>2026-03-08T00:00:00+00:00</updated>
+    <updated>2026-03-09T00:00:00+00:00</updated>
     <id>https://cgutt-hub.github.io/5ha99y/tags/github/atom.xml</id>
     <entry xml:lang="en">
         <title>Project Update: AnalysisToolbox</title>
-        <published>2026-03-08T00:00:00+00:00</published>
-        <updated>2026-03-08T00:00:00+00:00</updated>
+        <published>2026-03-09T00:00:00+00:00</published>
+        <updated>2026-03-09T00:00:00+00:00</updated>
         
         <author>
           <name>
@@ -26,11 +26,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-analysistoolbox/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;AnalysisToolbox&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;5b22587&lt;&#x2F;code&gt; Refactor logging in workflow_wrapper.nf to use project-specific log file; add cr&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;0b35a35&lt;&#x2F;code&gt; refactor: auto-discover pipeline tree from step names  remove hardcoded PIPELINE&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;f58edce&lt;&#x2F;code&gt; fix: global log EV_log -&amp;gt; EV.log &#x2F; EV.log.parquet&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;f935479&lt;&#x2F;code&gt; rename: pipeline.log-&amp;gt;EV_log, EV_XXX_pipeline.log-&amp;gt;EV_XXX.log, project_name-&amp;gt;EV&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;4923bfb&lt;&#x2F;code&gt; fix: compression=&#x27;snappy&#x27; misplaced inside basename() in txt_reader&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;4b6b8cb&lt;&#x2F;code&gt; feat: replace meta.json polling with directory discovery in HTML&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -39,8 +39,8 @@
     </entry>
     <entry xml:lang="en">
         <title>Project Update: EmotiView</title>
-        <published>2026-03-08T00:00:00+00:00</published>
-        <updated>2026-03-08T00:00:00+00:00</updated>
+        <published>2026-03-09T00:00:00+00:00</published>
+        <updated>2026-03-09T00:00:00+00:00</updated>
         
         <author>
           <name>
@@ -65,8 +65,8 @@
     </entry>
     <entry xml:lang="en">
         <title>Project Update: surveyWorkbench</title>
-        <published>2026-03-08T00:00:00+00:00</published>
-        <updated>2026-03-08T00:00:00+00:00</updated>
+        <published>2026-03-09T00:00:00+00:00</published>
+        <updated>2026-03-09T00:00:00+00:00</updated>
         
         <author>
           <name>
