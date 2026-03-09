@@ -1,5 +1,10 @@
 // Open Data Analysis Page JavaScript
-// Handles plot rendering, PDF generation, and data downloads
+// Fetches and renders parquet files directly from GitHub repos
+
+// Load parquet parsing library
+const parquetScript = document.createElement('script');
+parquetScript.src = 'https://cdn.jsdelivr.net/npm/parquetjs-lite@2.3.0/dist/parquetjs-lite.min.js';
+document.head.appendChild(parquetScript);
 
 // Load pdf-lib for PDF/A-3 generation with attachments
 const pdfLibScript = document.createElement('script');
@@ -25,6 +30,96 @@ function downloadJSON(data, filename) {
 function downloadPlotData(plotItem) {
     const filename = `${plotItem.repo_name}_${plotItem.file_path.replace(/\//g, '_')}`;
     downloadJSON(plotItem, filename);
+}
+
+// Fetch and parse parquet file from GitHub repo
+async function fetchParquetData(repoName, filePath) {
+    try {
+        // Construct raw GitHub URL
+        const url = `https://raw.githubusercontent.com/CGutt-hub/${repoName}/main/${filePath}`;
+        
+        // Fetch the file
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const arrayBuffer = await response.arrayBuffer();
+        
+        // Wait for parquet library to load
+        if (typeof parquet === 'undefined') {
+            await new Promise(resolve => {
+                const checkInterval = setInterval(() => {
+                    if (typeof parquet !== 'undefined') {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 100);
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    resolve();
+                }, 5000);
+            });
+        }
+        
+        // Parse parquet file
+        const reader = await parquet.ParquetReader.openBuffer(new Uint8Array(arrayBuffer));
+        const cursor = reader.getCursor();
+        const rows = [];
+        let record = null;
+        
+        while (record = await cursor.next()) {
+            rows.push(record);
+        }
+        
+        await reader.close();
+        
+        return { rows, arrayBuffer };
+    } catch (error) {
+        console.error('Error fetching/parsing parquet:', error);
+        throw error;
+    }
+}
+
+// Convert parquet data to Plotly format
+function parquetToPlotly(rows) {
+    if (!rows || rows.length === 0) {
+        return null;
+    }
+    
+    // Detect column types  
+    const firstRow = rows[0];
+    const columns = Object.keys(firstRow);
+    
+    // Simple heuristic: if we have x/y or time/value columns, create line plot
+    const xCol = columns.find(c => c.toLowerCase().match(/^(x|time|timestamp|index)$/)) || columns[0];
+    const yCol = columns.find(c => c.toLowerCase().match(/^(y|value|signal|data)$/)) || columns[1];
+    
+    if (!yCol) {
+        return null;
+    }
+    
+    // Extract x and y data
+    const xData = rows.map(r => r[xCol]);
+    const yData = rows.map(r => r[yCol]);
+    
+    const trace = {
+        x: xData,
+        y: yData,
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: yCol,
+        marker: { size: 4 }
+    };
+    
+    const layout = {
+        title: `${yCol} vs ${xCol}`,
+        xaxis: { title: xCol },
+        yaxis: { title: yCol },
+        hovermode: 'closest'
+    };
+    
+    return { data: [trace], layout };
 }
 
 async function findParquetFile(plotItem) {
@@ -584,40 +679,68 @@ function renderPlots() {
         try {
             const plotData = plotItem.plot_data;
             
-            // Handle participant archive (continuous analysis datasets)
-            if (plotData.type === 'participant_archive') {
-                if (plotData.viewer_url) {
-                    plotContainer.innerHTML = `
-                        <div style="padding: 20px; text-align: center;">
-                            <p style="font-size: 1.1rem; margin-bottom: 20px; color: var(--text-primary);">
-                                <strong>📊 Interactive Analysis Archive</strong>
-                            </p>
-                            <p style="margin-bottom: 20px; color: var(--text-secondary);">
-                                This repository contains ${plotData.participant_count} participant datasets with real-time analysis results.
-                                Click below to explore the interactive viewer with filtering, export, and procedural workflow visualization.
-                            </p>
-                            <a href="${plotData.viewer_url}" target="_blank" 
-                               style="display: inline-block; padding: 12px 24px; background: var(--accent-primary); 
-                                      color: white; text-decoration: none; border-radius: 6px; font-weight: 600;
-                                      transition: all 0.2s;">
-                                🔬 Open Interactive Viewer
-                            </a>
-                            <details style="margin-top: 30px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
-                                <summary style="cursor: pointer; font-weight: 600; margin-bottom: 10px;">📁 Participant Datasets</summary>
-                                <ul style="line-height: 1.8; color: var(--text-secondary);">
-                                    ${plotData.participants.map(p => '<li>' + p + '</li>').join('')}
-                                </ul>
-                            </details>
-                        </div>
-                    `;
-                } else {
-                    plotContainer.innerHTML = `
-                        <div style="padding: 20px; color: var(--text-secondary);">
-                            <p>📊 This repository contains ${plotData.participant_count} participant datasets.</p>
-                            <p style="margin-top: 10px;">HTML viewer not yet deployed. Run <code>zola build</code> to deploy.</p>
-                        </div>
-                    `;
-                }
+            // Handle parquet files - fetch and render directly
+            if (plotData.type === 'parquet') {
+                plotContainer.innerHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <p style="margin-bottom: 20px; color: var(--text-secondary);">
+                            Loading parquet file from repository...
+                        </p>
+                        <div class="spinner" style="margin: 20px auto; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    </div>
+                `;
+                
+                // Fetch and render parquet file
+                fetchParquetData(plotItem.repo_name, plotItem.file_path)
+                    .then(({ rows, arrayBuffer }) => {
+                        const plotlyData = parquetToPlotly(rows);
+                        
+                        if (plotlyData) {
+                            // Store arrayBuffer for download
+                            plotContainer.dataset.parquetData = 'loaded';
+                            plotContainer.parquetBuffer = arrayBuffer;
+                            
+                            // Render with Plotly
+                            Plotly.newPlot(`plot-container-${index}`, plotlyData.data, plotlyData.layout, {responsive: true});
+                        } else {
+                            // Show data table if we can't auto-plot
+                            const columns = Object.keys(rows[0]);
+                            let tableHTML = `
+                                <div style="padding: 20px; overflow: auto;">
+                                    <p style="margin-bottom: 15px; color: var(--text-secondary);">
+                                        <strong>${rows.length}</strong> rows × <strong>${columns.length}</strong> columns
+                                    </p>
+                                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                                        <thead>
+                                            <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-primary);">
+                                                ${columns.map(col => `<th style="padding: 8px; text-align: left;">${col}</th>`).join('')}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${rows.slice(0, 50).map(row => `
+                                                <tr style="border-bottom: 1px solid var(--border-primary);">
+                                                    ${columns.map(col => `<td style="padding: 8px;">${row[col]}</td>`).join('')}
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                    ${rows.length > 50 ? `<p style="margin-top: 10px; color: var(--text-secondary);">Showing first 50 rows...</p>` : ''}
+                                </div>
+                            `;
+                            plotContainer.innerHTML = tableHTML;
+                        }
+                    })
+                    .catch(error => {
+                        plotContainer.innerHTML = `
+                            <div style="padding: 20px; color: var(--text-secondary);">
+                                <p style="color: red; margin-bottom: 10px;">⚠️ Error loading parquet file</p>
+                                <p>${error.message}</p>
+                                <p style="margin-top: 15px; font-size: 0.9em;">
+                                    File path: <code>${plotItem.file_path}</code>
+                                </p>
+                            </div>
+                        `;
+                    });
             }
             // Handle different JSON formats from Analysis Toolbox
             else if (plotData.data && plotData.layout) {
