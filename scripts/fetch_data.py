@@ -1318,6 +1318,7 @@ if (document.readyState === 'loading') {
 
 def save_data_file(data: object, filename: str) -> None:
     """Save data as JSON for use in templates"""
+    # Save to data/ for Python/template use
     data_dir = Path(__file__).parent.parent / 'data'
     data_dir.mkdir(exist_ok=True)
     
@@ -1325,7 +1326,16 @@ def save_data_file(data: object, filename: str) -> None:
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     
-    print(f"Saved {filename}")
+    # Also save to static/data/ for client-side JavaScript access
+    static_data_dir = Path(__file__).parent.parent / 'static' / 'data'
+    static_data_dir.mkdir(parents=True, exist_ok=True)
+    
+    static_filepath = static_data_dir / filename
+    with open(static_filepath, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    print(f"Saved {filename} (data/ and static/data/)")
+
 
 
 def load_posted_items() -> TrackedState:
@@ -1663,7 +1673,7 @@ def main():
     # Save as JSON files for templates
     save_data_file({'repos': github_repos}, 'github.json')
     save_data_file({'works': orcid_works}, 'orcid.json')
-    save_data_file({'plots': plot_data}, 'analysis_plots.json')
+    save_data_file(plot_data, 'analysis_plots.json')  # Save array directly for JS
     
     # Generate separate pages for projects, publications, and analysis (EN + DE)
     projects_content_en = generate_projects_page(github_repos, 'en')

@@ -394,8 +394,6 @@
 </div>
 
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
-<script>
-// Analysis data embedded from research repositories
-{{ page.content | safe }}
-</script>
+<script src="{{ get_url(path='analysis-page.js') }}"></script>
 {% endblock content %}
+

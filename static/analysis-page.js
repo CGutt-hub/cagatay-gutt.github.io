@@ -1,11 +1,13 @@
-+++
-title = "Open Data"
-template = "analysis.html"
-+++
+// Open Data Analysis Page JavaScript
+// Handles plot rendering, PDF generation, and data downloads
 
+// Load pdf-lib for PDF/A-3 generation with attachments
 const pdfLibScript = document.createElement('script');
 pdfLibScript.src = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
 document.head.appendChild(pdfLibScript);
+
+// Global variable for plot data (loaded from JSON)
+let plotsData = [];
 
 // Download functions for open data sharing
 function downloadJSON(data, filename) {
@@ -651,9 +653,36 @@ function renderPlots() {
     });
 }
 
-// Render when page loads
+// Initialize page: load data and render
+function initAnalysisPage() {
+    // Load plot data from JSON file (absolute path from root)
+    const dataPath = '/data/analysis_plots.json';
+    
+    fetch(dataPath)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            plotsData = data;
+            renderPlots();
+        })
+        .catch(error => {
+            console.error('Error loading analysis data:', error);
+            const emptyState = document.getElementById('empty-state');
+            emptyState.innerHTML = `
+                <h2>⚠️ Error Loading Data</h2>
+                <p>Could not load analysis data from server.</p>
+                <p style="color: var(--text-secondary); font-size: 0.9em;">${error.message}</p>
+            `;
+        });
+}
+
+// Start when page loads
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', renderPlots);
+    document.addEventListener('DOMContentLoaded', initAnalysisPage);
 } else {
-    renderPlots();
+    initAnalysisPage();
 }
