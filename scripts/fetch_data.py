@@ -292,6 +292,7 @@ def search_repo_for_participants(repo_name: str, repo_url: str, updated: str) ->
                     if html_viewer:
                         # Found AnalysisToolbox viewer! 
                         viewer_url = f"https://{GITHUB_USERNAME.lower()}.github.io/{repo_name}/{results_dir}/.bin/{viewer_file}"
+                        raw_viewer_url = f"https://raw.githubusercontent.com/{GITHUB_USERNAME}/{repo_name}/main/{results_dir}/.bin/{viewer_file}"
                         print(f"  ✓ Found AnalysisToolbox viewer: {results_dir}/.bin/{viewer_file}")
                         
                         plot_files.append({
@@ -300,6 +301,7 @@ def search_repo_for_participants(repo_name: str, repo_url: str, updated: str) ->
                             'plot_data': {
                                 'type': 'html_viewer',
                                 'viewer_url': viewer_url,
+                                'raw_viewer_url': raw_viewer_url,
                                 'results_dir': results_dir
                             },
                             'updated': updated,
