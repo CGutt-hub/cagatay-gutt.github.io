@@ -6,7 +6,9 @@ on:
       - main
   schedule:
     - cron: '0 6 * * *'  # Run daily at 6 AM UTC
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger
+  repository_dispatch:  # Trigger from other repos (e.g., EmotiView)
+    types: [new-analysis-data]
 
 permissions:
   contents: write

@@ -1,0 +1,25 @@
+# Add this file to EmotiView repository at: .github/workflows/notify-website.yml
+#
+# This workflow triggers the personal website to rebuild when new analysis data is pushed
+
+name: Notify Website of New Data
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'EV_results/**'  # Only trigger when results are updated
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger website rebuild
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          repository: CGutt-hub/5ha99y
+          event-type: new-analysis-data
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "repo": "${{ github.repository }}"}'
