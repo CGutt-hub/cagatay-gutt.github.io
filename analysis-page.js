@@ -679,8 +679,60 @@ function renderPlots() {
         try {
             const plotData = plotItem.plot_data;
             
+            // Handle AnalysisToolbox HTML viewers
+            if (plotData.type === 'html_viewer') {
+                plotContainer.innerHTML = `
+                    <div style="padding: 30px; text-align: center;">
+                        <div style="margin-bottom: 25px;">
+                            <h3 style="margin-bottom: 15px; color: var(--text-primary);">
+                                📊 Interactive Analysis Viewer
+                            </h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                                This project uses the <strong>AnalysisToolbox</strong> framework with a 
+                                pre-built interactive HTML viewer for exploring analysis results.
+                            </p>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 15px; max-width: 400px; margin: 0 auto;">
+                            <a href="${plotData.viewer_url}" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               style="display: inline-block; padding: 12px 24px; background: var(--accent-primary); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s;">
+                                🚀 Open Interactive Viewer
+                            </a>
+                            
+                            <button onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'; this.textContent = this.textContent.includes('Show') ? '🔼 Hide Preview' : '🔽 Show Preview';"
+                                    style="padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+                                🔽 Show Preview
+                            </button>
+                            
+                            <div style="display: none; margin-top: 10px;">
+                                <iframe src="${plotData.viewer_url}" 
+                                        style="width: 100%; height: 600px; border: 1px solid var(--border-primary); border-radius: 6px; background: white;"
+                                        title="Analysis Viewer Preview">
+                                </iframe>
+                                <p style="font-size: 0.85em; color: var(--text-muted); margin-top: 10px;">
+                                    Preview may have limited functionality. Open in new tab for full experience.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 30px; padding: 15px; background: var(--bg-secondary); border-radius: 6px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                            <p style="font-size: 0.9em; color: var(--text-secondary); text-align: left;">
+                                <strong>Features:</strong><br>
+                                • Interactive plots with Plotly.js<br>
+                                • Participant data organized by processing pipeline<br>
+                                • Parquet file visualization (EEG, fNIRS, ECG, EDA, etc.)<br>
+                                • Pipeline execution logs and traces<br>
+                                • Export plots as PNG, SVG, or PDF<br>
+                                • Dark/Light theme toggle
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
             // Handle parquet files - fetch and render directly
-            if (plotData.type === 'parquet') {
+            else if (plotData.type === 'parquet') {
                 plotContainer.innerHTML = `
                     <div style="padding: 20px; text-align: center;">
                         <p style="margin-bottom: 20px; color: var(--text-secondary);">
