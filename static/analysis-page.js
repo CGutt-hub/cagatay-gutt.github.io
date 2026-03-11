@@ -1118,11 +1118,11 @@ function buildAnalysisFileTree() {
     
     // Build tree structure: Project > Participants > Files
     let html = `
-        <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="true">
+        <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
             <span class="tree-folder-icon">▶</span>
             <span>📁 ${repoName}</span>
         </div>
-        <div class="tree-folder-content expanded" style="margin-left: 10px;">
+        <div class="tree-folder-content" style="margin-left: 10px;">
     `;
     
     participantKeys.forEach(participant => {
