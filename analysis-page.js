@@ -1271,99 +1271,232 @@ function parsePipelineTrace(traceText) {
     return { processes: uniqueProcesses, dependencies: dependencies };
 }
 
-// Generate pipeline tree HTML for a specific file
+// Generate visual pipeline tree with nodes and connections
 function generatePipelineTreeHTML(filename, pipelineData) {
     if (!pipelineData || !pipelineData.processes) {
         return ''; // No pipeline data available
     }
     
     const { processes, dependencies } = pipelineData;
-    
-    // Infer relevant modules from filename
-    const relevantModules = new Set();
     const lowerFilename = filename.toLowerCase();
     
-    // Check for specific patterns in filename
-    if (lowerFilename.includes('_concat')) relevantModules.add('concatenating');
-    if (lowerFilename.includes('xdf')) relevantModules.add('reader');
-    if (lowerFilename.includes('_txt_tree_')) relevantModules.add('tree');
-    if (lowerFilename.includes('_filt')) relevantModules.add('filt');
-    if (lowerFilename.includes('_rej')) relevantModules.add('rej');
-    if (lowerFilename.includes('_ica')) relevantModules.add('ica');
-    if (lowerFilename.includes('_epochs')) relevantModules.add('epochs');
-    if (lowerFilename.includes('_psd')) relevantModules.add('psd');
-    if (lowerFilename.includes('_ols')) relevantModules.add('ols');
-    if (lowerFilename.includes('_windowed')) relevantModules.add('windowed');
-    if (lowerFilename.includes('_hrv')) relevantModules.add('hrv');
-    if (lowerFilename.includes('_eda')) relevantModules.add('eda');
-    if (lowerFilename.includes('_hbc')) relevantModules.add('hbc');
-    
-    // Extract analysis type from filename (be7, ea11, sam, etc.)
-    const analysisMatch = lowerFilename.match(/_(be7|ea11|sam|panas|bisbas|condprof)/);
-    if (analysisMatch) {
-        relevantModules.add(analysisMatch[1]);
+    // Identify which module likely produced this file
+    let producerModule = null;
+    for (const process of processes) {
+        const processLower = process.name.toLowerCase();
+        // Match patterns in filename to process name
+        if (lowerFilename.includes('_concat') && processLower.includes('concatenating')) {
+            producerModule = process.name;
+            break;
+        }
+        if (lowerFilename.includes('_psd') && processLower.includes('psd')) {
+            producerModule = process.name;
+            break;
+        }
+        if (lowerFilename.includes('_ols') && processLower.includes('ols')) {
+            producerModule = process.name;
+            break;
+        }
+        if (lowerFilename.includes('_windowed') && processLower.includes('windowed')) {
+            producerModule = process.name;
+            break;
+        }
+        if (lowerFilename.includes('_epochs') && processLower.includes('epochs')) {
+            producerModule = process.name;
+            break;
+        }
+        if (lowerFilename.includes('_ica') && processLower.includes('ica')) {
+            producerModule = process.name;
+            break;
+        }
+        if (lowerFilename.includes('_filt') && processLower.includes('filt')) {
+            producerModule = process.name;
+            break;
+        }
+        // Check for analysis types (be7, sam, etc.)
+        const analysisMatch = lowerFilename.match(/_(be7|ea11|sam|panas|bisbas|condprof)/);
+        if (analysisMatch && processLower.includes(analysisMatch[1])) {
+            producerModule = process.name;
+            break;
+        }
     }
     
-    // Group processes by stage
-    const stages = {
+    // Group processes by type for tree layout
+    const nodesByType = {
         readers: processes.filter(p => p.name.includes('_reader')),
-        processors: processes.filter(p => p.name.includes('tree_processor') || p.name.includes('_filt') || p.name.includes('_processor')),
-        analyzers: processes.filter(p => p.name.includes('_analyzer')),
-        finders: processes.filter(p => p.name.includes('_file_finder')),
+        extractors: processes.filter(p => p.name.includes('_extr') || p.name.includes('_log')),
+        filters: processes.filter(p => p.name.includes('_filt') || p.name.includes('_rej') || p.name.includes('_reref')),
+        ica: processes.filter(p => p.name.includes('_ica')),
+        epochs: processes.filter(p => p.name.includes('_epochs') || p.name.includes('_peaks') || p.name.includes('_windowed')),
+        analyzers: processes.filter(p => p.name.includes('_psd') || p.name.includes('_hrv') || p.name.includes('_eda') || p.name.includes('_hbc')),
+        stats: processes.filter(p => p.name.includes('_ols') || p.name.includes('_contrast') || p.name.includes('_regr')),
+        questionnaires: processes.filter(p => p.name.includes('txt_') || p.name.includes('tree_processor') || p.name.includes('_analyzer') || p.name.includes('_file_finder')),
         concatenators: processes.filter(p => p.name.includes('_concatenating'))
     };
     
-    // Helper to check if a process is relevant
-    const isRelevant = (processName) => {
-        const lower = processName.toLowerCase();
-        for (const keyword of relevantModules) {
-            if (lower.includes(keyword)) return true;
-        }
-        return false;
+    // Create tree nodes with visual styling
+    const createNode = (process, isProducer) => {
+        const isHighlighted = process.name === producerModule || isProducer;
+        const bgColor = isHighlighted ? '#fff3cd' : '#e9ecef';
+        const borderColor = isHighlighted ? '#ffc107' : '#adb5bd';
+        const textColor = isHighlighted ? '#856404' : '#495057';
+        const fontWeight = isHighlighted ? '600' : '400';
+        const boxShadow = isHighlighted ? '0 2px 8px rgba(255, 193, 7, 0.3)' : '0 1px 3px rgba(0,0,0,0.1)';
+        
+        return `
+            <div style="
+                background: ${bgColor};
+                border: 2px solid ${borderColor};
+                border-radius: 6px;
+                padding: 6px 10px;
+                margin: 4px;
+                font-size: 0.75rem;
+                color: ${textColor};
+                font-weight: ${fontWeight};
+                white-space: nowrap;
+                box-shadow: ${boxShadow};
+                display: inline-block;
+            ">
+                ${process.displayName}
+            </div>
+        `;
     };
     
-    // Helper to format process with highlighting
-    const formatProcess = (p) => {
-        const relevant = isRelevant(p.name);
-        const style = relevant 
-            ? 'background: #fff3cd; padding: 2px 6px; border-radius: 3px; font-weight: 600; color: #856404;'
-            : '';
-        return `<span style="${style}">${p.displayName}</span>`;
-    };
-    
-    // Build HTML for pipeline visualization
+    // Build tree HTML
     let html = `
-        <div style="margin-bottom: 15px; padding: 12px; background: var(--bg-tertiary, #f5f5f5); border-radius: 6px; border: 1px solid var(--border-primary, #ddd); font-size: 0.8rem;">
+        <div style="
+            margin-bottom: 15px;
+            padding: 15px;
+            background: var(--bg-tertiary, #f5f5f5);
+            border-radius: 8px;
+            border: 1px solid var(--border-primary, #ddd);
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        ">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <h4 style="margin: 0; font-size: 0.85rem; color: var(--text-primary, #333); font-weight: 600;">
-                    📊 Processing Pipeline
+                <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-primary, #333); font-weight: 600;">
+                    🌳 Processing Pipeline Tree
                 </h4>
                 <span style="font-size: 0.7rem; color: var(--text-muted, #999);">${processes.length} modules</span>
             </div>
-            <div style="font-size: 0.75rem; line-height: 1.6;">
+            
+            <div style="display: flex; flex-direction: column; gap: 8px; min-width: 600px;">
     `;
     
-    // Display stages
-    if (stages.readers.length > 0) {
-        html += `<div style="margin-bottom: 6px;"><strong>📥 Input:</strong> ${stages.readers.map(formatProcess).join(', ')}</div>`;
+    // Display each stage as a row with connecting arrows
+    if (nodesByType.readers.length > 0) {
+        html += `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">📥 Input</div>
+                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
+                    ${nodesByType.readers.map(p => createNode(p, false)).join('')}
+                </div>
+            </div>
+            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
+        `;
     }
-    if (stages.processors.length > 0) {
-        html += `<div style="margin-bottom: 6px;"><strong>🔄 Processing:</strong> ${stages.processors.map(formatProcess).join(', ')}</div>`;
+    
+    if (nodesByType.extractors.length > 0) {
+        html += `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">🔧 Extract</div>
+                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
+                    ${nodesByType.extractors.map(p => createNode(p, false)).join('')}
+                </div>
+            </div>
+            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
+        `;
     }
-    if (stages.analyzers.length > 0) {
-        html += `<div style="margin-bottom: 6px;"><strong>📊 Analysis:</strong> ${stages.analyzers.map(formatProcess).join(', ')}</div>`;
+    
+    if (nodesByType.filters.length > 0) {
+        html += `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">🔄 Filter</div>
+                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
+                    ${nodesByType.filters.map(p => createNode(p, false)).join('')}
+                </div>
+            </div>
+            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
+        `;
     }
-    if (stages.finders.length > 0) {
-        html += `<div style="margin-bottom: 6px;"><strong>🔍 Extraction:</strong> ${stages.finders.map(formatProcess).join(', ')}</div>`;
+    
+    if (nodesByType.ica.length > 0) {
+        html += `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">🧹 ICA</div>
+                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
+                    ${nodesByType.ica.map(p => createNode(p, false)).join('')}
+                </div>
+            </div>
+            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
+        `;
     }
-    if (stages.concatenators.length > 0) {
-        html += `<div style="margin-bottom: 6px;"><strong>🔗 Concatenation:</strong> ${stages.concatenators.map(formatProcess).join(', ')}</div>`;
+    
+    if (nodesByType.epochs.length > 0) {
+        html += `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">📊 Segment</div>
+                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
+                    ${nodesByType.epochs.map(p => createNode(p, false)).join('')}
+                </div>
+            </div>
+            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
+        `;
+    }
+    
+    if (nodesByType.analyzers.length > 0) {
+        html += `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">📈 Analyze</div>
+                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
+                    ${nodesByType.analyzers.map(p => createNode(p, false)).join('')}
+                </div>
+            </div>
+            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
+        `;
+    }
+    
+    if (nodesByType.stats.length > 0) {
+        html += `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">📉 Statistics</div>
+                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
+                    ${nodesByType.stats.map(p => createNode(p, false)).join('')}
+                </div>
+            </div>
+            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
+        `;
+    }
+    
+    if (nodesByType.questionnaires.length > 0) {
+        html += `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">📋 Survey</div>
+                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
+                    ${nodesByType.questionnaires.map(p => createNode(p, false)).join('')}
+                </div>
+            </div>
+            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
+        `;
+    }
+    
+    if (nodesByType.concatenators.length > 0) {
+        html += `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">🔗 Combine</div>
+                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
+                    ${nodesByType.concatenators.map(p => createNode(p, false)).join('')}
+                </div>
+            </div>
+        `;
     }
     
     html += `
-                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-primary, #ddd); font-size: 0.7rem; color: var(--text-muted, #999);">
-                    <em>Highlighted modules were likely used to create this file</em>
-                </div>
+            </div>
+            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-primary, #ddd); font-size: 0.7rem; color: var(--text-muted, #999);">
+                <span style="background: #fff3cd; padding: 2px 6px; border-radius: 3px; border: 1px solid #ffc107; margin-right: 8px;">■</span>
+                <em>Highlighted module likely produced this file</em>
             </div>
         </div>
     `;
