@@ -33,10 +33,15 @@ function downloadPlotData(plotItem) {
 }
 
 // Fetch and parse parquet file from GitHub repo
-async function fetchParquetData(repoName, filePath) {
+// Supports two call signatures:
+//   fetchParquetData(repoName, filePath) - legacy format
+//   fetchParquetData(url) - when url is provided directly
+async function fetchParquetData(repoNameOrUrl, filePath = null) {
     try {
         // Construct raw GitHub URL
-        const url = `https://raw.githubusercontent.com/CGutt-hub/${repoName}/main/${filePath}`;
+        const url = filePath 
+            ? `https://raw.githubusercontent.com/CGutt-hub/${repoNameOrUrl}/main/${filePath}`
+            : repoNameOrUrl;
         
         // Fetch the file
         const response = await fetch(url);
@@ -82,7 +87,29 @@ async function fetchParquetData(repoName, filePath) {
 }
 
 // Convert parquet data to Plotly format
-function parquetToPlotly(rows) {
+// Supports two call signatures:
+//   parquetToPlotly(rows) - when rows are already parsed
+//   parquetToPlotly(arrayBuffer, title) - when arrayBuffer needs parsing
+async function parquetToPlotly(rowsOrBuffer, title = null) {
+    let rows;
+    
+    // Handle arrayBuffer input (parse it first)
+    if (rowsOrBuffer instanceof ArrayBuffer || ArrayBuffer.isView(rowsOrBuffer)) {
+        if (typeof parquet === 'undefined') {
+            throw new Error('Parquet library not loaded yet');
+        }
+        const reader = await parquet.ParquetReader.openBuffer(new Uint8Array(rowsOrBuffer));
+        const cursor = reader.getCursor();
+        rows = [];
+        let record = null;
+        while (record = await cursor.next()) {
+            rows.push(record);
+        }
+        await reader.close();
+    } else {
+        rows = rowsOrBuffer;
+    }
+    
     if (!rows || rows.length === 0) {
         return null;
     }
@@ -113,7 +140,7 @@ function parquetToPlotly(rows) {
     };
     
     const layout = {
-        title: `${yCol} vs ${xCol}`,
+        title: title || `${yCol} vs ${xCol}`,
         xaxis: { title: xCol },
         yaxis: { title: yCol },
         hovermode: 'closest'
