@@ -265,110 +265,154 @@ def parse_nextflow_trace(trace_content: str) -> dict[str, Any]:
 
 
 def search_repo_for_participants(repo_name: str, repo_url: str, updated: str) -> list[PlotData]:
-    """Search for AnalysisToolbox HTML viewers or fall back to listing parquet files"""
+    """Search for scientific data repos with *_results folders containing parquet files"""
     plot_files: list[PlotData] = []
     
     try:
-        # First, check for AnalysisToolbox viewer (e.g., EV_results/.bin/EV_results.html)
-        # Try common patterns: {PREFIX}_results/.bin/{PREFIX}_results.html
-        results_patterns = [
-            ('EV_results', 'EV_results'),
-            ('results', repo_name),
-            (f"{repo_name}_results", f"{repo_name}_results"),
+        # First, discover all *_results directories in the repo
+        root_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/"
+        root_response = requests.get(root_url, headers=GITHUB_HEADERS)
+        
+        if root_response.status_code != 200:
+            return []
+        
+        root_contents = root_response.json()
+        if not isinstance(root_contents, list):
+            return []
+        
+        # Find all folders ending with _results
+        results_folders = [
+            item['name'] for item in root_contents
+            if item.get('type') == 'dir' and 
+            isinstance(item.get('name'), str) and 
+            item['name'].endswith('_results')
         ]
         
-        for results_dir, viewer_base in results_patterns:
-            bin_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/{results_dir}/.bin"
-            bin_response = requests.get(bin_url, headers=GITHUB_HEADERS)
+        if not results_folders:
+            return []
+        
+        print(f"  Found {len(results_folders)} *_results folder(s): {', '.join(results_folders)}")
+        
+        # Check each results folder for AnalysisToolbox viewer or parquet files
+        for results_dir in results_folders:
+            # Extract project prefix (e.g., "EV" from "EV_results")
+            project_prefix = results_dir.replace('_results', '')
             
-            if bin_response.status_code == 200:
-                bin_contents = bin_response.json()
-                if isinstance(bin_contents, list):
-                    # Look for HTML viewer
-                    viewer_file = f"{viewer_base}.html"
-                    html_viewer = next((item for item in bin_contents 
-                                       if item.get('name') == viewer_file), None)
-                    
-                    if html_viewer:
-                        # Found AnalysisToolbox viewer! 
-                        viewer_url = f"https://{GITHUB_USERNAME.lower()}.github.io/{repo_name}/{results_dir}/.bin/{viewer_file}"
-                        raw_viewer_url = f"https://raw.githubusercontent.com/{GITHUB_USERNAME}/{repo_name}/main/{results_dir}/.bin/{viewer_file}"
-                        print(f"  ✓ Found AnalysisToolbox viewer: {results_dir}/.bin/{viewer_file}")
-                        
-                        plot_files.append({
-                            'repo_name': repo_name,
-                            'file_path': f"{results_dir}/.bin/{viewer_file}",
-                            'plot_data': {
-                                'type': 'html_viewer',
-                                'viewer_url': viewer_url,
-                                'raw_viewer_url': raw_viewer_url,
-                                'results_dir': results_dir
-                            },
-                            'updated': updated,
-                            'repo_url': repo_url,
-                            'readme': None,
-                            'pipeline_trace': None
-                        })
-                        
-                        return plot_files  # Return immediately - viewer found!
-        
-        # Fallback: Check for EV_results directory with participant data
-        results_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/EV_results"
-        response = requests.get(results_url, headers=GITHUB_HEADERS)
-        
-        if response.status_code == 200:
-            contents = response.json()
-            if isinstance(contents, list):
-                # Look for participant directories (EV_XXX pattern)
-                participant_folders = [
-                    item for item in contents 
-                    if item.get('type') == 'dir' and 
-                    isinstance(item.get('name'), str) and 
-                    item['name'].startswith('EV_') and 
-                    item['name'][3:].isdigit()
-                ]
+            # First, try to find AnalysisToolbox HTML viewer in .bin/
+            results_patterns = [
+                (results_dir, f"{project_prefix}_results"),
+                (results_dir, f"{results_dir}"),
+            ]
+            
+            for _, viewer_base in results_patterns:
+                bin_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/{results_dir}/.bin"
+                bin_response = requests.get(bin_url, headers=GITHUB_HEADERS)
                 
-                if participant_folders:
-                    print(f"  Found {len(participant_folders)} participant folders, scanning for parquet files...")
-                    
-                    # Scan each participant folder for parquet files
-                    for participant in participant_folders[:5]:  # Limit to first 5 to avoid rate limits
-                        participant_name = participant['name']
-                        folder_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/EV_results/{participant_name}/plots"
+                if bin_response.status_code == 200:
+                    bin_contents = bin_response.json()
+                    if isinstance(bin_contents, list):
+                        # Look for HTML viewer
+                        viewer_file = f"{viewer_base}.html"
+                        html_viewer = next((item for item in bin_contents 
+                                           if item.get('name') == viewer_file), None)
                         
-                        try:
-                            folder_resp = requests.get(folder_url, headers=GITHUB_HEADERS)
-                            if folder_resp.status_code == 200:
-                                folder_contents = folder_resp.json()
+                        if html_viewer:
+                            # Found AnalysisToolbox viewer! 
+                            viewer_url = f"https://{GITHUB_USERNAME.lower()}.github.io/{repo_name}/{results_dir}/.bin/{viewer_file}"
+                            raw_viewer_url = f"https://raw.githubusercontent.com/{GITHUB_USERNAME}/{repo_name}/main/{results_dir}/.bin/{viewer_file}"
+                            print(f"  ✓ Found AnalysisToolbox viewer: {results_dir}/.bin/{viewer_file}")
+                            
+                            plot_files.append({
+                                'repo_name': repo_name,
+                                'file_path': f"{results_dir}/.bin/{viewer_file}",
+                                'plot_data': {
+                                    'type': 'html_viewer',
+                                    'viewer_url': viewer_url,
+                                    'raw_viewer_url': raw_viewer_url,
+                                    'results_dir': results_dir
+                                },
+                                'updated': updated,
+                                'repo_url': repo_url,
+                                'readme': None,
+                                'pipeline_trace': None
+                            })
+                            
+                            return plot_files  # Return immediately - viewer found!
+            
+            # If no viewer found, scan for participant/group folders with parquet files
+            results_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/{results_dir}"
+            response = requests.get(results_url, headers=GITHUB_HEADERS)
+            
+            if response.status_code == 200:
+                contents = response.json()
+                if isinstance(contents, list):
+                    # Look for any subdirectories that could be participants/groups
+                    # (ignore .bin and other non-data folders)
+                    ignore_folders = {'.bin', '.git', '.github', '__pycache__', 'scripts', 'docs'}
+                    participant_folders = [
+                        item for item in contents 
+                        if item.get('type') == 'dir' and 
+                        isinstance(item.get('name'), str) and 
+                        item['name'] not in ignore_folders
+                    ]
+                    
+                    if participant_folders:
+                        print(f"  Found {len(participant_folders)} data folders in {results_dir}, scanning for parquet files...")
+                        
+                        # Scan each folder for parquet files (in plots/ or root)
+                        for participant in participant_folders:  # Scan all folders
+                            participant_name = participant['name']
+                            
+                            # Try plots/ subdirectory first
+                            folder_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/{results_dir}/{participant_name}/plots"
+                            
+                            try:
+                                folder_resp = requests.get(folder_url, headers=GITHUB_HEADERS)
                                 
-                                # Find parquet files
-                                parquet_files = [
-                                    file for file in folder_contents 
-                                    if file.get('name', '').endswith('.parquet')
-                                ]
+                                # If plots/ doesn't exist, try root of participant folder
+                                if folder_resp.status_code == 404:
+                                    folder_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{repo_name}/contents/{results_dir}/{participant_name}"
+                                    folder_resp = requests.get(folder_url, headers=GITHUB_HEADERS)
                                 
-                                for pfile in parquet_files:
-                                    file_path = f"EV_results/{participant_name}/plots/{pfile['name']}"
-                                    plot_files.append({
-                                        'repo_name': repo_name,
-                                        'file_path': file_path,
-                                        'plot_data': {
-                                            'type': 'parquet',
-                                            'participant': participant_name,
-                                            'size': pfile.get('size', 0)
-                                        },
-                                        'updated': updated,
-                                        'repo_url': repo_url,
-                                        'readme': None,
-                                        'pipeline_trace': None
-                                    })
-                                
-                                print(f"    {participant_name}: {len(parquet_files)} parquet files")
-                        except Exception as e:
-                            print(f"    Error scanning {participant_name}: {e}")
-                            continue
+                                if folder_resp.status_code == 200:
+                                    folder_contents = folder_resp.json()
+                                    
+                                    if isinstance(folder_contents, list):
+                                        # Find parquet files (ignore non-data files)
+                                        parquet_files = [
+                                            file for file in folder_contents 
+                                            if file.get('name', '').endswith('.parquet') and
+                                            not file.get('name', '').endswith('_log.parquet')
+                                        ]
+                                        
+                                        for pfile in parquet_files:
+                                            # Determine if this is from plots/ or root
+                                            if 'plots' in folder_url:
+                                                file_path = f"{results_dir}/{participant_name}/plots/{pfile['name']}"
+                                            else:
+                                                file_path = f"{results_dir}/{participant_name}/{pfile['name']}"
+                                            
+                                            plot_files.append({
+                                                'repo_name': repo_name,
+                                                'file_path': file_path,
+                                                'plot_data': {
+                                                    'type': 'parquet',
+                                                    'participant': participant_name,
+                                                    'size': pfile.get('size', 0)
+                                                },
+                                                'updated': updated,
+                                                'repo_url': repo_url,
+                                                'readme': None,
+                                                'pipeline_trace': None
+                                            })
+                                        
+                                        if parquet_files:
+                                            print(f"    {participant_name}: {len(parquet_files)} parquet files")
+                            except Exception as e:
+                                print(f"    Error scanning {participant_name}: {e}")
+                                continue
     except Exception as e:
-        print(f"  Error checking for participant data: {e}")
+        print(f"  Error discovering scientific data repos: {e}")
     
     return plot_files
 
