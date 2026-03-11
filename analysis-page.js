@@ -28,21 +28,53 @@ function downloadPlotData(plotItem) {
 // Fetch and parse parquet file from GitHub repo
 // Supports two call signatures:
 //   fetchParquetData(repoName, filePath) - legacy format
-//   fetchParquetData(url) - when url is provided directly
-async function fetchParquetData(repoNameOrUrl, filePath = null) {
+//   fetchParquetData(url, fileSize) - when url is provided directly with optional file size
+async function fetchParquetData(repoNameOrUrl, filePathOrSize = null) {
     try {
         // Construct raw GitHub URL
-        const url = filePath 
-            ? `https://raw.githubusercontent.com/CGutt-hub/${repoNameOrUrl}/main/${filePath}`
+        const url = typeof filePathOrSize === 'string'
+            ? `https://raw.githubusercontent.com/CGutt-hub/${repoNameOrUrl}/main/${filePathOrSize}`
             : repoNameOrUrl;
         
-        // Fetch the file
-        const response = await fetch(url);
+        const fileSize = typeof filePathOrSize === 'number' ? filePathOrSize : 0;
+        
+        // Check available memory (if supported)
+        if (performance && performance.memory) {
+            const memoryInfo = performance.memory;
+            const usedMemoryMB = memoryInfo.usedJSHeapSize / (1024 * 1024);
+            const limitMemoryMB = memoryInfo.jsHeapSizeLimit / (1024 * 1024);
+            const availableMemoryMB = limitMemoryMB - usedMemoryMB;
+            const fileSizeMB = fileSize / (1024 * 1024);
+            
+            console.log(`[Analysis] Memory check: ${usedMemoryMB.toFixed(0)}MB used, ${availableMemoryMB.toFixed(0)}MB available, file is ${fileSizeMB.toFixed(1)}MB`);
+            
+            // Warn if file is more than 50% of available memory
+            if (fileSizeMB > availableMemoryMB * 0.5) {
+                console.warn('[Analysis] Large file relative to available memory - may cause performance issues');
+            }
+        }
+        
+        console.log('[Analysis] Fetching:', url);
+        
+        // Fetch the file with timeout for large files
+        const controller = new AbortController();
+        const timeoutDuration = fileSize > 50 * 1024 * 1024 ? 120000 : 60000; // 2min for large files, 1min otherwise
+        const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
+        
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
+        const contentLength = response.headers.get('content-length');
+        if (contentLength) {
+            console.log(`[Analysis] File size: ${(parseInt(contentLength) / 1024 / 1024).toFixed(2)} MB`);
+        }
+        
         const arrayBuffer = await response.arrayBuffer();
+        console.log(`[Analysis] Downloaded ${(arrayBuffer.byteLength / 1024 / 1024).toFixed(2)} MB`);
         
         // Wait for parquet library to load
         if (typeof parquet === 'undefined') {
@@ -57,9 +89,9 @@ async function fetchParquetData(repoNameOrUrl, filePath = null) {
                 }, 100);
                 setTimeout(() => {
                     clearInterval(checkInterval);
-                    console.warn('[Analysis] Parquet library loading timeout after 5s');
+                    console.warn('[Analysis] Parquet library loading timeout after 10s');
                     resolve();
-                }, 5000);
+                }, 10000); // Increased timeout to 10s for slow connections
             });
         }
         
@@ -70,19 +102,34 @@ async function fetchParquetData(repoNameOrUrl, filePath = null) {
         
         // Parse parquet file
         console.log('[Analysis] Parsing parquet file with parquet.ParquetReader');
+        const parseStartTime = Date.now();
         const reader = await parquet.ParquetReader.openBuffer(new Uint8Array(arrayBuffer));
         const cursor = reader.getCursor();
         const rows = [];
         let record = null;
+        let rowCount = 0;
         
+        // Read rows with periodic progress logging for large files
         while (record = await cursor.next()) {
             rows.push(record);
+            rowCount++;
+            
+            // Log progress every 10000 rows for large files
+            if (rowCount % 10000 === 0 && fileSize > 10 * 1024 * 1024) {
+                console.log(`[Analysis] Parsed ${rowCount} rows...`);
+            }
         }
         
         await reader.close();
         
+        const parseTime = ((Date.now() - parseStartTime) / 1000).toFixed(1);
+        console.log(`[Analysis] Parsed ${rowCount} rows in ${parseTime}s`);
+        
         return { rows, arrayBuffer };
     } catch (error) {
+        if (error.name === 'AbortError') {
+            throw new Error('Download timeout - file is too large or connection too slow. Please try again or use a smaller file.');
+        }
         console.error('Error fetching/parsing parquet:', error);
         throw error;
     }
@@ -613,12 +660,17 @@ function renderPlots() {
                 // Store data globally for search and display
                 window.analysisData = {
                     repoName: firstPlot.repo_name,
+                    repoPath: repoPath,
+                    resultsDir: resultsDir,
                     byParticipant: byParticipant,
                     allFiles: parquetFiles
                 };
                 
                 // Build hierarchical file tree (EmotiView style)
                 buildAnalysisFileTree();
+                
+                // Fetch and display pipeline structure
+                fetchPipelineTrace(repoPath, resultsDir);
                 
                 // Initialize search
                 const searchInput = document.getElementById('search-box');
@@ -1144,6 +1196,185 @@ function buildAnalysisFileTree() {
     fileTree.innerHTML = html;
 }
 
+// Fetch and parse pipeline trace file
+async function fetchPipelineTrace(repoPath, resultsDir) {
+    try {
+        const traceUrl = `https://raw.githubusercontent.com/${repoPath}/main/${resultsDir}/.bin/pipeline_trace.txt`;
+        console.log('[Pipeline] Fetching trace from:', traceUrl);
+        
+        const response = await fetch(traceUrl);
+        if (!response.ok) {
+            console.warn('[Pipeline] Trace file not found or inaccessible');
+            return;
+        }
+        
+        const text = await response.text();
+        const pipeline = parsePipelineTrace(text);
+        
+        if (pipeline && pipeline.length > 0) {
+            displayPipelineTree(pipeline);
+        }
+    } catch (error) {
+        console.warn('[Pipeline] Could not load pipeline trace:', error);
+    }
+}
+
+// Parse pipeline trace TSV file to extract module connections
+function parsePipelineTrace(traceText) {
+    const lines = traceText.trim().split('\n');
+    if (lines.length < 2) return [];
+    
+    // Parse header
+    const headers = lines[0].split('\t');
+    const processIdx = headers.indexOf('process');
+    const tagIdx = headers.indexOf('tag');
+    const nameIdx = headers.indexOf('name');
+    
+    if (processIdx === -1) return [];
+    
+    // Extract unique processes and build pipeline structure
+    const processMap = new Map();
+    const dependencies = new Map();
+    
+    for (let i = 1; i < lines.length; i++) {
+        const fields = lines[i].split('\t');
+        const process = fields[processIdx];
+        const tag = tagIdx !== -1 ? fields[tagIdx] : '';
+        const name = nameIdx !== -1 ? fields[nameIdx] : '';
+        
+        if (!process) continue;
+        
+        // Track process occurrences
+        if (!processMap.has(process)) {
+            processMap.set(process, { count: 0, samples: [] });
+        }
+        processMap.get(process).count++;
+        
+        // Extract dependencies from tag (input file pattern)
+        if (tag) {
+            const inputPattern = tag.match(/^(.+?)\.(txt|xdf|parquet)$/);
+            if (inputPattern) {
+                const baseTag = inputPattern[1];
+                // Infer dependencies based on naming conventions
+                if (process.includes('tree_processor') && tag.includes('_txt')) {
+                    if (!dependencies.has(process)) dependencies.set(process, []);
+                    if (!dependencies.get(process).includes('txt_reader')) {
+                        dependencies.get(process).push('txt_reader');
+                    }
+                } else if (process.includes('_analyzer') && tag.includes('_tree')) {
+                    if (!dependencies.has(process)) dependencies.set(process, []);
+                    if (!dependencies.get(process).includes('tree_processor')) {
+                        dependencies.get(process).push('tree_processor');
+                    }
+                } else if (process.includes('_file_finder') && tag.includes('_tree_')) {
+                    if (!dependencies.has(process)) dependencies.set(process, []);
+                    const analyzer = tag.match(/_tree_(\w+)/)?.[1];
+                    if (analyzer) {
+                        const analyzerProcess = analyzer + '_analyzer';
+                        if (!dependencies.get(process).includes(analyzerProcess)) {
+                            dependencies.get(process).push(analyzerProcess);
+                        }
+                    }
+                } else if (process.includes('_concatenating_processor')) {
+                    if (!dependencies.has(process)) dependencies.set(process, []);
+                    const finder = tag.match(/(\w+)_file_finder/)?.[0];
+                    if (finder && !dependencies.get(process).includes(finder)) {
+                        dependencies.get(process).push(finder);
+                    }
+                }
+            }
+        }
+    }
+    
+    // Build unique process list with simplified names
+    const uniqueProcesses = Array.from(processMap.entries()).map(([name, data]) => {
+        // Simplify process names for display
+        let displayName = name
+            .replace('_processor', '')
+            .replace('_finder', '')
+            .replace('_analyzer', '')
+            .replace('_reader', '')
+            .replace('_concatenating', '_concat');
+        
+        return {
+            name: name,
+            displayName: displayName,
+            count: data.count
+        };
+    });
+    
+    return { processes: uniqueProcesses, dependencies: dependencies };
+}
+
+// Display 2D pipeline tree visualization
+function displayPipelineTree(pipelineData) {
+    const { processes, dependencies } = pipelineData;
+    
+    // Group processes by stage
+    const stages = {
+        readers: processes.filter(p => p.name.includes('_reader')),
+        processors: processes.filter(p => p.name.includes('tree_processor')),
+        analyzers: processes.filter(p => p.name.includes('_analyzer')),
+        finders: processes.filter(p => p.name.includes('_file_finder')),
+        concatenators: processes.filter(p => p.name.includes('_concatenating'))
+    };
+    
+    // Build HTML for pipeline visualization
+    let html = `
+        <div style="margin-bottom: 20px; padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 6px; border: 1px solid var(--border-primary, #ddd);">
+            <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="togglePipeline()">
+                <h3 style="margin: 0; font-size: 0.9rem; color: var(--text-primary, #333); font-weight: 600;">
+                    <span id="pipeline-toggle-icon" style="display: inline-block; transition: transform 0.2s; margin-right: 5px;">▶</span>
+                    Processing Pipeline
+                </h3>
+                <span style="font-size: 0.75rem; color: var(--text-muted, #999);">${processes.length} modules</span>
+            </div>
+            <div id="pipeline-content" style="display: none; margin-top: 15px; font-size: 0.8rem; line-height: 1.8;">
+    `;
+    
+    // Display stages
+    if (stages.readers.length > 0) {
+        html += `<div style="margin-bottom: 10px;"><strong>📥 Input:</strong> ${stages.readers.map(p => p.displayName).join(', ')}</div>`;
+    }
+    if (stages.processors.length > 0) {
+        html += `<div style="margin-bottom: 10px;"><strong>🔄 Processing:</strong> ${stages.processors.map(p => p.displayName).join(', ')}</div>`;
+    }
+    if (stages.analyzers.length > 0) {
+        html += `<div style="margin-bottom: 10px;"><strong>📊 Analyzers:</strong> ${stages.analyzers.map(p => p.displayName).join(', ')}</div>`;
+    }
+    if (stages.finders.length > 0) {
+        html += `<div style="margin-bottom: 10px;"><strong>🔍 Extraction:</strong> ${stages.finders.map(p => p.displayName).join(', ')}</div>`;
+    }
+    if (stages.concatenators.length > 0) {
+        html += `<div style="margin-bottom: 10px;"><strong>🔗 Concatenation:</strong> ${stages.concatenators.map(p => p.displayName).join(', ')}</div>`;
+    }
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    // Insert pipeline visualization before file tree
+    const fileTree = document.getElementById('file-tree');
+    if (fileTree) {
+        fileTree.insertAdjacentHTML('beforebegin', html);
+    }
+}
+
+// Toggle pipeline visibility
+function togglePipeline() {
+    const content = document.getElementById('pipeline-content');
+    const icon = document.getElementById('pipeline-toggle-icon');
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.style.transform = 'rotate(90deg)';
+    } else {
+        content.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+
 // Toggle folder expand/collapse
 function toggleFolder(element) {
     const icon = element.querySelector('.tree-folder-icon');
@@ -1179,8 +1410,7 @@ function filterFileTree(query) {
     // Filter items
     allItems.forEach(item => {
         const filename = item.dataset.filename || '';
-        const display = item.dataset.display || '';
-        const matches = filename.includes(searchLower) || display.includes(searchLower);
+        const matches = filename.includes(searchLower);
         item.style.display = matches ? '' : 'none';
     });
     
@@ -1218,8 +1448,38 @@ async function loadPlotFile(url, displayName, participant) {
     // Mark clicked item as active
     event.target.closest('.tree-item').classList.add('active');
     
+    // Find file size from analysisData
+    let fileSize = 0;
+    if (window.analysisData && window.analysisData.allFiles) {
+        const file = window.analysisData.allFiles.find(f => f.url === url);
+        if (file) {
+            fileSize = file.size;
+        }
+    }
+    
+    const fileSizeMB = (fileSize / (1024 * 1024)).toFixed(2);
+    const isLargeFile = fileSize > 10 * 1024 * 1024; // > 10MB
+    const isVeryLargeFile = fileSize > 50 * 1024 * 1024; // > 50MB
+    
     // Hide empty state
     emptyState.style.display = 'none';
+    
+    // Create plot display with size warning
+    let sizeWarning = '';
+    if (isVeryLargeFile) {
+        sizeWarning = `
+            <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 10px; margin-bottom: 15px; font-size: 0.85rem;">
+                <strong>⚠️ Large File Warning:</strong> This file is ${fileSizeMB} MB. Loading may take 1-2 minutes and requires significant memory.
+                <br><span style="font-size: 0.8rem; color: #856404;">EEG data files are highly compressed but still large. Please be patient.</span>
+            </div>
+        `;
+    } else if (isLargeFile) {
+        sizeWarning = `
+            <div style="background: #d1ecf1; border: 1px solid #17a2b8; border-radius: 5px; padding: 8px; margin-bottom: 12px; font-size: 0.8rem;">
+                <strong>ℹ️ Info:</strong> This file is ${fileSizeMB} MB and may take 10-30 seconds to load.
+            </div>
+        `;
+    }
     
     // Create plot display
     plotDisplays.innerHTML = `
@@ -1228,6 +1488,7 @@ async function loadPlotFile(url, displayName, participant) {
                 <h2 style="margin: 0 0 10px 0; color: var(--text-primary, #333); font-size: 1.5rem;">
                     ${participant}/${displayName}
                 </h2>
+                ${sizeWarning}
                 <div class="export-bar">
                     <button class="export-btn png" onclick="exportPlotAsPNG('current-plot-chart')">
                         &#8659; PNG
@@ -1238,41 +1499,86 @@ async function loadPlotFile(url, displayName, participant) {
                     <button class="export-btn pdf" onclick="exportPlotAsPDF('current-plot-chart', '${participant}', '${displayName}')">
                         &#8659; PDF
                     </button>
-                    <span style="color: var(--text-muted, #999); font-size: 0.85rem; margin-left: auto;">
-                        Loading from GitHub...
+                    <span id="load-status" style="color: var(--text-muted, #999); font-size: 0.85rem; margin-left: auto;">
+                        Preparing... (${fileSizeMB} MB)
                     </span>
                 </div>
             </div>
             <div id="current-plot-chart" style="width: 100%; height: calc(100vh - 300px); min-height: 500px;background: var(--bg-secondary, #f8f8f8); border: 1px solid var(--border-primary, #ddd); border-radius: 8px; overflow: hidden;">
                 <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 15px;">
                     <div class="spinner" style="width: 50px; height: 50px; border: 5px solid var(--bg-tertiary, #ddd); border-top: 5px solid var(--accent-primary, #c9a227); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                    <p style="color: var(--text-secondary, #666); font-size: 0.95rem;">Fetching and parsing parquet file...</p>
+                    <p id="load-progress" style="color: var(--text-secondary, #666); font-size: 0.95rem;">Fetching ${fileSizeMB} MB file from GitHub...</p>
+                    <p style="color: var(--text-muted, #999); font-size: 0.8rem;">This may take a moment for large EEG data files</p>
                 </div>
             </div>
         </div>
     `;
     
     try {
-        const arrayBuffer = await fetchParquetData(url);
+        const startTime = Date.now();
+        
+        // Update progress: downloading
+        const progressEl = document.getElementById('load-progress');
+        if (progressEl) progressEl.textContent = `Downloading ${fileSizeMB} MB...`;
+        
+        const arrayBuffer = await fetchParquetData(url, fileSize);
+        
+        // Update progress: parsing
+        const downloadTime = ((Date.now() - startTime) / 1000).toFixed(1);
+        if (progressEl) progressEl.textContent = `Downloaded in ${downloadTime}s. Parsing parquet data...`;
+        
         const plotlyData = await parquetToPlotly(arrayBuffer, displayName);
         
+        // Update progress: rendering
+        if (progressEl) progressEl.textContent = `Rendering ${plotlyData.data.length} trace(s)...`;
+        
         const chartDiv = document.getElementById('current-plot-chart');
-        Plotly.newPlot(chartDiv, plotlyData.data, plotlyData.layout, {responsive: true});
+        await Plotly.newPlot(chartDiv, plotlyData.data, plotlyData.layout, {responsive: true});
         
         // Update status
-        const statusSpan = document.querySelector('#current-plot span[style*="margin-left: auto"]');
+        const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+        const statusSpan = document.getElementById('load-status');
         if (statusSpan) {
-            statusSpan.textContent = '✅ Loaded successfully';
+            statusSpan.textContent = `✅ Loaded in ${totalTime}s (${fileSizeMB} MB)`;
+            statusSpan.style.color = 'var(--accent-primary, #28a745)';
         }
     } catch (error) {
+        console.error('[Analysis] Error loading plot:', error);
         const chartDiv = document.getElementById('current-plot-chart');
+        const statusSpan = document.getElementById('load-status');
+        
+        if (statusSpan) {
+            statusSpan.textContent = '❌ Failed to load';
+            statusSpan.style.color = '#dc3545';
+        }
+        
+        // Provide more specific error messages
+        let errorDetails = error.message;
+        let recommendations = '';
+        
+        if (error.message.includes('Parquet library failed')) {
+            errorDetails = 'Parquet library could not load';
+            recommendations = 'Please check your internet connection and try refreshing the page.';
+        } else if (error.message.includes('HTTP 404')) {
+            errorDetails = 'File not found on GitHub';
+            recommendations = 'The parquet file may have been moved or deleted.';
+        } else if (error.message.includes('out of memory') || error.message.includes('allocation')) {
+            errorDetails = 'Browser ran out of memory';
+            recommendations = 'This EEG data file is too large for browser processing. Try closing other tabs or using a smaller time window.';
+        } else if (fileSize > 100 * 1024 * 1024) {
+            recommendations = 'Files over 100MB may be too large for browser-based visualization. Consider pre-processing the data into smaller segments.';
+        } else {
+            recommendations = 'This file might be corrupted or in an unsupported format.';
+        }
+        
         chartDiv.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; padding: 40px; text-align: center;">
                 <p style="color: var(--text-secondary, #666); font-size: 1.1rem; margin-bottom: 10px;">⚠️ Error loading plot</p>
-                <p style="color: var(--text-muted, #999); font-size: 0.9rem;">${error.message}</p>
-                <p style="color: var(--text-muted, #999); font-size: 0.85rem; margin-top: 15px;">
-                    This file might be too large, corrupted, or in an unsupported format.
+                <p style="color: var(--text-muted, #999); font-size: 0.9rem; max-width: 500px;">${errorDetails}</p>
+                <p style="color: var(--text-muted, #999); font-size: 0.85rem; margin-top: 15px; max-width: 500px;">
+                    ${recommendations}
                 </p>
+                ${fileSize > 10 * 1024 * 1024 ? `<p style="color: var(--text-muted, #999); font-size: 0.8rem; margin-top: 10px;">File size: ${fileSizeMB} MB</p>` : ''}
             </div>
         `;
     }
