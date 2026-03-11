@@ -558,8 +558,20 @@ function renderPlots() {
         
         // Fetch repository tree to find all parquet files
         fetch(`https://api.github.com/repos/${repoPath}/git/trees/main?recursive=1`)
-                .then(response => response.json())
+            .then(response => {
+                console.log('[Analysis] GitHub API response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`GitHub API returned ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('[Analysis] GitHub API data:', data);
+                
+                if (!data.tree || !Array.isArray(data.tree)) {
+                    throw new Error('Invalid response from GitHub API - no tree data');
+                }
+                
                 // Filter for parquet files in results directory
                 const parquetFiles = data.tree
                     .filter(item => 
@@ -591,6 +603,8 @@ function renderPlots() {
                         };
                     });
                 
+                console.log('[Analysis] Found parquet files:', parquetFiles.length);
+                
                 // Group by participant
                 const byParticipant = {};
                 parquetFiles.forEach(file => {
@@ -599,6 +613,8 @@ function renderPlots() {
                     }
                     byParticipant[file.participant].push(file);
                 });
+                
+                console.log('[Analysis] Grouped by participant:', Object.keys(byParticipant));
                 
                 // Store data globally for search and display
                 window.analysisData = {
@@ -612,49 +628,26 @@ function renderPlots() {
                 
                 // Initialize search
                 const searchInput = document.getElementById('search-box');
-                searchInput.addEventListener('input', (e) => {
-                    filterFileTree(e.target.value);
-                });
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        filterFileTree(e.target.value);
+                    });
+                }
             })
             .catch(error => {
+                console.error('[Analysis] Error loading files:', error);
                 fileTree.innerHTML = `
                     <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
                         <p>⚠️ Error loading files: ${error.message}</p>
+                        <p style="font-size: 0.85em; margin-top: 10px;">Check browser console for details</p>
                     </div>
                 `;
             });
         
         return; // Exit early for html_viewer types
     }
-                            
-                            try {
-                                const arrayBuffer = await fetchParquetData(url);
-                                const plotlyData = await parquetToPlotly(arrayBuffer, displayName);
-                                Plotly.newPlot(plotChart, plotlyData.data, plotlyData.layout, {responsive: true});
-                            } catch (error) {
-                                plotChart.innerHTML = `
-                                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                                        <p>⚠️ Error loading plot: ${error.message}</p>
-                                        <p style="font-size: 0.9em; margin-top: 10px;">This file might be too large or in an unsupported format.</p>
-                                    </div>
-                                `;
-                            }
-                        };
-                    }
-                })
-                .catch(error => {
-                    plotContainer.innerHTML = `
-                        <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
-                            <p>⚠️ Error loading data: ${error.message}</p>
-                        </div>
-                    `;
-                });
-        });
-        
-        return; // Exit early for html_viewer types
-    }
     
-    // For other type (original sidebar-based interface)
+    // For other plot types (original sidebar-based interface)
     // Hide empty state and show download section
     emptyState.style.display = 'none';
     downloadSection.classList.add('visible');
@@ -665,6 +658,11 @@ function renderPlots() {
     
     // Create a display for each plot
     plotsData.forEach((plotItem, index) => {
+        // Skip html_viewer types - they're handled at the top level
+        if (plotItem.plot_data && plotItem.plot_data.type === 'html_viewer') {
+            return;
+        }
+        
         const plotDisplay = document.createElement('div');
         plotDisplay.className = 'plot-display';
         plotDisplay.id = `plot-${index}`;
