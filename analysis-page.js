@@ -679,184 +679,184 @@ function renderPlots() {
         try {
             const plotData = plotItem.plot_data;
             
-            // Handle AnalysisToolbox HTML viewers
+            // Handle AnalysisToolbox HTML viewers - fetch parquet files directly
             if (plotData.type === 'html_viewer') {
                 const repoPath = plotItem.repo_name.includes('/') ? plotItem.repo_name : 'CGutt-hub/' + plotItem.repo_name;
-                const repoName = plotItem.repo_name;
                 const resultsDir = plotData.results_dir;
                 
-                // Generate launcher scripts
-                const windowsLauncher = `# ${repoName} Viewer Launcher for Windows
-# Save as: launch_${repoName}_viewer.ps1
-# Run: powershell -ExecutionPolicy Bypass -File launch_${repoName}_viewer.ps1
-
-$repoPath = "${repoName}"
-$repoUrl = "https://github.com/${repoPath}.git"
-
-# Check if repository exists
-if (-Not (Test-Path $repoPath)) {
-    Write-Host "Cloning repository..." -ForegroundColor Yellow
-    git clone $repoUrl
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Error: Git clone failed. Install Git from https://git-scm.com/" -ForegroundColor Red
-        Read-Host "Press Enter to exit"
-        exit 1
-    }
-}
-
-# Navigate to results directory
-Set-Location "$repoPath/${resultsDir}"
-
-# Check for serve script
-if (Test-Path ".bin\\${resultsDir}_serve.py") {
-    Write-Host "Starting viewer server..." -ForegroundColor Green
-    $process = Start-Process python -ArgumentList ".bin\\${resultsDir}_serve.py" -PassThru -WindowStyle Hidden
-    Start-Sleep -Seconds 2
-    Write-Host "Opening viewer in browser..." -ForegroundColor Green
-    Start-Process "http://localhost:8080/.bin/${resultsDir}.html"
-    Write-Host ""
-    Write-Host "Viewer is running! Close this window to stop the server." -ForegroundColor Cyan
-    Write-Host "Press Ctrl+C to stop the server..."
-    Wait-Process -Id $process.Id
-} else {
-    Write-Host "Serve script not found. Running simple HTTP server..." -ForegroundColor Yellow
-    $process = Start-Process python -ArgumentList "-m http.server 8080" -PassThru -WindowStyle Hidden
-    Start-Sleep -Seconds 2
-    Write-Host "Opening viewer..." -ForegroundColor Green
-    Start-Process "http://localhost:8080/.bin/${resultsDir}.html"
-    Write-Host ""
-    Write-Host "Viewer is running! Close this window to stop the server." -ForegroundColor Cyan
-    Write-Host "Press Ctrl+C to stop the server..."
-    Wait-Process -Id $process.Id
-}`;
-
-                const unixLauncher = `#!/bin/bash
-# ${repoName} Viewer Launcher for Unix/Mac
-# Save as: launch_${repoName}_viewer.sh
-# Make executable: chmod +x launch_${repoName}_viewer.sh
-# Run: ./launch_${repoName}_viewer.sh
-
-REPO_PATH="${repoName}"
-REPO_URL="https://github.com/${repoPath}.git"
-
-# Check if repository exists
-if [ ! -d "$REPO_PATH" ]; then
-    echo "Cloning repository..."
-    git clone "$REPO_URL"
-    if [ $? -ne 0 ]; then
-        echo "Error: Git clone failed. Install Git first."
-        exit 1
-    fi
-fi
-
-# Navigate to results directory
-cd "$REPO_PATH/${resultsDir}"
-
-# Run the serve script
-if [ -f "${resultsDir}.sh" ]; then
-    echo "Starting viewer with serve script..."
-    bash ${resultsDir}.sh
-else
-    echo "Serve script not found. Running simple HTTP server..."
-    python3 -m http.server 8080 > /dev/null 2>&1 &
-    SERVER_PID=$!
-    sleep 2
-    echo "Opening viewer at http://localhost:8080/.bin/${resultsDir}.html"
-    
-    # Open browser
-    if command -v xdg-open &>/dev/null; then
-        xdg-open "http://localhost:8080/
-.bin/${resultsDir}.html"
-    elif command -v open &>/dev/null; then
-        open "http://localhost:8080/.bin/${resultsDir}.html"
-    fi
-    
-    echo "Press Ctrl+C to stop the server..."
-    wait $SERVER_PID
-fi`;
-                
                 plotContainer.innerHTML = `
-                    <div style="padding: 40px; text-align: center;">
-                        <div style="margin-bottom: 30px;">
-                            <h3 style="margin-bottom: 15px; color: var(--text-primary); font-size: 1.5em;">
-                                📊 Interactive Analysis Viewer
-                            </h3>
-                            <p style="color: var(--text-secondary); margin-bottom: 25px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-                                This project uses the <strong>AnalysisToolbox</strong> framework. The viewer 
-                                requires a local server to access parquet data files with full functionality.
-                            </p>
-                        </div>
-                        
-                        <div style="background: var(--bg-secondary, #f8f9fa); border: 2px solid var(--accent-primary); border-radius: 8px; padding: 30px; max-width: 700px; margin: 0 auto 30px auto;">
-                            <h4 style="margin: 0 0 20px 0; color: var(--text-primary); font-size: 1.2em;">
-                                🚀 Launch Viewer with Server
-                            </h4>
-                            
-                            <p style="font-size: 0.95em; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
-                                Download a launcher script that automatically clones the repository, 
-                                starts the data server, and opens the viewer in your browser.
-                            </p>
-                            
-                            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;">
-                                <button onclick='downloadScript("${repoName}_viewer_windows.ps1", \`${windowsLauncher.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)' 
-                                        style="padding: 12px 24px; background: #0078D4; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1em; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                    🪟 Windows Launcher
-                                </button>
-                                <button onclick='downloadScript("${repoName}_viewer_unix.sh", \`${unixLauncher.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)' 
-                                        style="padding: 12px 24px; background: #2D9140; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1em; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                    🐧 Linux/Mac Launcher
-                                </button>
-                            </div>
-                            
-                            <details style="margin-top: 20px; text-align: left;">
-                                <summary style="cursor: pointer; font-weight: 600; color: var(--text-secondary); padding: 8px; background: var(--bg-primary); border-radius: 4px;">
-                                    📝 Manual Setup Instructions
-                                </summary>
-                                <div style="margin-top: 15px; padding: 15px; background: var(--bg-primary); border-radius: 4px; font-size: 0.9em; line-height: 1.7; color: var(--text-secondary);">
-                                    <p style="margin: 0 0 10px 0; font-weight: 600;">If you prefer manual setup:</p>
-                                    <ol style="margin: 0; padding-left: 20px;">
-                                        <li>Clone: <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px;">git clone https://github.com/${repoPath}.git</code></li>
-                                        <li>Navigate: <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px;">cd ${repoName}/${resultsDir}</code></li>
-                                        <li>Run: <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px;">bash ${resultsDir}.sh</code> (Unix) or <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px;">python -m http.server 8080</code></li>
-                                        <li>Open: <code style="background: var(--code-bg, #e9ecef); padding: 2px 6px; border-radius: 3px;">http://localhost:8080/.bin/${resultsDir}.html</code></li>
-                                    </ol>
-                                    <p style="margin: 10px 0 0 0; font-size: 0.9em; color: var(--text-muted);">
-                                        💡 Requires: Git and Python 3
-                                    </p>
-                                </div>
-                            </details>
-                        </div>
-                        
-                        <div style="max-width: 700px; margin: 0 auto; padding: 25px; background: var(--bg-tertiary, #f0f0f0); border-radius: 8px;">
-                            <h4 style="margin: 0 0 15px 0; color: var(--text-primary);">Viewer Features</h4>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 0.9em; color: var(--text-secondary); text-align: left;">
-                                <div>✓ Interactive Plotly plots</div>
-                                <div>✓ Export PNG/SVG/PDF</div>
-                                <div>✓ Pipeline process tree</div>
-                                <div>✓ Parquet visualization</div>
-                                <div>✓ Participant organization</div>
-                                <div>✓ Search & filtering</div>
-                                <div>✓ Dark/Light themes</div>
-                                <div>✓ Execution logs</div>
-                            </div>
-                        </div>
+                    <div style="padding: 20px; text-align: center;">
+                        <p style="margin-bottom: 20px; color: var(--text-secondary);">
+                            <span class="spinner" style="display: inline-block; width: 16px; height: 16px; border: 2px solid var(--text-muted); border-top: 2px solid var(--accent-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle;"></span>
+                            Discovering analysis data from repository...
+                        </p>
                     </div>
                 `;
                 
-                // Add download script function if not already present
-                if (!window.downloadScript) {
-                    window.downloadScript = function(filename, content) {
-                        const blob = new Blob([content], { type: 'text/plain' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = filename;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    };
-                }
+                // Fetch repository tree to find all parquet files
+                fetch(`https://api.github.com/repos/${repoPath}/git/trees/main?recursive=1`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Filter for parquet files in results directory
+                        const parquetFiles = data.tree
+                            .filter(item => 
+                                item.path.startsWith(resultsDir) && 
+                                item.path.endsWith('.parquet') &&
+                                item.path.includes('/plots/') &&
+                                !item.path.includes('_log.parquet') && // Skip raw log files
+                                !item.path.includes('_log_tddr') // Skip TDDR intermediate files
+                            )
+                            .map(item => {
+                                const pathParts = item.path.split('/');
+                                const participant = pathParts[1]; // EV_002, EV_003, etc.
+                                const filename = pathParts[pathParts.length - 1];
+                                const displayName = filename
+                                   .replace('.parquet', '')
+                                    .replace(participant + '_', '')
+                                    .replace(/_/g, ' ')
+                                    .split(' ')
+                                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                    .join(' ');
+                                
+                                return {
+                                    path: item.path,
+                                    url: `https://raw.githubusercontent.com/${repoPath}/main/${item.path}`,
+                                    participant: participant,
+                                    displayName: displayName,
+                                    size: item.size
+                                };
+                            });
+                        
+                        // Group by participant
+                        const byParticipant = {};
+                        parquetFiles.forEach(file => {
+                            if (!byParticipant[file.participant]) {
+                                byParticipant[file.participant] = [];
+                            }
+                            byParticipant[file.participant].push(file);
+                        });
+                        
+                        // Render grouped files
+                        const participantKeys = Object.keys(byParticipant).sort();
+                        
+                        plotContainer.innerHTML = `
+                            <div style="padding: 20px;">
+                                <div style="margin-bottom: 25px; text-align: center;">
+                                    <h3 style="margin: 0 0 10px 0; color: var(--text-primary);">📊 Analysis Data</h3>
+                                    <p style="margin: 0; color: var(--text-secondary); font-size: 0.95em;">
+                                        Found <strong>${parquetFiles.length} plots</strong> across <strong>${participantKeys.length} participants</strong>
+                                    </p>
+                                </div>
+                                
+                                <div id="participants-container-${index}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                                    ${participantKeys.map(participant => `
+                                        <div style="background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.2s;" 
+                                             onmouseover="this.style.borderColor='var(--accent-primary)'; this.style.transform='translateY(-2px)';" 
+                                             onmouseout="this.style.borderColor='var(--border-primary)'; this.style.transform='translateY(0)';"
+                                             onclick="showParticipantPlots('${participant}', ${index})">
+                                            <div style="font-weight: 600; font-size: 1.1em; margin-bottom: 8px; color: var(--text-primary);">
+                                                ${participant}
+                                            </div>
+                                            <div style="color: var(--text-secondary); font-size: 0.9em;">
+                                                ${byParticipant[participant].length} plots available
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                
+                                <div id="plot-viewer-${index}" style="display: none;">
+                                    <div style="margin-bottom: 15px; padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                                        <button onclick="document.getElementById('plot-viewer-${index}').style.display='none'; document.getElementById('participants-container-${index}').style.display='grid';" 
+                                                style="padding: 8px 16px; background: var(--bg-tertiary); border: 1px solid var(--border-primary); border-radius: 6px; cursor: pointer; color: var(--text-primary); font-size: 0.9em;">
+                                            ← Back to Participants
+                                        </button>
+                                        <span id="participant-name-${index}" style="margin-left: 15px; font-weight: 600; color: var(--text-primary);"></span>
+                                    </div>
+                                    
+                                    <div id="plots-grid-${index}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                                    </div>
+                                    
+                                    <div id="plot-display-${index}" style="margin-top: 20px; padding: 20px; background: var(--bg-secondary); border-radius: 8px; display: none;">
+                                        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                                            <h4 id="plot-title-${index}" style="margin: 0; color: var(--text-primary);"></h4>
+                                            <button onclick="document.getElementById('plot-display-${index}').style.display='none';" 
+                                                    style="padding: 6px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-primary); border-radius: 4px; cursor: pointer; color: var(--text-primary); font-size: 0.85em;">
+                                                Close
+                                            </button>
+                                        </div>
+                                        <div id="plot-chart-${index}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Store data for later use
+                        window[`parquetData_${index}`] = byParticipant;
+                        
+                        // Add helper functions if not already present
+                        if (!window.showParticipantPlots) {
+                            window.showParticipantPlots = function(participant, idx) {
+                                const data = window[`parquetData_${idx}`][participant];
+                                const plotsGrid = document.getElementById(`plots-grid-${idx}`);
+                                const viewer = document.getElementById(`plot-viewer-${idx}`);
+                                const container = document.getElementById(`participants-container-${idx}`);
+                                const participantName = document.getElementById(`participant-name-${idx}`);
+                                
+                                container.style.display = 'none';
+                                viewer.style.display = 'block';
+                                participantName.textContent = participant;
+                                
+                                plotsGrid.innerHTML = data.map((file, fileIdx) => `
+                                    <div style="background: var(--bg-tertiary); border: 1px solid var(--border-primary); border-radius: 6px; padding: 12px; cursor: pointer; transition: all 0.2s;"
+                                         onmouseover="this.style.borderColor='var(--accent-primary)'" 
+                                         onmouseout="this.style.borderColor='var(--border-primary)'"
+                                         onclick="loadAndDisplayPlot('${file.url}', '${file.displayName}', ${idx}, '${participant}')">
+                                        <div style="font-weight: 600; font-size: 0.95em; margin-bottom: 6px; color: var(--text-primary);">
+                                            ${file.displayName}
+                                        </div>
+                                        <div style="color: var(--text-muted); font-size: 0.8em;">
+                                            ${(file.size / 1024).toFixed(1)} KB
+                                        </div>
+                                    </div>
+                                `).join('');
+                            };
+                            
+                            window.loadAndDisplayPlot = async function(url, displayName, idx, participant) {
+                                const plotDisplay = document.getElementById(`plot-display-${idx}`);
+                                const plotTitle = document.getElementById(`plot-title-${idx}`);
+                                const plotChart = document.getElementById(`plot-chart-${idx}`);
+                                
+                                plotDisplay.style.display = 'block';
+                                plotTitle.textContent = `${participant} - ${displayName}`;
+                                plotChart.innerHTML = `
+                                    <div style="text-align: center; padding: 40px;">
+                                        <div class="spinner" style="margin: 0 auto 15px auto; width: 40px; height: 40px; border: 4px solid var(--bg-tertiary); border-top: 4px solid var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                        <p style="color: var(--text-secondary);">Loading and parsing parquet file...</p>
+                                    </div>
+                                `;
+                                
+                                try {
+                                    const arrayBuffer = await fetchParquetData(url);
+                                    const plotlyData = await parquetToPlotly(arrayBuffer, displayName);
+                                    Plotly.newPlot(plotChart, plotlyData.data, plotlyData.layout, {responsive: true});
+                                } catch (error) {
+                                    plotChart.innerHTML = `
+                                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                            <p>⚠️ Error loading plot: ${error.message}</p>
+                                            <p style="font-size: 0.9em; margin-top: 10px;">This file might be too large or in an unsupported format.</p>
+                                        </div>
+                                    `;
+                                }
+                            };
+                        }
+                    })
+                    .catch(error => {
+                        plotContainer.innerHTML = `
+                            <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                                <p>⚠️ Error loading data: ${error.message}</p>
+                            </div>
+                        `;
+                    });
             }
             // Handle parquet files - fetch and render directly
             else if (plotData.type === 'parquet') {
