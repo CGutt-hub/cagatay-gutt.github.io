@@ -404,6 +404,6 @@
 // Plot metadata embedded at build time - viewers load data directly from repos
 window.plotsData = {{ load_data(path="data/analysis_plots.json") | json_encode() | safe }};
 </script>
-<script src="/analysis-page.js"></script>
+<script src="/analysis-page.js?v={{ now() | date(format='%s') }}"></script>
 {% endblock content %}
 
