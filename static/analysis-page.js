@@ -1489,7 +1489,7 @@ async function loadPlotFile(url, displayName, participant) {
         sizeWarning = `
             <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 10px; margin-bottom: 15px; font-size: 0.85rem;">
                 <strong>⚠️ Large File Warning:</strong> This file is ${fileSizeMB} MB. Loading may take 1-2 minutes and requires significant memory.
-                <br><span style="font-size: 0.8rem; color: #856404;">EEG data files are highly compressed but still large. Please be patient.</span>
+                <br><span style="font-size: 0.8rem; color: #856404;">Data files are highly compressed but may still be large. Please be patient.</span>
             </div>
         `;
     } else if (isLargeFile) {
@@ -1527,7 +1527,7 @@ async function loadPlotFile(url, displayName, participant) {
                 <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 15px;">
                     <div class="spinner" style="width: 50px; height: 50px; border: 5px solid var(--bg-tertiary, #ddd); border-top: 5px solid var(--accent-primary, #c9a227); border-radius: 50%; animation: spin 1s linear infinite;"></div>
                     <p id="load-progress" style="color: var(--text-secondary, #666); font-size: 0.95rem;">Fetching ${fileSizeMB} MB file from GitHub...</p>
-                    <p style="color: var(--text-muted, #999); font-size: 0.8rem;">This may take a moment for large EEG data files</p>
+                    <p style="color: var(--text-muted, #999); font-size: 0.8rem;">Large files may take a moment to load</p>
                 </div>
             </div>
         </div>
@@ -1587,7 +1587,7 @@ async function loadPlotFile(url, displayName, participant) {
             recommendations = 'The parquet file may have been moved or deleted.';
         } else if (error.message.includes('out of memory') || error.message.includes('allocation')) {
             errorDetails = 'Browser ran out of memory';
-            recommendations = 'This EEG data file is too large for browser processing. Try closing other tabs or using a smaller time window.';
+            recommendations = 'This data file is too large for browser processing. Try closing other tabs or using a smaller time window.';
         } else if (fileSize > 100 * 1024 * 1024) {
             recommendations = 'Files over 100MB may be too large for browser-based visualization. Consider pre-processing the data into smaller segments.';
         } else {
