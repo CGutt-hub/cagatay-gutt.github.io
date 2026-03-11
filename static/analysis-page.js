@@ -1,15 +1,8 @@
 // Open Data Analysis Page JavaScript
 // Fetches and renders parquet files directly from GitHub repos
 
-// Load parquet parsing library
-const parquetScript = document.createElement('script');
-parquetScript.src = 'https://cdn.jsdelivr.net/npm/parquetjs-lite@2.3.0/dist/parquetjs-lite.min.js';
-document.head.appendChild(parquetScript);
-
-// Load pdf-lib for PDF/A-3 generation with attachments
-const pdfLibScript = document.createElement('script');
-pdfLibScript.src = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
-document.head.appendChild(pdfLibScript);
+// Check if parquet library is available on page load
+console.log('[Analysis] Script loaded. Parquet library status:', typeof parquet !== 'undefined' ? 'Available' : 'Not yet loaded');
 
 // Global variable for plot data (loaded from JSON)
 let plotsData = [];
@@ -53,21 +46,30 @@ async function fetchParquetData(repoNameOrUrl, filePath = null) {
         
         // Wait for parquet library to load
         if (typeof parquet === 'undefined') {
+            console.log('[Analysis] Parquet library not loaded yet, waiting...');
             await new Promise(resolve => {
                 const checkInterval = setInterval(() => {
                     if (typeof parquet !== 'undefined') {
+                        console.log('[Analysis] Parquet library loaded successfully');
                         clearInterval(checkInterval);
                         resolve();
                     }
                 }, 100);
                 setTimeout(() => {
                     clearInterval(checkInterval);
+                    console.warn('[Analysis] Parquet library loading timeout after 5s');
                     resolve();
                 }, 5000);
             });
         }
         
+        // Check if parquet library is available
+        if (typeof parquet === 'undefined') {
+            throw new Error('Parquet library failed to load. Please check your internet connection and try refreshing the page.');
+        }
+        
         // Parse parquet file
+        console.log('[Analysis] Parsing parquet file with parquet.ParquetReader');
         const reader = await parquet.ParquetReader.openBuffer(new Uint8Array(arrayBuffer));
         const cursor = reader.getCursor();
         const rows = [];
@@ -585,20 +587,12 @@ function renderPlots() {
                         const pathParts = item.path.split('/');
                         const participant = pathParts[1];
                         const filename = pathParts[pathParts.length - 1];
-                        const displayName = filename
-                            .replace('.parquet', '')
-                            .replace(participant + '_', '')
-                            .replace(/_/g, ' ')
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' ');
                         
                         return {
                             path: item.path,
                             url: `https://raw.githubusercontent.com/${repoPath}/main/${item.path}`,
                             participant: participant,
                             filename: filename,
-                            displayName: displayName,
                             size: item.size
                         };
                     });
@@ -1129,8 +1123,8 @@ function buildAnalysisFileTree() {
         
         files.forEach(file => {
             html += `
-                <div class="tree-item" onclick="loadPlotFile('${file.url}', '${file.displayName}', '${participant}')" data-filename="${file.filename.toLowerCase()}" data-display="${file.displayName.toLowerCase()}">
-                    📊 ${file.displayName}
+                <div class="tree-item" onclick="loadPlotFile('${file.url}', '${file.filename}', '${participant}')" data-filename="${file.filename.toLowerCase()}">
+                    📊 ${file.filename}
                     <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">
                         (${(file.size / 1024).toFixed(1)}KB)
                     </span>
@@ -1232,7 +1226,7 @@ async function loadPlotFile(url, displayName, participant) {
         <div class="plot-display active" id="current-plot">
             <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-primary, #ddd);">
                 <h2 style="margin: 0 0 10px 0; color: var(--text-primary, #333); font-size: 1.5rem;">
-                    ${participant} — ${displayName}
+                    ${participant}/${displayName}
                 </h2>
                 <div class="export-bar">
                     <button class="export-btn png" onclick="exportPlotAsPNG('current-plot-chart')">
