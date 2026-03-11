@@ -559,6 +559,9 @@ document.getElementById('search-box')?.addEventListener('input', (e) => {
 
 // Render all analysis results
 function renderPlots() {
+    console.log('[Analysis] renderPlots() called');
+    console.log('[Analysis] plotsData length:', plotsData ? plotsData.length : 'undefined');
+    
     const plotDisplays = document.getElementById('plot-displays');
     const emptyState = document.getElementById('empty-state');
     const downloadSection = document.getElementById('download-all-section');
@@ -592,7 +595,12 @@ function renderPlots() {
     
     // Check if first item is parquet type (scientific data repos)
     const firstPlot = plotsData[0];
+    console.log('[Analysis] First plot:', firstPlot);
+    console.log('[Analysis] First plot type:', firstPlot?.plot_data?.type);
+    
     if (firstPlot && firstPlot.plot_data && firstPlot.plot_data.type === 'parquet') {
+        console.log('[Analysis] Detected parquet type, building file tree...');
+        
         // Hide empty state
         emptyState.style.display = 'none';
         
@@ -641,6 +649,7 @@ function renderPlots() {
         
         // Build hierarchical file tree (EmotiView style)
         buildAnalysisFileTree();
+        console.log('[Analysis] File tree built');
         
         // Fetch and display pipeline structure
         fetchPipelineTrace(repoPath, resultsDir);
@@ -1111,8 +1120,13 @@ function renderPlots() {
 
 // Build hierarchical file tree (EmotiView style) for parquet data files
 function buildAnalysisFileTree() {
+    console.log('[Analysis] buildAnalysisFileTree() called');
     const fileTree = document.getElementById('file-tree');
+    console.log('[Analysis] file-tree element:', fileTree);
+    
     const  { repoName, byParticipant } = window.analysisData;
+    console.log('[Analysis] Building tree for repo:', repoName);
+    console.log('[Analysis] Participants:', Object.keys(byParticipant));
     
     const participantKeys = Object.keys(byParticipant).sort();
     
@@ -1156,7 +1170,9 @@ function buildAnalysisFileTree() {
         </div>
     `;
     
+    console.log('[Analysis] Setting fileTree.innerHTML with', participantKeys.length, 'participants');
     fileTree.innerHTML = html;
+    console.log('[Analysis] File tree HTML set successfully');
 }
 
 // Fetch and parse pipeline trace file
