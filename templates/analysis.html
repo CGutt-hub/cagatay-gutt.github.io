@@ -181,6 +181,64 @@
     transform: scale(0.95);
 }
 
+/* EmotiView-style tree structure */
+.tree-folder {
+    padding: 6px 10px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    margin: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tree-folder:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.tree-folder-icon {
+    display: inline-block;
+    width: 14px;
+    font-size: 10px;
+    transition: transform 0.2s;
+}
+
+.tree-folder-content {
+    display: none;
+}
+
+.tree-folder-content.expanded {
+    display: block;
+}
+
+.tree-item {
+    padding: 6px 12px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text-secondary);
+    border-radius: 4px;
+    margin: 1px 0;
+    font-size: 0.85rem;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tree-item:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.tree-item.active {
+    background: var(--accent-primary);
+    color: white;
+    font-weight: 600;
+}
+
 .analysis-main {
     flex: 1;
     padding: 3rem;
