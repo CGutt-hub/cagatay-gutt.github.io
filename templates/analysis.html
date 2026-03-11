@@ -509,13 +509,9 @@
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 <script src="https://unpkg.com/parquetjs-lite@2.3.0/dist/parquetjs-lite.min.js" charset="utf-8"></script>
 <script>
-// Plot metadata embedded at build time - viewers load data directly from repos
-window.plotsData = {{ load_data(path="data/analysis_plots.json") | json_encode() | safe }};
-
 // Debug: Check if libraries loaded
 console.log('[Analysis] Plotly loaded:', typeof Plotly !== 'undefined');
 console.log('[Analysis] Parquet loaded:', typeof parquet !== 'undefined');
-console.log('[Analysis] PlotData available:', Array.isArray(window.plotsData));
 </script>
 <script src="/analysis-page.js?v={{ now() | date(format='%s') }}"></script>
 {% endblock content %}

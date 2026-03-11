@@ -1787,21 +1787,292 @@ function exportPlotAsPDF(plotId, participant, displayName) {
 }
 
 // Initialize page: data is already loaded via window.plotsData
-function initAnalysisPage() {
-    // Check if data was embedded at build time
-    if (typeof window.plotsData === 'undefined') {
-        console.error('Plot data not found - was it embedded at build time?');
-        const emptyState = document.getElementById('empty-state');
-        emptyState.innerHTML = `
-            <h2>⚠️ Error Loading Data</h2>
-            <p>Analysis data was not embedded during site build.</p>
-            <p style="color: var(--text-secondary); font-size: 0.9em;">Please rebuild the site with fetch_data.py</p>
-        `;
-        return;
+// Discover all repos with analysis results
+async function discoverAnalysisRepos(username) {
+    console.log('[Analysis] Discovering repos for user:', username);
+    
+    try {
+        // Fetch all public repos for the user
+        const reposUrl = `https://api.github.com/users/${username}/repos?per_page=100`;
+        const response = await fetch(reposUrl);
+        
+        if (!response.ok) {
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+        
+        const repos = await response.json();
+        console.log('[Analysis] Found', repos.length, 'total repos');
+        
+        const analysisRepos = [];
+        
+        // Check each repo for *_results folders
+        for (const repo of repos) {
+            const contents = await fetchRepoStructure(username, repo.name, '');
+            
+            if (!contents) continue;
+            
+            // Look for folders ending with _results
+            const resultsFolders = contents.filter(item => 
+                item.type === 'dir' && 
+                item.name.endsWith('_results')
+            );
+            
+            if (resultsFolders.length > 0) {
+                console.log('[Analysis] Found analysis repo:', repo.name, 'with folders:', resultsFolders.map(f => f.name));
+                
+                // Add each results folder
+                for (const folder of resultsFolders) {
+                    analysisRepos.push({
+                        owner: username,
+                        name: repo.name,
+                        resultsDir: folder.name
+                    });
+                }
+            }
+        }
+        
+        console.log('[Analysis] Discovered', analysisRepos.length, 'analysis repos');
+        return analysisRepos;
+        
+    } catch (error) {
+        console.error('[Analysis] Error discovering repos:', error);
+        return [];
+    }
+}
+
+// Fetch repository structure from GitHub API
+async function fetchRepoStructure(owner, repo, path) {
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+    console.log('[Analysis] Fetching repo structure:', apiUrl);
+    
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('[Analysis] Error fetching repo structure:', error);
+        return null;
+    }
+}
+
+// Build file tree structure from GitHub repo
+async function buildTreeFromRepo(repoConfig) {
+    console.log('[Analysis] Building tree for:', repoConfig.name);
+    
+    const { owner, name, resultsDir } = repoConfig;
+    const contents = await fetchRepoStructure(owner, name, resultsDir);
+    
+    if (!contents) {
+        console.error('[Analysis] Could not fetch contents for', name);
+        return null;
     }
     
-    plotsData = window.plotsData;
-    renderPlots();
+    // Filter for participant folders (directories)
+    const participantFolders = contents.filter(item => 
+        item.type === 'dir' && 
+        !item.name.startsWith('.') && 
+        item.name !== 'scripts' &&
+        item.name !== 'docs'
+    );
+    
+    console.log('[Analysis] Found participant folders:', participantFolders.map(f => f.name));
+    
+    // Build structure
+    const structure = {
+        repoName: name,
+        repoOwner: owner,
+        resultsDir: resultsDir,
+        participants: {}
+    };
+    
+    // Fetch files for each participant
+    for (const folder of participantFolders) {
+        const participantPath = `${resultsDir}/${folder.name}/plots`;
+        const files = await fetchRepoStructure(owner, name, participantPath);
+        
+        if (files && Array.isArray(files)) {
+            const parquetFiles = files
+                .filter(f => f.type === 'file' && f.name.endsWith('.parquet'))
+                .map(f => ({
+                    name: f.name,
+                    path: f.path,
+                    size: f.size,
+                    url: `https://raw.githubusercontent.com/${owner}/${name}/main/${f.path}`
+                }));
+            
+            structure.participants[folder.name] = parquetFiles;
+        }
+    }
+    
+    return structure;
+}
+
+// Render file tree in sidebar
+function renderFileTree(structure, append = false) {
+    console.log('[Analysis] Rendering file tree for:', structure.repoName, 'append:', append);
+    
+    const fileTree = document.getElementById('file-tree');
+    const { repoName, participants } = structure;
+    
+    const participantKeys = Object.keys(participants).sort();
+    
+    // Build tree HTML: Project > Participants > Files
+    let html = `
+        <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
+            <span class="tree-folder-icon">▶</span>
+            <span>📁 ${repoName}</span>
+        </div>
+        <div class="tree-folder-content" style="margin-left: 10px;">
+    `;
+    
+    participantKeys.forEach(participant => {
+        const files = participants[participant];
+        html += `
+            <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
+                <span class="tree-folder-icon">▶</span>
+                <span>📂 ${participant}</span>
+                <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${files.length})</span>
+            </div>
+            <div class="tree-folder-content" style="margin-left: 10px;">
+        `;
+        
+        files.forEach(file => {
+            const sizeKB = (file.size / 1024).toFixed(1);
+            html += `
+                <div class="tree-item" onclick="loadPlotFile('${file.url}', '${file.name}', '${participant}')" data-filename="${file.name.toLowerCase()}">
+                    📊 ${file.name}
+                    <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">
+                        (${sizeKB}KB)
+                    </span>
+                </div>
+            `;
+        });
+        
+        html += `
+            </div>
+        `;
+    });
+    
+    html += `
+        </div>
+    `;
+    
+    // Either replace or append
+    if (append) {
+        fileTree.innerHTML += html;
+    } else {
+        fileTree.innerHTML = html;
+    }
+    
+    // Store globally for search and pipeline trace (extend if appending)
+    if (!window.analysisData) {
+        window.analysisData = { repos: [] };
+    }
+    if (append) {
+        window.analysisData.repos = window.analysisData.repos || [];
+        window.analysisData.repos.push(structure);
+    } else {
+        window.analysisData = { repos: [structure] };
+    }
+    
+    console.log('[Analysis] File tree rendered successfully');
+}
+
+async function initAnalysisPage() {
+    console.log('[Analysis] Initializing page - discovering repos...');
+    
+    const emptyState = document.getElementById('empty-state');
+    
+    // Show loading state
+    emptyState.innerHTML = `
+        <h2>🔍 Discovering Analysis Repositories...</h2>
+        <p>Scanning GitHub for repositories with analysis results</p>
+        <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #ddd; border-top: 4px solid #c9a227; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto;"></div>
+    `;
+    
+    try {
+        // Fetch GitHub username from our own data
+        const githubDataResponse = await fetch('/data/github.json');
+        if (!githubDataResponse.ok) {
+            throw new Error('Could not load GitHub data');
+        }
+        
+        const githubData = await githubDataResponse.json();
+        const username = githubData.repos && githubData.repos[0] 
+            ? githubData.repos[0].url.split('/')[3]  // Extract username from URL
+            : 'CGutt-hub';  // Fallback
+        
+        console.log('[Analysis] GitHub username:', username);
+        
+        // Discover all repos with *_results folders
+        const analysisRepos = await discoverAnalysisRepos(username);
+        
+        if (analysisRepos.length === 0) {
+            emptyState.innerHTML = `
+                <h2>No Analysis Results Found</h2>
+                <p>No repositories with <code>*_results</code> folders found for <strong>${username}</strong></p>
+                <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 20px;">
+                    To add a repository to this page:
+                </p>
+                <ol style="text-align: left; max-width: 500px; margin: 15px auto; line-height: 1.8;">
+                    <li>Create a folder ending with <code>_results</code> (e.g., <code>EV_results</code>)</li>
+                    <li>Add participant folders inside (e.g., <code>EV_002</code>, <code>EV_003</code>)</li>
+                    <li>Add a <code>plots/</code> subfolder with <code>.parquet</code> files</li>
+                    <li>This page will automatically discover and display them!</li>
+                </ol>
+            `;
+            return;
+        }
+        
+        console.log('[Analysis] Found', analysisRepos.length, 'analysis repos');
+        
+        // Build tree for each discovered repo
+        let loadedCount = 0;
+        for (const repoConfig of analysisRepos) {
+            const structure = await buildTreeFromRepo(repoConfig);
+            
+            if (structure) {
+                // Render tree in sidebar (append for multiple repos)
+                renderFileTree(structure, loadedCount > 0);  // append=true for 2nd+ repos
+                
+                // Hide empty state after first successful load
+                if (loadedCount === 0) {
+                    emptyState.style.display = 'none';
+                }
+                
+                // Fetch pipeline trace
+                fetchPipelineTrace(`${structure.repoOwner}/${structure.repoName}`, structure.resultsDir);
+                
+                loadedCount++;
+            }
+        }
+        
+        if (loadedCount === 0) {
+            emptyState.innerHTML = `
+                <h2>⚠️ Error Loading Repositories</h2>
+                <p>Found ${analysisRepos.length} repos but could not load their data</p>
+            `;
+        } else {
+            // Initialize search after all repos loaded
+            const searchInput = document.getElementById('search-box');
+            if (searchInput && !searchInput.hasAttribute('data-initialized')) {
+                searchInput.setAttribute('data-initialized', 'true');
+                searchInput.addEventListener('input', (e) => {
+                    filterFileTree(e.target.value);
+                });
+            }
+        }
+        
+    } catch (error) {
+        console.error('[Analysis] Error initializing page:', error);
+        emptyState.innerHTML = `
+            <h2>⚠️ Error Loading Data</h2>
+            <p>Could not discover analysis repositories: ${error.message}</p>
+            <p style="color: var(--text-secondary); font-size: 0.9em;">Check the console for details or try refreshing.</p>
+        `;
+    }
 }
 
 // Start when page loads
