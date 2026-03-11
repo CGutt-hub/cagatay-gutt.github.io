@@ -1234,18 +1234,15 @@ async function loadPlotFile(url, displayName, participant) {
                 <h2 style="margin: 0 0 10px 0; color: var(--text-primary, #333); font-size: 1.5rem;">
                     ${participant} — ${displayName}
                 </h2>
-                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                    <button onclick="exportPlotAsPNG('current-plot-chart')" 
-                            style="padding: 6px 14px; background: var(--bg-secondary, #f0f0f0); border: 1px solid var(--border-primary, #ddd); border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-family: var(--font-mono, monospace); transition: all 0.2s;">
-                        📸 PNG
+                <div class="export-bar">
+                    <button class="export-btn png" onclick="exportPlotAsPNG('current-plot-chart')">
+                        &#8659; PNG
                     </button>
-                    <button onclick="exportPlotAsSVG('current-plot-chart')" 
-                            style="padding: 6px 14px; background: var(--bg-secondary, #f0f0f0); border: 1px solid var(--border-primary, #ddd); border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-family: var(--font-mono, monospace); transition: all 0.2s;">
-                        🎨 SVG
+                    <button class="export-btn svg" onclick="exportPlotAsSVG('current-plot-chart')">
+                        &#8659; SVG
                     </button>
-                    <button onclick="exportPlotAsPDF('current-plot-chart', '${participant}', '${displayName}')" 
-                            style="padding: 6px 14px; background: var(--bg-secondary, #f0f0f0); border: 1px solid var(--border-primary, #ddd); border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-family: var(--font-mono, monospace); transition: all 0.2s;">
-                        📄 PDF
+                    <button class="export-btn pdf" onclick="exportPlotAsPDF('current-plot-chart', '${participant}', '${displayName}')">
+                        &#8659; PDF
                     </button>
                     <span style="color: var(--text-muted, #999); font-size: 0.85rem; margin-left: auto;">
                         Loading from GitHub...
