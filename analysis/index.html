@@ -77,8 +77,15 @@
     font-size: 1.75rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin: 0;
+    margin: 0 0 0.5rem 0;
     letter-spacing: -0.02em;
+}
+
+.analysis-top-bar .subtitle {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin: 0;
 }
 
 .analysis-body {
@@ -514,6 +521,7 @@
 <div class="analysis-layout">
     <div class="analysis-top-bar">
         <h1>Open Data</h1>
+        <p class="subtitle">Real-time visualization of research data from scientific repositories</p>
     </div>
     
     <div class="analysis-body">
@@ -559,7 +567,7 @@ console.log('[Analysis] Plotly loaded:', typeof Plotly !== 'undefined');
 console.log('[Analysis] Parquet loaded:', typeof parquet !== 'undefined');
 console.log('[Analysis] PlotData available:', Array.isArray(window.plotsData));
 </script>
-<script src="/analysis-page.js?v=1773242390"></script>
+<script src="/analysis-page.js?v=1773242728"></script>
 
     </main>
     

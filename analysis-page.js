@@ -1462,9 +1462,6 @@ async function loadPlotFile(url, displayName, participant) {
     plotDisplays.innerHTML = `
         <div class="plot-display active" id="current-plot">
             <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-primary, #ddd);">
-                <h2 style="margin: 0 0 10px 0; color: var(--text-primary, #333); font-size: 1.5rem;">
-                    ${participant}/${displayName}
-                </h2>
                 ${sizeWarning}
                 <div class="export-bar">
                     <button class="export-btn png" onclick="exportPlotAsPNG('current-plot-chart')">
@@ -1624,4 +1621,13 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initAnalysisPage);
 } else {
     initAnalysisPage();
+}
+
+// Expose functions to global scope for inline onclick handlers
+window.loadPlotFile = loadPlotFile;
+window.toggleFolder = toggleFolder;
+window.togglePipeline = togglePipeline;
+window.exportPlotAsPNG = exportPlotAsPNG;
+window.exportPlotAsSVG = exportPlotAsSVG;
+window.exportPlotAsPDF = exportPlotAsPDF;
 }
