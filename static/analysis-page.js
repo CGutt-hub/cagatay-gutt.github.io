@@ -590,112 +590,70 @@ function renderPlots() {
         return;
     }
     
-    // Check if first item is html_viewer type
+    // Check if first item is parquet type (scientific data repos)
     const firstPlot = plotsData[0];
-    if (firstPlot && firstPlot.plot_data && firstPlot.plot_data.type === 'html_viewer') {
-        // Hide empty state for html_viewer
+    if (firstPlot && firstPlot.plot_data && firstPlot.plot_data.type === 'parquet') {
+        // Hide empty state
         emptyState.style.display = 'none';
         
-        // Build EmotiView-style file tree for html_viewer
-        const plotData = firstPlot.plot_data;
+        // Build EmotiView-style file tree from parquet data
         const repoPath = firstPlot.repo_name.includes('/') ? firstPlot.repo_name : 'CGutt-hub/' + firstPlot.repo_name;
-        const resultsDir = plotData.results_dir;
         
-        // Show loading indicator in file tree
-        const fileTree = document.getElementById('file-tree');
-        fileTree.innerHTML = `
-            <div style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 0.85rem;">
-                <div class="spinner" style="display: inline-block; width: 16px; height: 16px; border: 2px solid var(--text-muted); border-top: 2px solid var(--accent-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px;"></div>
-                <p>Discovering files...</p>
-            </div>
-        `;
+        // Extract results_dir from file_path (e.g., "EV_results" from "EV_results/EV_002/plots/file.parquet")
+        const resultsDir = firstPlot.file_path.split('/')[0];
         
-        // Fetch repository tree to find all parquet files
-        fetch(`https://api.github.com/repos/${repoPath}/git/trees/main?recursive=1`)
-            .then(response => {
-                console.log('[Analysis] GitHub API response status:', response.status);
-                if (!response.ok) {
-                    throw new Error(`GitHub API returned ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('[Analysis] GitHub API data:', data);
-                
-                if (!data.tree || !Array.isArray(data.tree)) {
-                    throw new Error('Invalid response from GitHub API - no tree data');
-                }
-                
-                // Filter for parquet files in results directory
-                const parquetFiles = data.tree
-                    .filter(item => 
-                        item.path.startsWith(resultsDir) && 
-                        item.path.endsWith('.parquet') &&
-                        item.path.includes('/plots/') &&
-                        !item.path.includes('_log.parquet') &&
-                        !item.path.includes('_log_tddr')
-                    )
-                    .map(item => {
-                        const pathParts = item.path.split('/');
-                        const participant = pathParts[1];
-                        const filename = pathParts[pathParts.length - 1];
-                        
-                        return {
-                            path: item.path,
-                            url: `https://raw.githubusercontent.com/${repoPath}/main/${item.path}`,
-                            participant: participant,
-                            filename: filename,
-                            size: item.size
-                        };
-                    });
-                
-                console.log('[Analysis] Found parquet files:', parquetFiles.length);
-                
-                // Group by participant
-                const byParticipant = {};
-                parquetFiles.forEach(file => {
-                    if (!byParticipant[file.participant]) {
-                        byParticipant[file.participant] = [];
-                    }
-                    byParticipant[file.participant].push(file);
-                });
-                
-                console.log('[Analysis] Grouped by participant:', Object.keys(byParticipant));
-                
-                // Store data globally for search and display
-                window.analysisData = {
-                    repoName: firstPlot.repo_name,
-                    repoPath: repoPath,
-                    resultsDir: resultsDir,
-                    byParticipant: byParticipant,
-                    allFiles: parquetFiles
-                };
-                
-                // Build hierarchical file tree (EmotiView style)
-                buildAnalysisFileTree();
-                
-                // Fetch and display pipeline structure
-                fetchPipelineTrace(repoPath, resultsDir);
-                
-                // Initialize search
-                const searchInput = document.getElementById('search-box');
-                if (searchInput) {
-                    searchInput.addEventListener('input', (e) => {
-                        filterFileTree(e.target.value);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('[Analysis] Error loading files:', error);
-                fileTree.innerHTML = `
-                    <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
-                        <p>⚠️ Error loading files: ${error.message}</p>
-                        <p style="font-size: 0.85em; margin-top: 10px;">Check browser console for details</p>
-                    </div>
-                `;
+        // Process plotsData into the format we need
+        const parquetFiles = plotsData.map(item => {
+            const pathParts = item.file_path.split('/');
+            const participant = pathParts[1];
+            const filename = pathParts[pathParts.length - 1];
+            
+            return {
+                path: item.file_path,
+                url: `https://raw.githubusercontent.com/${repoPath}/main/${item.file_path}`,
+                participant: participant,
+                filename: filename,
+                size: item.plot_data.size || 0
+            };
+        });
+        
+        console.log('[Analysis] Processing parquet files:', parquetFiles.length);
+        
+        // Group by participant
+        const byParticipant = {};
+        parquetFiles.forEach(file => {
+            if (!byParticipant[file.participant]) {
+                byParticipant[file.participant] = [];
+            }
+            byParticipant[file.participant].push(file);
+        });
+        
+        console.log('[Analysis] Grouped by participant:', Object.keys(byParticipant));
+        
+        // Store data globally for search and display
+        window.analysisData = {
+            repoName: firstPlot.repo_name,
+            repoPath: repoPath,
+            resultsDir: resultsDir,
+            byParticipant: byParticipant,
+            allFiles: parquetFiles
+        };
+        
+        // Build hierarchical file tree (EmotiView style)
+        buildAnalysisFileTree();
+        
+        // Fetch and display pipeline structure
+        fetchPipelineTrace(repoPath, resultsDir);
+        
+        // Initialize search
+        const searchInput = document.getElementById('search-box');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                filterFileTree(e.target.value);
             });
+        }
         
-        return; // Exit early for html_viewer types
+        return; // Exit early for parquet types
     }
     
     // For other plot types (original sidebar-based interface)
@@ -709,8 +667,8 @@ function renderPlots() {
     
     // Create a display for each plot
     plotsData.forEach((plotItem, index) => {
-        // Skip html_viewer types - they're handled at the top level
-        if (plotItem.plot_data && plotItem.plot_data.type === 'html_viewer') {
+        // Skip parquet types - they're handled at the top level with tree view
+        if (plotItem.plot_data && plotItem.plot_data.type === 'parquet') {
             return;
         }
         
@@ -1151,7 +1109,7 @@ function renderPlots() {
     });
 }
 
-// Build hierarchical file tree (EmotiView style) for html_viewer type
+// Build hierarchical file tree (EmotiView style) for parquet data files
 function buildAnalysisFileTree() {
     const fileTree = document.getElementById('file-tree');
     const  { repoName, byParticipant } = window.analysisData;
