@@ -1243,6 +1243,10 @@ async function loadPlotFile(url, displayName, participant) {
                             style="padding: 6px 14px; background: var(--bg-secondary, #f0f0f0); border: 1px solid var(--border-primary, #ddd); border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-family: var(--font-mono, monospace); transition: all 0.2s;">
                         🎨 SVG
                     </button>
+                    <button onclick="exportPlotAsPDF('current-plot-chart', '${participant}', '${displayName}')" 
+                            style="padding: 6px 14px; background: var(--bg-secondary, #f0f0f0); border: 1px solid var(--border-primary, #ddd); border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-family: var(--font-mono, monospace); transition: all 0.2s;">
+                        📄 PDF
+                    </button>
                     <span style="color: var(--text-muted, #999); font-size: 0.85rem; margin-left: auto;">
                         Loading from GitHub...
                     </span>
@@ -1302,6 +1306,19 @@ function exportPlotAsSVG(plotId) {
         Plotly.downloadImage(plotDiv, {
             format: 'svg',
             filename: 'analysis_plot'
+        });
+    }
+}
+
+function exportPlotAsPDF(plotId, participant, displayName) {
+    const plotDiv = document.getElementById(plotId);
+    if (plotDiv) {
+        const filename = `${participant}_${displayName.replace(/\s+/g, '_')}`;
+        Plotly.downloadImage(plotDiv, {
+            format: 'pdf',
+            width: 1920,
+            height: 1080,
+            filename: filename
         });
     }
 }
