@@ -1244,12 +1244,12 @@ function parsePipelineTrace(traceText) {
 
     for (const p of processes) {
         const n = p.name;
-        // Survey track
+        // Survey track: txt_reader -> tree_processor -> analyzers -> file_finders -> concat
         if (n === 'tree_processor') add('txt_reader', n);
         if (/^(sam|ea11|be7|panas|bisbas|condprof)_analyzer$/.test(n)) add('tree_processor', n);
-        if (/^\w+\d_file_finder$/.test(n) && !/(fnirs|ecg|eda|eeg|trigger|psd|fai|hrv)/.test(n)) {
-            const base = n.replace(/\d_file_finder$/, '_analyzer');
-            add(base, n);
+        if (/^(sam|ea11|be7|panas|bisbas|condprof)\d_file_finder$/.test(n)) {
+            const prefix = n.replace(/\d_file_finder$/, '');
+            add(prefix + '_analyzer', n);
         }
         if (/^(sam|ea11|be7|panas|bisbas|condprof)_concatenating_processor$/.test(n)) {
             const prefix = n.replace('_concatenating_processor', '');
@@ -1257,11 +1257,14 @@ function parsePipelineTrace(traceText) {
                 if (o.name.startsWith(prefix) && o.name.endsWith('_file_finder') && !o.name.includes('agg')) add(o.name, n);
             }
         }
-        // XDF track
+
+        // XDF track: xdf_reader -> extracting_processor -> signal file_finders
         if (n === 'extracting_processor') add('xdf_reader', n);
-        if (/^(fnirs|ecg|eda|eeg|trigger)_file_finder$/.test(n)) add('extracting_processor', n);
-        // Events
+        if (/^(fnirs|ecg|eda|eeg|trigger|aux)_file_finder$/.test(n)) add('extracting_processor', n);
+
+        // Events: trigger_file_finder + tree_processor -> events_processor
         if (n === 'events_processor') { add('trigger_file_finder', n); add('tree_processor', n); }
+
         // fNIRS chain
         if (n === 'log_transform_processor') add('fnirs_file_finder', n);
         if (n === 'tddr_processor') add('log_transform_processor', n);
@@ -1269,8 +1272,8 @@ function parsePipelineTrace(traceText) {
         if (n === 'linear_transform_processor') add('regression_processor', n);
         if (n === 'fnirs_filtering_processor') add('linear_transform_processor', n);
         if (n === 'fnirs_epoching_processor') { add('fnirs_filtering_processor', n); add('events_processor', n); }
-        if (n === 'fnirs_hbc_processor') add('fnirs_epoching_processor', n);
-        if (/^fnirs\d_file_finder$/.test(n)) add('fnirs_hbc_processor', n);
+        if (n === 'amplitude_analyzer') add('fnirs_epoching_processor', n);
+        if (/^fnirs\d_file_finder$/.test(n)) add('amplitude_analyzer', n);
         if (/^fnirs_hbc\d_amplitude_analyzer$/.test(n)) {
             const num = n.match(/\d/)[0]; add('fnirs' + num + '_file_finder', n);
         }
@@ -1286,19 +1289,22 @@ function parsePipelineTrace(traceText) {
         if (n === 'fnirs_asym_concatenating_processor') {
             for (const o of processes) if (/^fnirs_asym\d_analyzer$/.test(o.name)) add(o.name, n);
         }
-        // ECG chain
+
+        // ECG chain: ecg_file_finder -> ecg_filtering -> hrv_rejection -> peak_detection -> ecg_epoching -> ecg_windowing
         if (n === 'ecg_filtering_processor') add('ecg_file_finder', n);
         if (n === 'hrv_rejection_processor') add('ecg_filtering_processor', n);
         if (n === 'peak_detection_processor') add('hrv_rejection_processor', n);
         if (n === 'ecg_epoching_processor') { add('peak_detection_processor', n); add('events_processor', n); }
-        if (n === 'hrv_windowing_processor') add('ecg_epoching_processor', n);
-        if (n === 'hrv_ols_processor') add('hrv_windowing_processor', n);
+        if (n === 'ecg_windowing_processor') add('ecg_epoching_processor', n);
+        if (n === 'hrv_ols_processor') add('ecg_windowing_processor', n);
         if (/^hrv\d_file_finder$/.test(n)) add('hrv_ols_processor', n);
         if (n === 'hrv_concatenating_processor') {
             for (const o of processes) if (/^hrv\d_file_finder$/.test(o.name)) add(o.name, n);
         }
-        // EDA chain
-        if (n === 'eda_filtering_processor') add('extracting_processor', n);
+        if (n === 'hrv_bootstrap_analyzer') add('hrv_concatenating_processor', n);
+
+        // EDA chain: eda_file_finder -> eda_filtering -> eda_rejection -> eda_epoching -> eda_windowing
+        if (n === 'eda_filtering_processor') add('eda_file_finder', n);
         if (n === 'eda_rejection_processor') add('eda_filtering_processor', n);
         if (n === 'eda_epoching_processor') { add('eda_rejection_processor', n); add('events_processor', n); }
         if (n === 'eda_windowing_processor') add('eda_epoching_processor', n);
@@ -1306,21 +1312,45 @@ function parsePipelineTrace(traceText) {
         if (n === 'eda_concatenating_processor') {
             for (const o of processes) if (/^eda\d_file_finder$/.test(o.name)) add(o.name, n);
         }
-        // EEG chain
+        if (n === 'eda_ols_processor') add('eda_concatenating_processor', n);
+        if (n === 'eda_bootstrap_analyzer') add('eda_concatenating_processor', n);
+
+        // EEG chain: eeg_file_finder -> referencing -> eeg_filtering -> ic_analyzer -> eeg_cleaned
         if (n === 'referencing_processor') add('eeg_file_finder', n);
         if (n === 'eeg_filtering_processor') add('referencing_processor', n);
-        if (n === 'ica_processor') add('eeg_filtering_processor', n);
-        if (n === 'eeg_cleaned_file_finder') add('ica_processor', n);
+        if (n === 'ic_analyzer') add('eeg_filtering_processor', n);
+        if (n === 'eeg_cleaned_file_finder') add('ic_analyzer', n);
         if (n === 'eeg_epoching_processor') { add('eeg_cleaned_file_finder', n); add('events_processor', n); }
         if (n === 'psd_fai_analyzer') add('eeg_epoching_processor', n);
-        if (/^(psd|fai)\d_file_finder$/.test(n)) add('psd_fai_analyzer', n);
+        // EEG ROI PSD analyzers
+        if (/^eeg_roi_psd\d_analyzer$/.test(n)) add('psd_fai_analyzer', n);
+        if (/^eeg_roi_psd\d_epoch_file_finder$/.test(n)) {
+            const num = n.match(/\d/)[0];
+            const analyzer = 'eeg_roi_psd' + num + '_analyzer';
+            if (nameSet.has(analyzer)) add(analyzer, n); else add('psd_fai_analyzer', n);
+        }
+        // PSD raw file finders from psd_fai_analyzer
+        if (/^psd\d_raw_file_finder$/.test(n)) add('psd_fai_analyzer', n);
+        // FAI analyzers from psd_fai_analyzer
+        if (/^fai\d_analyzer$/.test(n)) add('psd_fai_analyzer', n);
+        // PSD outlier processors
+        if (/^eeg_psd\d_outlier_processor$/.test(n)) {
+            const num = n.match(/\d/)[0]; add('psd' + num + '_raw_file_finder', n);
+        }
+        // EEG concatenation
         if (n === 'eeg_psd_concatenating_processor') {
-            for (const o of processes) if (/^psd\d_file_finder$/.test(o.name)) add(o.name, n);
+            for (const o of processes) if (/^eeg_psd\d_outlier_processor$/.test(o.name)) add(o.name, n);
+            for (const o of processes) if (/^eeg_roi_psd\d_epoch_file_finder$/.test(o.name)) add(o.name, n);
         }
         if (n === 'fai_concatenating_processor') {
-            for (const o of processes) if (/^fai\d_file_finder$/.test(o.name)) add(o.name, n);
+            for (const o of processes) if (/^fai\d_analyzer$/.test(o.name)) add(o.name, n);
         }
         if (n === 'eeg_psd_ols_processor') add('eeg_psd_concatenating_processor', n);
+        if (n === 'eeg_psd_bootstrap_analyzer') add('eeg_psd_concatenating_processor', n);
+
+        // Cross-modal: group_analyzer and interval_analyzer from events_processor
+        if (n === 'group_analyzer') add('events_processor', n);
+        if (n === 'interval_analyzer') add('events_processor', n);
     }
 
     return { processes, edges };
@@ -1504,9 +1534,10 @@ function generatePipelineTreeHTML(filename, pipelineData) {
         + '<h4 style="margin: 0; font-size: 0.9rem; color: var(--text-primary, #333); font-weight: 600;">Processing Pipeline</h4>'
         + '<div style="display: flex; gap: 6px; align-items: center;">'
         + '<span style="font-size: 0.7rem; color: var(--text-muted, #999);">' + processes.length + ' modules, ' + edges.length + ' connections</span>'
-        + '<button onclick="downloadPipelineSVG()" style="padding: 2px 8px; font-size: 0.7rem; border: 1px solid var(--border-primary,#ccc); border-radius: 3px; background: var(--bg-secondary,#fff); cursor: pointer; color: var(--text-secondary,#555);">SVG</button>'
-        + '<button onclick="downloadPipelinePNG()" style="padding: 2px 8px; font-size: 0.7rem; border: 1px solid var(--border-primary,#ccc); border-radius: 3px; background: var(--bg-secondary,#fff); cursor: pointer; color: var(--text-secondary,#555);">PNG</button>'
-        + '</div></div>'
+        + '<div class="export-bar" style="margin-bottom:0; gap:6px;">'
+        + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
+        + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
+        + '</div></div></div>'
         + '<div style="overflow-x: auto; overflow-y: auto; max-height: 500px;">' + svg + '</div>'
         + '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
         + '<span style="display: inline-block; width: 14px; height: 10px; background: #ddd; border: 1.8px solid #333; border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
