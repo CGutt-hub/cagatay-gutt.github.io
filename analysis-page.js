@@ -247,6 +247,7 @@ function plotSpecToPlotly(rows, title, COLORS) {
         yaxis: {
             title: { text: yAxisTitle, font: { color: textColor } },
             tickfont: { color: textColor, size: 11 },
+            tickangle: -45,
             gridcolor: gridColor,
             linecolor: gridColor,
         },
@@ -261,10 +262,20 @@ function plotSpecToPlotly(rows, title, COLORS) {
             bgcolor: 'rgba(0,0,0,0)',
         },
         hovermode: 'closest',
-        margin: { t: 60, b: 80, l: 70, r: 30 },
+        margin: { t: 60, b: computeBottomMargin(xLabels), l: 70, r: 30 },
     };
 
     return { data: traces, layout };
+}
+
+// Compute bottom margin based on the longest x-axis tick label
+function computeBottomMargin(xLabels) {
+    if (!xLabels || xLabels.length === 0) return 80;
+    const maxLen = Math.max(...xLabels.map(l => String(l).length));
+    if (maxLen <= 8) return 80;
+    if (maxLen <= 15) return 120;
+    if (maxLen <= 25) return 160;
+    return 200;
 }
 
 // Multi-row condition format: one row per condition, each with x_data and y_data
@@ -315,13 +326,13 @@ function conditionRowsToPlotly(rows, title, COLORS) {
         data: traces,
         layout: {
             title: { text: title || yAxisTitle || 'Analysis Result', font: { color: textColor, size: 16 } },
-            xaxis: { title: { text: xAxisTitle, font: { color: textColor } }, tickfont: { color: textColor }, gridcolor: gridColor, linecolor: gridColor },
+            xaxis: { title: { text: xAxisTitle, font: { color: textColor } }, tickfont: { color: textColor }, tickangle: -45, gridcolor: gridColor, linecolor: gridColor },
             yaxis: { title: { text: yAxisTitle, font: { color: textColor } }, tickfont: { color: textColor }, gridcolor: gridColor, linecolor: gridColor },
             barmode: 'group', bargap: 0.2, bargroupgap: 0.1,
             paper_bgcolor: bgColor, plot_bgcolor: bgColor,
             font: { color: textColor, family: "'JetBrains Mono', monospace" },
             legend: { font: { color: textColor, size: 11 }, bgcolor: 'rgba(0,0,0,0)' },
-            hovermode: 'closest', margin: { t: 60, b: 80, l: 70, r: 30 },
+            hovermode: 'closest', margin: { t: 60, b: computeBottomMargin(rows.map(r => Array.isArray(r.x_data) ? r.x_data : [r.x_data]).flat()), l: 70, r: 30 },
         },
     };
 }
@@ -356,12 +367,12 @@ function genericToPlotly(rows, title, COLORS) {
         data: traces,
         layout: {
             title: { text: title || `${numericCols.join(', ')} vs ${xCol}`, font: { color: textColor, size: 16 } },
-            xaxis: { title: { text: xCol, font: { color: textColor } }, tickfont: { color: textColor }, gridcolor: gridColor, linecolor: gridColor },
+            xaxis: { title: { text: xCol, font: { color: textColor } }, tickfont: { color: textColor }, tickangle: -45, gridcolor: gridColor, linecolor: gridColor },
             yaxis: { tickfont: { color: textColor }, gridcolor: gridColor, linecolor: gridColor },
             paper_bgcolor: bgColor, plot_bgcolor: bgColor,
             font: { color: textColor, family: "'JetBrains Mono', monospace" },
             legend: { font: { color: textColor, size: 11 }, bgcolor: 'rgba(0,0,0,0)' },
-            hovermode: 'closest', margin: { t: 60, b: 80, l: 70, r: 30 },
+            hovermode: 'closest', margin: { t: 60, b: computeBottomMargin(rows.map(r => r[xCol])), l: 70, r: 30 },
         },
     };
 }
@@ -814,8 +825,18 @@ function renderPlots() {
         buildAnalysisFileTree();
         console.log('[Analysis] File tree built');
         
-        // Fetch and display pipeline structure
-        fetchPipelineTrace(repoPath, resultsDir);
+        // Fetch and display pipeline structure, then show it immediately
+        fetchPipelineTrace(repoPath, resultsDir).then(() => {
+            if (window.pipelineData) {
+                const plotDisplays = document.getElementById('plot-displays');
+                const emptyState = document.getElementById('empty-state');
+                if (plotDisplays && emptyState) {
+                    const pipelineHTML = generatePipelineTreeHTML(null, window.pipelineData);
+                    plotDisplays.innerHTML = pipelineHTML;
+                    emptyState.style.display = 'none';
+                }
+            }
+        });
         
         // Initialize search
         const searchInput = document.getElementById('search-box');
@@ -1391,7 +1412,7 @@ function parsePipelineTrace(traceText) {
             .replace('_filtering', ' filt').replace('_epoching', ' epoch')
             .replace('_rejection', ' rej').replace('_windowing', ' win')
             .replace('_detection', ' det').replace('_amplitude', ' amp');
-        return { name, displayName: dn, count: data.count, failed: data.failed };
+        return { name, displayName: dn, failed: data.failed };
     });
 
     // Infer edges from process name patterns
@@ -1536,8 +1557,7 @@ function cloneSvgForPrint() {
     const bg = clone.querySelector('rect');
     if (bg) bg.setAttribute('fill', '#ffffff');
     // Arrow markers
-    const marker = clone.querySelector('#dag-arrow path');
-    if (marker) marker.setAttribute('fill', '#999');
+    clone.querySelectorAll('marker path').forEach(p => p.setAttribute('fill', '#999'));
     // Edges: medium gray
     clone.querySelectorAll('path[marker-end]').forEach(p => {
         p.setAttribute('stroke', '#bbb');
@@ -1640,37 +1660,28 @@ async function downloadPipelinePDF() {
     URL.revokeObjectURL(a.href);
 }
 
-// Generate SVG-based DAG pipeline tree
-function generatePipelineTreeHTML(filename, pipelineData) {
-    if (!pipelineData || !pipelineData.processes || pipelineData.processes.length === 0) return '';
-
-    const { processes, edges } = pipelineData;
-    const lowerFilename = filename.toLowerCase();
-
-    // Identify producer module
-    let producerModule = null;
-    const suffixChecks = [
-        ['_concat', 'concatenating'], ['_psd', 'psd'], ['_ols', 'ols'],
-        ['_windowed', 'window'], ['_epochs', 'epoch'], ['_ica', 'ica'],
-        ['_filt', 'filt'], ['_fai', 'fai'], ['_hbc', 'hbc'],
-        ['_hrv', 'hrv'], ['_eda', 'eda'], ['_reref', 'reref']
+// Classify processes into L1 (participant) and L2 (group) level
+function classifyProcessLevel(processName) {
+    const groupPatterns = [
+        /concatenating/, /ols_processor/, /bootstrap/, /group_analyzer/,
+        /interval_analyzer/, /asym_concatenating/,
     ];
-    for (const process of processes) {
-        const pl = process.name.toLowerCase();
-        for (const [fileSuffix, procMatch] of suffixChecks) {
-            if (lowerFilename.includes(fileSuffix) && pl.includes(procMatch)) { producerModule = process.name; break; }
-        }
-        if (producerModule) break;
-        const am = lowerFilename.match(/_(be7|ea11|sam|panas|bisbas|condprof)/);
-        if (am && pl.includes(am[1])) { producerModule = process.name; break; }
+    for (const pat of groupPatterns) {
+        if (pat.test(processName)) return 'L2';
     }
+    return 'L1';
+}
+
+// Build a single pipeline SVG from a subset of processes and edges
+function buildPipelineSVG(processes, edges, producerModule, svgId) {
+    const nameSet = new Set(processes.map(p => p.name));
+    const filteredEdges = edges.filter(e => nameSet.has(e.from) && nameSet.has(e.to));
 
     // Build adjacency for layer assignment
-    const nameSet = new Set(processes.map(p => p.name));
     const parentsOf = new Map();
     for (const p of processes) parentsOf.set(p.name, []);
-    for (const e of edges) {
-        if (nameSet.has(e.from) && nameSet.has(e.to)) parentsOf.get(e.to).push(e.from);
+    for (const e of filteredEdges) {
+        parentsOf.get(e.to).push(e.from);
     }
 
     // Assign layers via longest path from sources
@@ -1697,30 +1708,26 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     }
     const sortedLayers = Array.from(layerGroups.keys()).sort((a, b) => a - b);
 
-    // Node dimensions — compact layout
-    const nodeH = 20;
-    const hGap = 8;
-    const vGap = 32;
-    const padX = 12;
-    const padY = 12;
-    const maxRowWidth = 900; // wrap layers wider than this
-    const fontSize = 7.5;
+    // Node dimensions
+    const nodeH = 24;
+    const hGap = 12;
+    const vGap = 36;
+    const padX = 16;
+    const padY = 16;
+    const maxRowWidth = 960;
+    const fontSize = 9;
     const nodeWidths = new Map();
     for (const p of processes) {
-        const label = p.count > 1 ? p.displayName + ' x' + p.count : p.displayName;
-        nodeWidths.set(p.name, Math.max(50, label.length * 4.5 + 14));
+        nodeWidths.set(p.name, Math.max(60, p.displayName.length * 5.5 + 18));
     }
 
     // Position nodes — wrap long layers into sub-rows
     const positions = new Map();
     let maxLayerW = 0;
-    let totalLayerRows = 0; // track total sub-rows for height calc
-    const layerStartRow = new Map(); // layer index -> starting sub-row
+    let totalLayerRows = 0;
 
     for (const li of sortedLayers) {
-        layerStartRow.set(li, totalLayerRows);
         const nodes = layerGroups.get(li);
-        // Sort nodes alphabetically within layer for consistency
         nodes.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
         let subRow = 0;
@@ -1728,7 +1735,6 @@ function generatePipelineTreeHTML(filename, pipelineData) {
         for (const p of nodes) {
             const w = nodeWidths.get(p.name);
             if (x > padX && x + w > maxRowWidth) {
-                // Wrap to next sub-row
                 subRow++;
                 x = padX;
             }
@@ -1752,28 +1758,26 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     const thProdStroke = cs.getPropertyValue('--accent-primary').trim() || '#c9a227';
     const thText = cs.getPropertyValue('--text-primary').trim() || '#e8e8e8';
     const thMuted = cs.getPropertyValue('--text-muted').trim() || '#6a6a6a';
-    const thEdge = cs.getPropertyValue('--text-muted').trim() || '#6a6a6a';
 
-    // Build SVG
     let svg = '';
-    svg += '<svg id="pipeline-dag-svg" xmlns="http://www.w3.org/2000/svg" ';
+    svg += '<svg id="' + svgId + '" xmlns="http://www.w3.org/2000/svg" ';
     svg += 'width="100%" height="' + svgH + '" ';
     svg += 'viewBox="0 0 ' + svgW + ' ' + svgH + '" ';
     svg += 'preserveAspectRatio="xMinYMin meet" ';
     svg += "style=\"font-family:'Segoe UI',Helvetica,Arial,sans-serif;\">";
     svg += '<rect width="' + svgW + '" height="' + svgH + '" fill="' + thBg + '"/>';
-    svg += '<defs><marker id="dag-arrow" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="5" markerHeight="4" orient="auto">';
+    svg += '<defs><marker id="dag-arrow-' + svgId + '" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="5" markerHeight="4" orient="auto">';
     svg += '<path d="M0,0 L10,4 L0,8 z" fill="' + thMuted + '"/></marker></defs>';
 
     // Edges
-    for (const e of edges) {
+    for (const e of filteredEdges) {
         const from = positions.get(e.from);
         const to = positions.get(e.to);
         if (!from || !to) continue;
         const x1 = from.x + from.w / 2, y1 = from.y + from.h;
         const x2 = to.x + to.w / 2, y2 = to.y;
         const cy1 = y1 + (y2 - y1) * 0.4, cy2 = y1 + (y2 - y1) * 0.6;
-        svg += '<path d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + cy1 + ' ' + x2 + ',' + cy2 + ' ' + x2 + ',' + y2 + '" fill="none" stroke="' + thEdge + '" stroke-width="0.7" stroke-opacity="0.6" marker-end="url(#dag-arrow)"/>';
+        svg += '<path d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + cy1 + ' ' + x2 + ',' + cy2 + ' ' + x2 + ',' + y2 + '" fill="none" stroke="' + thMuted + '" stroke-width="0.8" stroke-opacity="0.5" marker-end="url(#dag-arrow-' + svgId + ')"/>';
     }
 
     // Nodes
@@ -1785,28 +1789,83 @@ function generatePipelineTreeHTML(filename, pipelineData) {
         const stroke = isProd ? thProdStroke : thNodeStroke;
         const sw = isProd ? '1.8' : '0.8';
         const fw = isProd ? 'bold' : 'normal';
-        const label = p.count > 1 ? p.displayName + ' x' + p.count : p.displayName;
-        svg += '<rect x="' + pos.x + '" y="' + pos.y + '" width="' + pos.w + '" height="' + pos.h + '" rx="3" ry="3" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + sw + '"/>';
-        svg += '<text x="' + (pos.x + pos.w / 2) + '" y="' + (pos.y + pos.h / 2 + 3) + '" text-anchor="middle" font-size="' + fontSize + '" font-weight="' + fw + '" fill="' + thText + '">' + label + '</text>';
+        svg += '<rect x="' + pos.x + '" y="' + pos.y + '" width="' + pos.w + '" height="' + pos.h + '" rx="4" ry="4" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + sw + '"/>';
+        svg += '<text x="' + (pos.x + pos.w / 2) + '" y="' + (pos.y + pos.h / 2 + 3.5) + '" text-anchor="middle" font-size="' + fontSize + '" font-weight="' + fw + '" fill="' + thText + '">' + p.displayName + '</text>';
         if (p.failed) {
             svg += '<line x1="' + pos.x + '" y1="' + pos.y + '" x2="' + (pos.x + pos.w) + '" y2="' + (pos.y + pos.h) + '" stroke="#c00" stroke-width="1" opacity="0.5"/>';
         }
     }
     svg += '</svg>';
+    return { svg, processCount: processes.length, edgeCount: filteredEdges.length };
+}
 
-    return '<div style="margin-bottom: 15px;">'
-        + '<div class="export-bar">'
-        + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
-        + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
-        + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&#8659; PDF</button>'
-        + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + processes.length + ' modules, ' + edges.length + ' connections</span>'
-        + '</div>'
-        + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
-        + '<div style="overflow-x: auto; overflow-y: auto; max-height: 600px;">' + svg + '</div>'
-        + '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
-        + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
-        + 'Highlighted: module likely produced this file'
-        + '</div></div></div>';
+// Generate SVG-based DAG pipeline tree, split into L1 (participant) and L2 (group) sections
+function generatePipelineTreeHTML(filename, pipelineData) {
+    if (!pipelineData || !pipelineData.processes || pipelineData.processes.length === 0) return '';
+
+    const { processes, edges } = pipelineData;
+    const lowerFilename = (filename || '').toLowerCase();
+
+    // Identify producer module
+    let producerModule = null;
+    if (lowerFilename) {
+        const suffixChecks = [
+            ['_concat', 'concatenating'], ['_psd', 'psd'], ['_ols', 'ols'],
+            ['_windowed', 'window'], ['_epochs', 'epoch'], ['_ica', 'ica'],
+            ['_filt', 'filt'], ['_fai', 'fai'], ['_hbc', 'hbc'],
+            ['_hrv', 'hrv'], ['_eda', 'eda'], ['_reref', 'reref']
+        ];
+        for (const process of processes) {
+            const pl = process.name.toLowerCase();
+            for (const [fileSuffix, procMatch] of suffixChecks) {
+                if (lowerFilename.includes(fileSuffix) && pl.includes(procMatch)) { producerModule = process.name; break; }
+            }
+            if (producerModule) break;
+            const am = lowerFilename.match(/_(be7|ea11|sam|panas|bisbas|condprof)/);
+            if (am && pl.includes(am[1])) { producerModule = process.name; break; }
+        }
+    }
+
+    // Split processes into L1 and L2
+    const l1Processes = processes.filter(p => classifyProcessLevel(p.name) === 'L1');
+    const l2Processes = processes.filter(p => classifyProcessLevel(p.name) === 'L2');
+
+    let html = '';
+
+    // L1: Participant-level pipeline
+    if (l1Processes.length > 0) {
+        const l1 = buildPipelineSVG(l1Processes, edges, producerModule, 'pipeline-dag-svg');
+        html += '<div style="margin-bottom: 15px;">'
+            + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Participant-Level Pipeline (L1)</div>'
+            + '<div class="export-bar">'
+            + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
+            + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
+            + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&#8659; PDF</button>'
+            + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + l1.processCount + ' modules, ' + l1.edgeCount + ' connections</span>'
+            + '</div>'
+            + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
+            + '<div style="overflow-x: auto; overflow-y: auto; max-height: 600px;">' + l1.svg + '</div>';
+        if (producerModule) {
+            html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
+                + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
+                + 'Highlighted: module that produced this file'
+                + '</div>';
+        }
+        html += '</div></div>';
+    }
+
+    // L2: Group-level pipeline
+    if (l2Processes.length > 0) {
+        const l2 = buildPipelineSVG(l2Processes, edges, producerModule, 'pipeline-dag-svg-l2');
+        html += '<div style="margin-bottom: 15px;">'
+            + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Group-Level Pipeline (L2)</div>'
+            + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
+            + '<div style="overflow-x: auto; overflow-y: auto; max-height: 400px;">' + l2.svg + '</div>'
+            + '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">' + l2.processCount + ' modules, ' + l2.edgeCount + ' connections</div>'
+            + '</div></div>';
+    }
+
+    return html;
 }
 
 // Toggle folder expand/collapse
@@ -1934,11 +1993,10 @@ async function loadPlotFile(url, displayName, participant) {
         ? generatePipelineTreeHTML(displayName, window.pipelineData)
         : '';
     
-    // Create plot display
+    // Create plot display — plot first (specific), then pipeline tree (global overview) below
     plotDisplays.innerHTML = `
         <div class="plot-display active" id="current-plot">
-            ${pipelineHTML}
-            <div style="margin-bottom: 20px; padding-top: 15px; border-top: 2px solid var(--border-primary, #ddd);">
+            <div style="margin-bottom: 20px;">
                 ${sizeWarning}
                 <div class="export-bar">
                     <button class="export-btn png" onclick="exportPlotAsPNG('current-plot-chart')">
@@ -1962,6 +2020,7 @@ async function loadPlotFile(url, displayName, participant) {
                     <p style="color: var(--text-muted, #999); font-size: 0.8rem;">Large files may take a moment to load</p>
                 </div>
             </div>
+            ${pipelineHTML}
         </div>
     `;
     
