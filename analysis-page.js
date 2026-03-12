@@ -1203,321 +1203,315 @@ async function fetchPipelineTrace(repoPath, resultsDir) {
 // Parse pipeline trace TSV file to extract module connections
 function parsePipelineTrace(traceText) {
     const lines = traceText.trim().split('\n');
-    if (lines.length < 2) return [];
-    
-    // Parse header
+    if (lines.length < 2) return { processes: [], edges: [] };
     const headers = lines[0].split('\t');
     const processIdx = headers.indexOf('process');
-    const tagIdx = headers.indexOf('tag');
-    const nameIdx = headers.indexOf('name');
-    
-    if (processIdx === -1) return [];
-    
-    // Extract unique processes and build pipeline structure
+    const statusIdx = headers.indexOf('status');
+    if (processIdx === -1) return { processes: [], edges: [] };
+
     const processMap = new Map();
-    const dependencies = new Map();
-    
     for (let i = 1; i < lines.length; i++) {
         const fields = lines[i].split('\t');
-        const process = fields[processIdx];
-        const tag = tagIdx !== -1 ? fields[tagIdx] : '';
-        const name = nameIdx !== -1 ? fields[nameIdx] : '';
-        
+        const process = fields[processIdx]?.trim();
+        const status = statusIdx !== -1 ? (fields[statusIdx]?.trim() || '') : '';
         if (!process) continue;
-        
-        // Track process occurrences
-        if (!processMap.has(process)) {
-            processMap.set(process, { count: 0, samples: [] });
+        if (!processMap.has(process)) processMap.set(process, { count: 0, failed: false });
+        const entry = processMap.get(process);
+        entry.count++;
+        if (status === 'FAILED') entry.failed = true;
+    }
+
+    const processes = Array.from(processMap.entries()).map(([name, data]) => {
+        let dn = name
+            .replace(/_processor$/, '').replace(/_file_finder$/, ' (find)')
+            .replace('_concatenating', ' concat').replace('_transform', '')
+            .replace('_filtering', ' filt').replace('_epoching', ' epoch')
+            .replace('_rejection', ' rej').replace('_windowing', ' win')
+            .replace('_detection', ' det').replace('_amplitude', ' amp');
+        return { name, displayName: dn, count: data.count, failed: data.failed };
+    });
+
+    // Infer edges from process name patterns
+    const nameSet = new Set(processes.map(p => p.name));
+    const edgeSet = new Set();
+    const edges = [];
+    const add = (from, to) => {
+        if (from && to && from !== to && nameSet.has(from) && nameSet.has(to)) {
+            const k = from + '>' + to;
+            if (!edgeSet.has(k)) { edgeSet.add(k); edges.push({ from, to }); }
         }
-        processMap.get(process).count++;
-        
-        // Extract dependencies from tag (input file pattern)
-        if (tag) {
-            const inputPattern = tag.match(/^(.+?)\.(txt|xdf|parquet)$/);
-            if (inputPattern) {
-                const baseTag = inputPattern[1];
-                // Infer dependencies based on naming conventions
-                if (process.includes('tree_processor') && tag.includes('_txt')) {
-                    if (!dependencies.has(process)) dependencies.set(process, []);
-                    if (!dependencies.get(process).includes('txt_reader')) {
-                        dependencies.get(process).push('txt_reader');
-                    }
-                } else if (process.includes('_analyzer') && tag.includes('_tree')) {
-                    if (!dependencies.has(process)) dependencies.set(process, []);
-                    if (!dependencies.get(process).includes('tree_processor')) {
-                        dependencies.get(process).push('tree_processor');
-                    }
-                } else if (process.includes('_file_finder') && tag.includes('_tree_')) {
-                    if (!dependencies.has(process)) dependencies.set(process, []);
-                    const analyzer = tag.match(/_tree_(\w+)/)?.[1];
-                    if (analyzer) {
-                        const analyzerProcess = analyzer + '_analyzer';
-                        if (!dependencies.get(process).includes(analyzerProcess)) {
-                            dependencies.get(process).push(analyzerProcess);
-                        }
-                    }
-                } else if (process.includes('_concatenating_processor')) {
-                    if (!dependencies.has(process)) dependencies.set(process, []);
-                    const finder = tag.match(/(\w+)_file_finder/)?.[0];
-                    if (finder && !dependencies.get(process).includes(finder)) {
-                        dependencies.get(process).push(finder);
-                    }
-                }
+    };
+
+    for (const p of processes) {
+        const n = p.name;
+        // Survey track
+        if (n === 'tree_processor') add('txt_reader', n);
+        if (/^(sam|ea11|be7|panas|bisbas|condprof)_analyzer$/.test(n)) add('tree_processor', n);
+        if (/^\w+\d_file_finder$/.test(n) && !/(fnirs|ecg|eda|eeg|trigger|psd|fai|hrv)/.test(n)) {
+            const base = n.replace(/\d_file_finder$/, '_analyzer');
+            add(base, n);
+        }
+        if (/^(sam|ea11|be7|panas|bisbas|condprof)_concatenating_processor$/.test(n)) {
+            const prefix = n.replace('_concatenating_processor', '');
+            for (const o of processes) {
+                if (o.name.startsWith(prefix) && o.name.endsWith('_file_finder') && !o.name.includes('agg')) add(o.name, n);
             }
         }
+        // XDF track
+        if (n === 'extracting_processor') add('xdf_reader', n);
+        if (/^(fnirs|ecg|eda|eeg|trigger)_file_finder$/.test(n)) add('extracting_processor', n);
+        // Events
+        if (n === 'events_processor') { add('trigger_file_finder', n); add('tree_processor', n); }
+        // fNIRS chain
+        if (n === 'log_transform_processor') add('fnirs_file_finder', n);
+        if (n === 'tddr_processor') add('log_transform_processor', n);
+        if (n === 'regression_processor') add('tddr_processor', n);
+        if (n === 'linear_transform_processor') add('regression_processor', n);
+        if (n === 'fnirs_filtering_processor') add('linear_transform_processor', n);
+        if (n === 'fnirs_epoching_processor') { add('fnirs_filtering_processor', n); add('events_processor', n); }
+        if (n === 'fnirs_hbc_processor') add('fnirs_epoching_processor', n);
+        if (/^fnirs\d_file_finder$/.test(n)) add('fnirs_hbc_processor', n);
+        if (/^fnirs_hbc\d_amplitude_analyzer$/.test(n)) {
+            const num = n.match(/\d/)[0]; add('fnirs' + num + '_file_finder', n);
+        }
+        if (/^fnirs_hbc\d_agg_file_finder$/.test(n)) {
+            const num = n.match(/\d/)[0]; add('fnirs_hbc' + num + '_amplitude_analyzer', n);
+        }
+        if (/^fnirs_asym\d_analyzer$/.test(n)) {
+            const num = n.match(/\d/)[0]; add('fnirs_hbc' + num + '_agg_file_finder', n);
+        }
+        if (n === 'fnirs_concatenating_processor') {
+            for (const o of processes) if (/^fnirs_hbc\d_agg_file_finder$/.test(o.name)) add(o.name, n);
+        }
+        if (n === 'fnirs_asym_concatenating_processor') {
+            for (const o of processes) if (/^fnirs_asym\d_analyzer$/.test(o.name)) add(o.name, n);
+        }
+        // ECG chain
+        if (n === 'ecg_filtering_processor') add('ecg_file_finder', n);
+        if (n === 'hrv_rejection_processor') add('ecg_filtering_processor', n);
+        if (n === 'peak_detection_processor') add('hrv_rejection_processor', n);
+        if (n === 'ecg_epoching_processor') { add('peak_detection_processor', n); add('events_processor', n); }
+        if (n === 'hrv_windowing_processor') add('ecg_epoching_processor', n);
+        if (n === 'hrv_ols_processor') add('hrv_windowing_processor', n);
+        if (/^hrv\d_file_finder$/.test(n)) add('hrv_ols_processor', n);
+        if (n === 'hrv_concatenating_processor') {
+            for (const o of processes) if (/^hrv\d_file_finder$/.test(o.name)) add(o.name, n);
+        }
+        // EDA chain
+        if (n === 'eda_filtering_processor') add('extracting_processor', n);
+        if (n === 'eda_rejection_processor') add('eda_filtering_processor', n);
+        if (n === 'eda_epoching_processor') { add('eda_rejection_processor', n); add('events_processor', n); }
+        if (n === 'eda_windowing_processor') add('eda_epoching_processor', n);
+        if (/^eda\d_file_finder$/.test(n)) add('eda_windowing_processor', n);
+        if (n === 'eda_concatenating_processor') {
+            for (const o of processes) if (/^eda\d_file_finder$/.test(o.name)) add(o.name, n);
+        }
+        // EEG chain
+        if (n === 'referencing_processor') add('eeg_file_finder', n);
+        if (n === 'eeg_filtering_processor') add('referencing_processor', n);
+        if (n === 'ica_processor') add('eeg_filtering_processor', n);
+        if (n === 'eeg_cleaned_file_finder') add('ica_processor', n);
+        if (n === 'eeg_epoching_processor') { add('eeg_cleaned_file_finder', n); add('events_processor', n); }
+        if (n === 'psd_fai_analyzer') add('eeg_epoching_processor', n);
+        if (/^(psd|fai)\d_file_finder$/.test(n)) add('psd_fai_analyzer', n);
+        if (n === 'eeg_psd_concatenating_processor') {
+            for (const o of processes) if (/^psd\d_file_finder$/.test(o.name)) add(o.name, n);
+        }
+        if (n === 'fai_concatenating_processor') {
+            for (const o of processes) if (/^fai\d_file_finder$/.test(o.name)) add(o.name, n);
+        }
+        if (n === 'eeg_psd_ols_processor') add('eeg_psd_concatenating_processor', n);
     }
-    
-    // Build unique process list with simplified names
-    const uniqueProcesses = Array.from(processMap.entries()).map(([name, data]) => {
-        // Simplify process names for display
-        let displayName = name
-            .replace('_processor', '')
-            .replace('_finder', '')
-            .replace('_analyzer', '')
-            .replace('_reader', '')
-            .replace('_concatenating', '_concat');
-        
-        return {
-            name: name,
-            displayName: displayName,
-            count: data.count
-        };
-    });
-    
-    return { processes: uniqueProcesses, dependencies: dependencies };
+
+    return { processes, edges };
 }
 
-// Generate visual pipeline tree with nodes and connections
+// Download pipeline SVG
+function downloadPipelineSVG() {
+    const svg = document.getElementById('pipeline-dag-svg');
+    if (!svg) return;
+    const clone = svg.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    const blob = new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pipeline.svg';
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// Download pipeline as greyscale PNG (2x resolution for print)
+function downloadPipelinePNG() {
+    const svg = document.getElementById('pipeline-dag-svg');
+    if (!svg) return;
+    const clone = svg.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    const svgStr = new XMLSerializer().serializeToString(clone);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+        canvas.width = img.width * 2;
+        canvas.height = img.height * 2;
+        ctx.scale(2, 2);
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'pipeline.png';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }, 'image/png');
+    };
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr)));
+}
+
+// Generate SVG-based DAG pipeline tree
 function generatePipelineTreeHTML(filename, pipelineData) {
-    if (!pipelineData || !pipelineData.processes) {
-        return ''; // No pipeline data available
-    }
-    
-    const { processes, dependencies } = pipelineData;
+    if (!pipelineData || !pipelineData.processes || pipelineData.processes.length === 0) return '';
+
+    const { processes, edges } = pipelineData;
     const lowerFilename = filename.toLowerCase();
-    
-    // Identify which module likely produced this file
+
+    // Identify producer module
     let producerModule = null;
+    const suffixChecks = [
+        ['_concat', 'concatenating'], ['_psd', 'psd'], ['_ols', 'ols'],
+        ['_windowed', 'window'], ['_epochs', 'epoch'], ['_ica', 'ica'],
+        ['_filt', 'filt'], ['_fai', 'fai'], ['_hbc', 'hbc'],
+        ['_hrv', 'hrv'], ['_eda', 'eda'], ['_reref', 'reref']
+    ];
     for (const process of processes) {
-        const processLower = process.name.toLowerCase();
-        // Match patterns in filename to process name
-        if (lowerFilename.includes('_concat') && processLower.includes('concatenating')) {
-            producerModule = process.name;
-            break;
+        const pl = process.name.toLowerCase();
+        for (const [fileSuffix, procMatch] of suffixChecks) {
+            if (lowerFilename.includes(fileSuffix) && pl.includes(procMatch)) { producerModule = process.name; break; }
         }
-        if (lowerFilename.includes('_psd') && processLower.includes('psd')) {
-            producerModule = process.name;
-            break;
+        if (producerModule) break;
+        const am = lowerFilename.match(/_(be7|ea11|sam|panas|bisbas|condprof)/);
+        if (am && pl.includes(am[1])) { producerModule = process.name; break; }
+    }
+
+    // Build adjacency for layer assignment
+    const nameSet = new Set(processes.map(p => p.name));
+    const parentsOf = new Map();
+    for (const p of processes) parentsOf.set(p.name, []);
+    for (const e of edges) {
+        if (nameSet.has(e.from) && nameSet.has(e.to)) parentsOf.get(e.to).push(e.from);
+    }
+
+    // Assign layers via longest path from sources
+    const layerCache = new Map();
+    const computing = new Set();
+    function getLayer(node) {
+        if (layerCache.has(node)) return layerCache.get(node);
+        if (computing.has(node)) return 0;
+        computing.add(node);
+        const pars = parentsOf.get(node) || [];
+        const layer = pars.length === 0 ? 0 : Math.max(...pars.map(getLayer)) + 1;
+        layerCache.set(node, layer);
+        computing.delete(node);
+        return layer;
+    }
+    for (const p of processes) getLayer(p.name);
+
+    // Group by layer
+    const layerGroups = new Map();
+    for (const p of processes) {
+        const l = layerCache.get(p.name) || 0;
+        if (!layerGroups.has(l)) layerGroups.set(l, []);
+        layerGroups.get(l).push(p);
+    }
+    const sortedLayers = Array.from(layerGroups.keys()).sort((a, b) => a - b);
+
+    // Node dimensions
+    const nodeH = 24;
+    const hGap = 14;
+    const vGap = 42;
+    const padX = 16;
+    const padY = 16;
+    const nodeWidths = new Map();
+    for (const p of processes) {
+        const label = p.count > 1 ? p.displayName + ' x' + p.count : p.displayName;
+        nodeWidths.set(p.name, Math.max(64, label.length * 5.8 + 18));
+    }
+
+    // Position nodes, center each layer
+    const positions = new Map();
+    let maxLayerW = 0;
+    const layerWidths = new Map();
+    for (const li of sortedLayers) {
+        const nodes = layerGroups.get(li);
+        let totalW = 0;
+        for (const p of nodes) totalW += nodeWidths.get(p.name);
+        totalW += (nodes.length - 1) * hGap;
+        layerWidths.set(li, totalW);
+        if (totalW > maxLayerW) maxLayerW = totalW;
+    }
+    const svgW = maxLayerW + padX * 2;
+    for (const li of sortedLayers) {
+        const nodes = layerGroups.get(li);
+        const y = padY + li * (nodeH + vGap);
+        let x = padX + (maxLayerW - layerWidths.get(li)) / 2;
+        for (const p of nodes) {
+            const w = nodeWidths.get(p.name);
+            positions.set(p.name, { x, y, w, h: nodeH });
+            x += w + hGap;
         }
-        if (lowerFilename.includes('_ols') && processLower.includes('ols')) {
-            producerModule = process.name;
-            break;
+    }
+    const svgH = padY * 2 + sortedLayers.length * (nodeH + vGap) - vGap;
+
+    // Build SVG
+    let svg = '';
+    svg += '<svg id="pipeline-dag-svg" xmlns="http://www.w3.org/2000/svg" ';
+    svg += 'width="' + svgW + '" height="' + svgH + '" ';
+    svg += 'viewBox="0 0 ' + svgW + ' ' + svgH + '" ';
+    svg += "style=\"font-family:'Segoe UI',Helvetica,Arial,sans-serif;\">";
+    svg += '<rect width="' + svgW + '" height="' + svgH + '" fill="#fff"/>';
+    svg += '<defs><marker id="dag-arrow" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="7" markerHeight="6" orient="auto">';
+    svg += '<path d="M0,0 L10,4 L0,8 z" fill="#999"/></marker></defs>';
+
+    // Edges
+    for (const e of edges) {
+        const from = positions.get(e.from);
+        const to = positions.get(e.to);
+        if (!from || !to) continue;
+        const x1 = from.x + from.w / 2, y1 = from.y + from.h;
+        const x2 = to.x + to.w / 2, y2 = to.y;
+        const cy1 = y1 + (y2 - y1) * 0.4, cy2 = y1 + (y2 - y1) * 0.6;
+        svg += '<path d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + cy1 + ' ' + x2 + ',' + cy2 + ' ' + x2 + ',' + y2 + '" fill="none" stroke="#bbb" stroke-width="1" marker-end="url(#dag-arrow)"/>';
+    }
+
+    // Nodes
+    for (const p of processes) {
+        const pos = positions.get(p.name);
+        if (!pos) continue;
+        const isProd = p.name === producerModule;
+        const fill = isProd ? '#ddd' : '#f7f7f7';
+        const stroke = isProd ? '#333' : '#aaa';
+        const sw = isProd ? '1.8' : '0.8';
+        const fw = isProd ? 'bold' : 'normal';
+        const label = p.count > 1 ? p.displayName + ' x' + p.count : p.displayName;
+        svg += '<rect x="' + pos.x + '" y="' + pos.y + '" width="' + pos.w + '" height="' + pos.h + '" rx="3" ry="3" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + sw + '"/>';
+        svg += '<text x="' + (pos.x + pos.w / 2) + '" y="' + (pos.y + pos.h / 2 + 3.5) + '" text-anchor="middle" font-size="9" font-weight="' + fw + '" fill="#333">' + label + '</text>';
+        if (p.failed) {
+            svg += '<line x1="' + pos.x + '" y1="' + pos.y + '" x2="' + (pos.x + pos.w) + '" y2="' + (pos.y + pos.h) + '" stroke="#c00" stroke-width="1" opacity="0.5"/>';
         }
-        if (lowerFilename.includes('_windowed') && processLower.includes('windowed')) {
-            producerModule = process.name;
-            break;
-        }
-        if (lowerFilename.includes('_epochs') && processLower.includes('epochs')) {
-            producerModule = process.name;
-            break;
-        }
-        if (lowerFilename.includes('_ica') && processLower.includes('ica')) {
-            producerModule = process.name;
-            break;
-        }
-        if (lowerFilename.includes('_filt') && processLower.includes('filt')) {
-            producerModule = process.name;
-            break;
-        }
-        // Check for analysis types (be7, sam, etc.)
-        const analysisMatch = lowerFilename.match(/_(be7|ea11|sam|panas|bisbas|condprof)/);
-        if (analysisMatch && processLower.includes(analysisMatch[1])) {
-            producerModule = process.name;
-            break;
-        }
     }
-    
-    // Group processes by type for tree layout
-    const nodesByType = {
-        readers: processes.filter(p => p.name.includes('_reader')),
-        extractors: processes.filter(p => p.name.includes('_extr') || p.name.includes('_log')),
-        filters: processes.filter(p => p.name.includes('_filt') || p.name.includes('_rej') || p.name.includes('_reref')),
-        ica: processes.filter(p => p.name.includes('_ica')),
-        epochs: processes.filter(p => p.name.includes('_epochs') || p.name.includes('_peaks') || p.name.includes('_windowed')),
-        analyzers: processes.filter(p => p.name.includes('_psd') || p.name.includes('_hrv') || p.name.includes('_eda') || p.name.includes('_hbc')),
-        stats: processes.filter(p => p.name.includes('_ols') || p.name.includes('_contrast') || p.name.includes('_regr')),
-        questionnaires: processes.filter(p => p.name.includes('txt_') || p.name.includes('tree_processor') || p.name.includes('_analyzer') || p.name.includes('_file_finder')),
-        concatenators: processes.filter(p => p.name.includes('_concatenating'))
-    };
-    
-    // Create tree nodes with visual styling
-    const createNode = (process, isProducer) => {
-        const isHighlighted = process.name === producerModule || isProducer;
-        const bgColor = isHighlighted ? '#fff3cd' : '#e9ecef';
-        const borderColor = isHighlighted ? '#ffc107' : '#adb5bd';
-        const textColor = isHighlighted ? '#856404' : '#495057';
-        const fontWeight = isHighlighted ? '600' : '400';
-        const boxShadow = isHighlighted ? '0 2px 8px rgba(255, 193, 7, 0.3)' : '0 1px 3px rgba(0,0,0,0.1)';
-        
-        return `
-            <div style="
-                background: ${bgColor};
-                border: 2px solid ${borderColor};
-                border-radius: 6px;
-                padding: 6px 10px;
-                margin: 4px;
-                font-size: 0.75rem;
-                color: ${textColor};
-                font-weight: ${fontWeight};
-                white-space: nowrap;
-                box-shadow: ${boxShadow};
-                display: inline-block;
-            ">
-                ${process.displayName}
-            </div>
-        `;
-    };
-    
-    // Build tree HTML
-    let html = `
-        <div style="
-            margin-bottom: 15px;
-            padding: 15px;
-            background: var(--bg-tertiary, #f5f5f5);
-            border-radius: 8px;
-            border: 1px solid var(--border-primary, #ddd);
-            overflow-x: auto;
-            max-height: 400px;
-            overflow-y: auto;
-        ">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-primary, #333); font-weight: 600;">
-                    🌳 Processing Pipeline Tree
-                </h4>
-                <span style="font-size: 0.7rem; color: var(--text-muted, #999);">${processes.length} modules</span>
-            </div>
-            
-            <div style="display: flex; flex-direction: column; gap: 8px; min-width: 600px;">
-    `;
-    
-    // Display each stage as a row with connecting arrows
-    if (nodesByType.readers.length > 0) {
-        html += `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Input</div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
-                    ${nodesByType.readers.map(p => createNode(p, false)).join('')}
-                </div>
-            </div>
-            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
-        `;
-    }
-    
-    if (nodesByType.extractors.length > 0) {
-        html += `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Extract</div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
-                    ${nodesByType.extractors.map(p => createNode(p, false)).join('')}
-                </div>
-            </div>
-            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
-        `;
-    }
-    
-    if (nodesByType.filters.length > 0) {
-        html += `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Filter</div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
-                    ${nodesByType.filters.map(p => createNode(p, false)).join('')}
-                </div>
-            </div>
-            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
-        `;
-    }
-    
-    if (nodesByType.ica.length > 0) {
-        html += `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">ICA</div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
-                    ${nodesByType.ica.map(p => createNode(p, false)).join('')}
-                </div>
-            </div>
-            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
-        `;
-    }
-    
-    if (nodesByType.epochs.length > 0) {
-        html += `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Segment</div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
-                    ${nodesByType.epochs.map(p => createNode(p, false)).join('')}
-                </div>
-            </div>
-            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
-        `;
-    }
-    
-    if (nodesByType.analyzers.length > 0) {
-        html += `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Analyze</div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
-                    ${nodesByType.analyzers.map(p => createNode(p, false)).join('')}
-                </div>
-            </div>
-            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
-        `;
-    }
-    
-    if (nodesByType.stats.length > 0) {
-        html += `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Statistics</div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
-                    ${nodesByType.stats.map(p => createNode(p, false)).join('')}
-                </div>
-            </div>
-            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
-        `;
-    }
-    
-    if (nodesByType.questionnaires.length > 0) {
-        html += `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Survey</div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
-                    ${nodesByType.questionnaires.map(p => createNode(p, false)).join('')}
-                </div>
-            </div>
-            <div style="margin-left: 100px; color: var(--text-muted); font-size: 1.2rem;">↓</div>
-        `;
-    }
-    
-    if (nodesByType.concatenators.length > 0) {
-        html += `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Combine</div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
-                    ${nodesByType.concatenators.map(p => createNode(p, false)).join('')}
-                </div>
-            </div>
-        `;
-    }
-    
-    html += `
-            </div>
-            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-primary, #ddd); font-size: 0.7rem; color: var(--text-muted, #999);">
-                <span style="background: #fff3cd; padding: 2px 6px; border-radius: 3px; border: 1px solid #ffc107; margin-right: 8px;">■</span>
-                <em>Highlighted module likely produced this file</em>
-            </div>
-        </div>
-    `;
-    
-    return html;
+    svg += '</svg>';
+
+    return '<div style="margin-bottom: 15px; padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
+        + '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">'
+        + '<h4 style="margin: 0; font-size: 0.9rem; color: var(--text-primary, #333); font-weight: 600;">Processing Pipeline</h4>'
+        + '<div style="display: flex; gap: 6px; align-items: center;">'
+        + '<span style="font-size: 0.7rem; color: var(--text-muted, #999);">' + processes.length + ' modules, ' + edges.length + ' connections</span>'
+        + '<button onclick="downloadPipelineSVG()" style="padding: 2px 8px; font-size: 0.7rem; border: 1px solid var(--border-primary,#ccc); border-radius: 3px; background: var(--bg-secondary,#fff); cursor: pointer; color: var(--text-secondary,#555);">SVG</button>'
+        + '<button onclick="downloadPipelinePNG()" style="padding: 2px 8px; font-size: 0.7rem; border: 1px solid var(--border-primary,#ccc); border-radius: 3px; background: var(--bg-secondary,#fff); cursor: pointer; color: var(--text-secondary,#555);">PNG</button>'
+        + '</div></div>'
+        + '<div style="overflow-x: auto; overflow-y: auto; max-height: 500px;">' + svg + '</div>'
+        + '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
+        + '<span style="display: inline-block; width: 14px; height: 10px; background: #ddd; border: 1.8px solid #333; border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
+        + 'Highlighted: module likely produced this file'
+        + '</div></div>';
 }
 
 // Toggle folder expand/collapse
@@ -1635,7 +1629,7 @@ async function loadPlotFile(url, displayName, participant) {
     } else if (isLargeFile) {
         sizeWarning = `
             <div style="background: #d1ecf1; border: 1px solid #17a2b8; border-radius: 5px; padding: 8px; margin-bottom: 12px; font-size: 0.8rem;">
-                <strong>ℹ️ Info:</strong> This file is ${fileSizeMB} MB and may take 10-30 seconds to load.
+                <strong>Info:</strong> This file is ${fileSizeMB} MB and may take 10-30 seconds to load.
             </div>
         `;
     }
@@ -1649,7 +1643,7 @@ async function loadPlotFile(url, displayName, participant) {
     plotDisplays.innerHTML = `
         <div class="plot-display active" id="current-plot">
             ${pipelineHTML}
-            <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-primary, #ddd);">
+            <div style="margin-bottom: 20px; padding-top: 15px; border-top: 2px solid var(--border-primary, #ddd);">
                 ${sizeWarning}
                 <div class="export-bar">
                     <button class="export-btn png" onclick="exportPlotAsPNG('current-plot-chart')">
