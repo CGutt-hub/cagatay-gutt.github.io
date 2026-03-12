@@ -1721,10 +1721,12 @@ function buildPipelineSVG(processes, edges, producerModule, svgId) {
     const filteredEdges = edges.filter(e => nameSet.has(e.from) && nameSet.has(e.to));
 
     // Build adjacency for layer assignment
+    const childrenOf = new Map();
     const parentsOf = new Map();
-    for (const p of processes) parentsOf.set(p.name, []);
+    for (const p of processes) { parentsOf.set(p.name, []); childrenOf.set(p.name, []); }
     for (const e of filteredEdges) {
         parentsOf.get(e.to).push(e.from);
+        childrenOf.get(e.from).push(e.to);
     }
 
     // Assign layers via longest path from sources
@@ -1751,17 +1753,53 @@ function buildPipelineSVG(processes, edges, producerModule, svgId) {
     }
     const sortedLayers = Array.from(layerGroups.keys()).sort((a, b) => a - b);
 
+    // Barycenter ordering to reduce edge crossings
+    // Initial order: alphabetical
+    for (const li of sortedLayers) {
+        layerGroups.get(li).sort((a, b) => a.displayName.localeCompare(b.displayName));
+    }
+    // Build index maps for barycenter calc
+    function buildIndexMap(layer) {
+        const m = new Map();
+        const nodes = layerGroups.get(layer);
+        if (nodes) nodes.forEach((p, i) => m.set(p.name, i));
+        return m;
+    }
+    // Run 4 sweeps (down, up, down, up) for crossing reduction
+    for (let sweep = 0; sweep < 4; sweep++) {
+        const layers = sweep % 2 === 0 ? sortedLayers : [...sortedLayers].reverse();
+        for (let li = 1; li < layers.length; li++) {
+            const prevLayer = layers[li - 1];
+            const curLayer = layers[li];
+            const prevIdx = buildIndexMap(prevLayer);
+            const curNodes = layerGroups.get(curLayer);
+            // Compute barycenter for each node in current layer
+            const bary = new Map();
+            for (const p of curNodes) {
+                const neighbors = sweep % 2 === 0
+                    ? (parentsOf.get(p.name) || []).filter(n => prevIdx.has(n))
+                    : (childrenOf.get(p.name) || []).filter(n => prevIdx.has(n));
+                if (neighbors.length > 0) {
+                    bary.set(p.name, neighbors.reduce((s, n) => s + prevIdx.get(n), 0) / neighbors.length);
+                } else {
+                    bary.set(p.name, curNodes.indexOf(p));
+                }
+            }
+            curNodes.sort((a, b) => bary.get(a.name) - bary.get(b.name));
+        }
+    }
+
     // Node dimensions
-    const nodeH = 24;
-    const hGap = 12;
-    const vGap = 36;
-    const padX = 16;
-    const padY = 16;
-    const maxRowWidth = 960;
+    const nodeH = 28;
+    const hGap = 16;
+    const vGap = 50;
+    const padX = 20;
+    const padY = 20;
+    const maxRowWidth = 1100;
     const fontSize = 9;
     const nodeWidths = new Map();
     for (const p of processes) {
-        nodeWidths.set(p.name, Math.max(60, p.displayName.length * 5.5 + 18));
+        nodeWidths.set(p.name, Math.max(70, p.displayName.length * 5.5 + 22));
     }
 
     // Position nodes — wrap long layers into sub-rows
@@ -1771,7 +1809,6 @@ function buildPipelineSVG(processes, edges, producerModule, svgId) {
 
     for (const li of sortedLayers) {
         const nodes = layerGroups.get(li);
-        nodes.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
         let subRow = 0;
         let x = padX;
@@ -1792,6 +1829,49 @@ function buildPipelineSVG(processes, edges, producerModule, svgId) {
     const svgW = Math.max(maxLayerW + padX, 400);
     const svgH = padY * 2 + totalLayerRows * (nodeH + vGap) - vGap;
 
+    // Compute distributed edge ports per node
+    // outPorts: bottom of source node, inPorts: top of target node
+    const outEdges = new Map(); // node -> list of edges leaving (sorted by target x)
+    const inEdges = new Map();  // node -> list of edges arriving (sorted by source x)
+    for (const e of filteredEdges) {
+        if (!outEdges.has(e.from)) outEdges.set(e.from, []);
+        outEdges.get(e.from).push(e);
+        if (!inEdges.has(e.to)) inEdges.set(e.to, []);
+        inEdges.get(e.to).push(e);
+    }
+    // Sort and assign x offsets
+    for (const [node, edgeList] of outEdges) {
+        edgeList.sort((a, b) => {
+            const pa = positions.get(a.to), pb = positions.get(b.to);
+            return (pa ? pa.x + pa.w / 2 : 0) - (pb ? pb.x + pb.w / 2 : 0);
+        });
+    }
+    for (const [node, edgeList] of inEdges) {
+        edgeList.sort((a, b) => {
+            const pa = positions.get(a.from), pb = positions.get(b.from);
+            return (pa ? pa.x + pa.w / 2 : 0) - (pb ? pb.x + pb.w / 2 : 0);
+        });
+    }
+
+    function getOutPortX(edge) {
+        const pos = positions.get(edge.from);
+        const list = outEdges.get(edge.from) || [edge];
+        const idx = list.indexOf(edge);
+        const n = list.length;
+        const margin = Math.min(pos.w * 0.15, 10);
+        const usableW = pos.w - 2 * margin;
+        return pos.x + margin + (n === 1 ? usableW / 2 : (idx / (n - 1)) * usableW);
+    }
+    function getInPortX(edge) {
+        const pos = positions.get(edge.to);
+        const list = inEdges.get(edge.to) || [edge];
+        const idx = list.indexOf(edge);
+        const n = list.length;
+        const margin = Math.min(pos.w * 0.15, 10);
+        const usableW = pos.w - 2 * margin;
+        return pos.x + margin + (n === 1 ? usableW / 2 : (idx / (n - 1)) * usableW);
+    }
+
     // Read CSS custom properties for theme-aware SVG
     const cs = getComputedStyle(document.documentElement);
     const thBg = cs.getPropertyValue('--bg-tertiary').trim() || '#1c1c1c';
@@ -1804,23 +1884,23 @@ function buildPipelineSVG(processes, edges, producerModule, svgId) {
 
     let svg = '';
     svg += '<svg id="' + svgId + '" xmlns="http://www.w3.org/2000/svg" ';
-    svg += 'width="100%" height="' + svgH + '" ';
+    svg += 'width="' + svgW + '" height="' + svgH + '" ';
     svg += 'viewBox="0 0 ' + svgW + ' ' + svgH + '" ';
-    svg += 'preserveAspectRatio="xMinYMin meet" ';
     svg += "style=\"font-family:'Segoe UI',Helvetica,Arial,sans-serif;\">";
     svg += '<rect width="' + svgW + '" height="' + svgH + '" fill="' + thBg + '"/>';
     svg += '<defs><marker id="dag-arrow-' + svgId + '" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="5" markerHeight="4" orient="auto">';
     svg += '<path d="M0,0 L10,4 L0,8 z" fill="' + thMuted + '"/></marker></defs>';
 
-    // Edges
+    // Edges — distributed ports + smooth cubic bezier
     for (const e of filteredEdges) {
         const from = positions.get(e.from);
         const to = positions.get(e.to);
         if (!from || !to) continue;
-        const x1 = from.x + from.w / 2, y1 = from.y + from.h;
-        const x2 = to.x + to.w / 2, y2 = to.y;
-        const cy1 = y1 + (y2 - y1) * 0.4, cy2 = y1 + (y2 - y1) * 0.6;
-        svg += '<path d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + cy1 + ' ' + x2 + ',' + cy2 + ' ' + x2 + ',' + y2 + '" fill="none" stroke="' + thMuted + '" stroke-width="0.8" stroke-opacity="0.5" marker-end="url(#dag-arrow-' + svgId + ')"/>';
+        const x1 = getOutPortX(e), y1 = from.y + from.h;
+        const x2 = getInPortX(e), y2 = to.y;
+        const dy = y2 - y1;
+        const cy1 = y1 + dy * 0.35, cy2 = y2 - dy * 0.35;
+        svg += '<path d="M' + x1.toFixed(1) + ',' + y1 + ' C' + x1.toFixed(1) + ',' + cy1.toFixed(1) + ' ' + x2.toFixed(1) + ',' + cy2.toFixed(1) + ' ' + x2.toFixed(1) + ',' + y2 + '" fill="none" stroke="' + thMuted + '" stroke-width="0.9" stroke-opacity="0.45" marker-end="url(#dag-arrow-' + svgId + ')"/>';
     }
 
     // Nodes
@@ -1869,82 +1949,32 @@ function generatePipelineTreeHTML(filename, pipelineData) {
         }
     }
 
-    // Dynamically determine L2 processes from folder structure
+    // Determine L1 processes (exclude L2 group-level processes)
     const l2Names = getL2ProcessNames();
-    const hasL2 = l2Names.size > 0;
+    const l1Processes = l2Names.size > 0 ? processes.filter(p => !l2Names.has(p.name)) : processes;
+    const displayProcesses = l1Processes.length > 0 ? l1Processes : processes;
 
-    let html = '';
-
-    if (!hasL2) {
-        // Single unified pipeline tree (no L2 data in folder structure)
-        const result = buildPipelineSVG(processes, edges, producerModule, 'pipeline-dag-svg');
-        html += '<hr style="border: none; border-top: 1px solid var(--border-primary, #2a2a2a); margin: 25px 0;">'
-            + '<div style="margin-bottom: 15px;">'
-            + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Processing Pipeline</div>'
-            + '<div class="export-bar">'
-            + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
-            + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
-            + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&#8659; PDF</button>'
-            + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + result.processCount + ' modules, ' + result.edgeCount + ' connections</span>'
-            + '</div>'
-            + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
-            + '<div style="overflow-x: auto; overflow-y: auto; max-height: 600px;">' + result.svg + '</div>';
-        if (producerModule) {
-            html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
-                + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
-                + 'Highlighted: module that produced this file'
-                + '</div>';
-        }
-        html += '</div></div>';
-    } else {
-        // Split into L1 (participant) and L2 (group) based on folder structure
-        const l1Processes = processes.filter(p => !l2Names.has(p.name));
-        const l2Processes = processes.filter(p => l2Names.has(p.name));
-
-        if (l1Processes.length > 0) {
-            const l1 = buildPipelineSVG(l1Processes, edges, producerModule, 'pipeline-dag-svg');
-            html += '<hr style="border: none; border-top: 1px solid var(--border-primary, #2a2a2a); margin: 25px 0;">'
-                + '<div style="margin-bottom: 15px;">'
-                + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Participant-Level Pipeline (L1)</div>'
-                + '<div class="export-bar">'
-                + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
-                + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
-                + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&#8659; PDF</button>'
-                + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + l1.processCount + ' modules, ' + l1.edgeCount + ' connections</span>'
-                + '</div>'
-                + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
-                + '<div style="overflow-x: auto; overflow-y: auto; max-height: 600px;">' + l1.svg + '</div>';
-            if (producerModule && !l2Names.has(producerModule)) {
-                html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
-                    + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
-                    + 'Highlighted: module that produced this file'
-                    + '</div>';
-            }
-            html += '</div></div>';
-        }
-
-        if (l2Processes.length > 0) {
-            const l2 = buildPipelineSVG(l2Processes, edges, producerModule, 'pipeline-dag-svg-l2');
-            html += '<hr style="border: none; border-top: 1px solid var(--border-primary, #2a2a2a); margin: 25px 0;">'
-                + '<div style="margin-bottom: 15px;">'
-                + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Group-Level Pipeline (L2)</div>'
-                + '<div class="export-bar">'
-                + '<button class="export-btn png" onclick="downloadPipelinePNG()">&dArr; PNG</button>'
-                + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&dArr; SVG</button>'
-                + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&dArr; PDF</button>'
-                + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + l2.processCount + ' modules, ' + l2.edgeCount + ' connections</span>'
-                + '</div>'
-                + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
-                + '<div style="overflow-x: auto; overflow-y: auto; max-height: 400px;">' + l2.svg + '</div>';
-            if (producerModule && l2Names.has(producerModule)) {
-                html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
-                    + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
-                    + 'Highlighted: module that produced this file'
-                    + '</div>';
-            }
-            html += '</div></div>';
-        }
+    const result = buildPipelineSVG(displayProcesses, edges, producerModule, 'pipeline-dag-svg');
+    let html = '<div style="margin-bottom: 15px;">'
+        + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Processing Pipeline</div>'
+        + '<div class="export-bar">'
+        + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
+        + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
+        + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&#8659; PDF</button>'
+        + '<button class="export-btn" onclick="pipelineZoom(1)" style="margin-left: 12px;" title="Zoom in">&#43;</button>'
+        + '<button class="export-btn" onclick="pipelineZoom(-1)" title="Zoom out">&#8722;</button>'
+        + '<button class="export-btn" onclick="pipelineZoom(0)" title="Reset zoom">&#8634;</button>'
+        + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + result.processCount + ' modules, ' + result.edgeCount + ' connections</span>'
+        + '</div>'
+        + '<div id="pipeline-zoom-container" style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd); overflow: auto; max-height: 700px; cursor: grab; position: relative;">'
+        + '<div id="pipeline-zoom-inner" style="transform-origin: 0 0; transition: transform 0.15s ease;">' + result.svg + '</div>';
+    if (producerModule && !l2Names.has(producerModule)) {
+        html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
+            + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
+            + 'Highlighted: module that produced this file'
+            + '</div>';
     }
+    html += '</div></div>';
 
     return html;
 }
@@ -2506,15 +2536,22 @@ function renderFileTree(structure, append = false) {
         fileTree.innerHTML = html;
     }
     
+    // Flatten all files for size lookup in loadPlotFile
+    const allFiles = [];
+    for (const pFiles of Object.values(participants)) {
+        allFiles.push(...pFiles);
+    }
+
     // Store globally for search and pipeline trace (extend if appending)
     if (!window.analysisData) {
-        window.analysisData = { repos: [] };
+        window.analysisData = { repos: [], allFiles: [] };
     }
     if (append) {
         window.analysisData.repos = window.analysisData.repos || [];
         window.analysisData.repos.push(structure);
+        window.analysisData.allFiles = (window.analysisData.allFiles || []).concat(allFiles);
     } else {
-        window.analysisData = { repos: [structure] };
+        window.analysisData = { repos: [structure], allFiles: allFiles };
     }
     
     console.log('[Analysis] File tree rendered successfully');
@@ -2669,9 +2706,47 @@ if (document.readyState === 'loading') {
     initAnalysisPage();
 }
 
+// Pipeline zoom/pan state and controls
+let _pipelineScale = 1;
+function pipelineZoom(dir) {
+    const inner = document.getElementById('pipeline-zoom-inner');
+    if (!inner) return;
+    if (dir === 0) { _pipelineScale = 1; }
+    else { _pipelineScale = Math.min(5, Math.max(0.3, _pipelineScale + dir * 0.25)); }
+    inner.style.transform = 'scale(' + _pipelineScale + ')';
+}
+
+// Mouse-wheel zoom on pipeline container
+document.addEventListener('wheel', function(e) {
+    const container = document.getElementById('pipeline-zoom-container');
+    if (!container || !container.contains(e.target)) return;
+    e.preventDefault();
+    pipelineZoom(e.deltaY < 0 ? 1 : -1);
+}, { passive: false });
+
 // Expose functions to global scope for inline onclick handlers
 window.loadPlotFile = loadPlotFile;
 window.toggleFolder = toggleFolder;
 window.exportPlotAsPNG = exportPlotAsPNG;
 window.exportPlotAsSVG = exportPlotAsSVG;
 window.exportPlotAsPDF = exportPlotAsPDF;
+window.pipelineZoom = pipelineZoom;
+
+// Re-apply Plotly colors when theme changes (light/dark toggle)
+new MutationObserver(() => {
+    const chartDiv = document.getElementById('current-plot-chart');
+    if (!chartDiv || !chartDiv.data || !chartDiv.data.length) return;
+    const cs = getComputedStyle(document.documentElement);
+    const bg = cs.getPropertyValue('--bg-secondary').trim() || '#161616';
+    const txt = cs.getPropertyValue('--text-primary').trim() || '#e8e8e8';
+    const grid = cs.getPropertyValue('--border-primary').trim() || '#2a2a2a';
+    Plotly.relayout(chartDiv, {
+        'paper_bgcolor': bg, 'plot_bgcolor': bg,
+        'font.color': txt, 'title.font.color': txt,
+        'xaxis.tickfont.color': txt, 'xaxis.title.font.color': txt,
+        'xaxis.gridcolor': grid, 'xaxis.linecolor': grid,
+        'yaxis.tickfont.color': txt, 'yaxis.title.font.color': txt,
+        'yaxis.gridcolor': grid, 'yaxis.linecolor': grid,
+        'legend.font.color': txt,
+    });
+}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
