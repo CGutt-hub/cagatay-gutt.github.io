@@ -787,7 +787,14 @@ function renderPlots() {
         // Process plotsData into the format we need
         const parquetFiles = plotsData.map(item => {
             const pathParts = item.file_path.split('/');
-            const participant = pathParts[1];
+            let level = null;
+            let participant;
+            if (pathParts.length >= 4 && /^l[12]$/.test(pathParts[1])) {
+                level = pathParts[1];
+                participant = pathParts[2];
+            } else {
+                participant = pathParts[1];
+            }
             const filename = pathParts[pathParts.length - 1];
             
             return {
@@ -795,6 +802,7 @@ function renderPlots() {
                 url: `https://raw.githubusercontent.com/${repoPath}/main/${item.file_path}`,
                 participant: participant,
                 filename: filename,
+                level: level,
                 size: item.plot_data.size || 0
             };
         });
@@ -825,18 +833,8 @@ function renderPlots() {
         buildAnalysisFileTree();
         console.log('[Analysis] File tree built');
         
-        // Fetch and display pipeline structure, then show it immediately
-        fetchPipelineTrace(repoPath, resultsDir).then(() => {
-            if (window.pipelineData) {
-                const plotDisplays = document.getElementById('plot-displays');
-                const emptyState = document.getElementById('empty-state');
-                if (plotDisplays && emptyState) {
-                    const pipelineHTML = generatePipelineTreeHTML(null, window.pipelineData);
-                    plotDisplays.innerHTML = pipelineHTML;
-                    emptyState.style.display = 'none';
-                }
-            }
-        });
+        // Fetch pipeline structure (rendered only when a plot file is accessed)
+        fetchPipelineTrace(repoPath, resultsDir);
         
         // Initialize search
         const searchInput = document.getElementById('search-box');
@@ -1660,16 +1658,47 @@ async function downloadPipelinePDF() {
     URL.revokeObjectURL(a.href);
 }
 
-// Classify processes into L1 (participant) and L2 (group) level
-function classifyProcessLevel(processName) {
-    const groupPatterns = [
-        /concatenating/, /ols_processor/, /bootstrap/, /group_analyzer/,
-        /interval_analyzer/, /asym_concatenating/,
-    ];
-    for (const pat of groupPatterns) {
-        if (pat.test(processName)) return 'L2';
+// Dynamically determine L2 process names from the folder structure of discovered files
+function getL2ProcessNames() {
+    const l2Names = new Set();
+    const allFiles = [];
+
+    // Collect files from both data paths (legacy and discovery)
+    if (window.analysisData?.allFiles) {
+        allFiles.push(...window.analysisData.allFiles);
+    } else if (window.analysisData?.repos) {
+        for (const repo of window.analysisData.repos) {
+            for (const files of Object.values(repo.participants)) {
+                allFiles.push(...files);
+            }
+        }
     }
-    return 'L1';
+
+    const l2Files = allFiles.filter(f => f.level === 'l2');
+    if (l2Files.length === 0 || !window.pipelineData?.processes) return l2Names;
+
+    // Map l2 files to their producer processes via suffix matching
+    const suffixChecks = [
+        ['_concat', 'concatenating'], ['_psd', 'psd'], ['_ols', 'ols'],
+        ['_windowed', 'window'], ['_epochs', 'epoch'], ['_ica', 'ica'],
+        ['_filt', 'filt'], ['_fai', 'fai'], ['_hbc', 'hbc'],
+        ['_hrv', 'hrv'], ['_eda', 'eda'], ['_reref', 'reref']
+    ];
+    for (const file of l2Files) {
+        const fn = (file.name || file.filename || '').toLowerCase();
+        for (const proc of window.pipelineData.processes) {
+            const pl = proc.name.toLowerCase();
+            for (const [fileSuffix, procMatch] of suffixChecks) {
+                if (fn.includes(fileSuffix) && pl.includes(procMatch)) {
+                    l2Names.add(proc.name);
+                }
+            }
+            const am = fn.match(/_(be7|ea11|sam|panas|bisbas|condprof)/);
+            if (am && pl.includes(am[1])) l2Names.add(proc.name);
+        }
+    }
+
+    return l2Names;
 }
 
 // Build a single pipeline SVG from a subset of processes and edges
@@ -1799,7 +1828,7 @@ function buildPipelineSVG(processes, edges, producerModule, svgId) {
     return { svg, processCount: processes.length, edgeCount: filteredEdges.length };
 }
 
-// Generate SVG-based DAG pipeline tree, split into L1 (participant) and L2 (group) sections
+// Generate SVG-based DAG pipeline tree — dynamically split into L1/L2 if folder structure indicates it
 function generatePipelineTreeHTML(filename, pipelineData) {
     if (!pipelineData || !pipelineData.processes || pipelineData.processes.length === 0) return '';
 
@@ -1826,25 +1855,25 @@ function generatePipelineTreeHTML(filename, pipelineData) {
         }
     }
 
-    // Split processes into L1 and L2
-    const l1Processes = processes.filter(p => classifyProcessLevel(p.name) === 'L1');
-    const l2Processes = processes.filter(p => classifyProcessLevel(p.name) === 'L2');
+    // Dynamically determine L2 processes from folder structure
+    const l2Names = getL2ProcessNames();
+    const hasL2 = l2Names.size > 0;
 
     let html = '';
 
-    // L1: Participant-level pipeline
-    if (l1Processes.length > 0) {
-        const l1 = buildPipelineSVG(l1Processes, edges, producerModule, 'pipeline-dag-svg');
+    if (!hasL2) {
+        // Single unified pipeline tree (no L2 data in folder structure)
+        const result = buildPipelineSVG(processes, edges, producerModule, 'pipeline-dag-svg');
         html += '<div style="margin-bottom: 15px;">'
-            + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Participant-Level Pipeline (L1)</div>'
+            + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Processing Pipeline</div>'
             + '<div class="export-bar">'
             + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
             + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
             + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&#8659; PDF</button>'
-            + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + l1.processCount + ' modules, ' + l1.edgeCount + ' connections</span>'
+            + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + result.processCount + ' modules, ' + result.edgeCount + ' connections</span>'
             + '</div>'
             + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
-            + '<div style="overflow-x: auto; overflow-y: auto; max-height: 600px;">' + l1.svg + '</div>';
+            + '<div style="overflow-x: auto; overflow-y: auto; max-height: 600px;">' + result.svg + '</div>';
         if (producerModule) {
             html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
                 + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
@@ -1852,17 +1881,47 @@ function generatePipelineTreeHTML(filename, pipelineData) {
                 + '</div>';
         }
         html += '</div></div>';
-    }
+    } else {
+        // Split into L1 (participant) and L2 (group) based on folder structure
+        const l1Processes = processes.filter(p => !l2Names.has(p.name));
+        const l2Processes = processes.filter(p => l2Names.has(p.name));
 
-    // L2: Group-level pipeline
-    if (l2Processes.length > 0) {
-        const l2 = buildPipelineSVG(l2Processes, edges, producerModule, 'pipeline-dag-svg-l2');
-        html += '<div style="margin-bottom: 15px;">'
-            + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Group-Level Pipeline (L2)</div>'
-            + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
-            + '<div style="overflow-x: auto; overflow-y: auto; max-height: 400px;">' + l2.svg + '</div>'
-            + '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">' + l2.processCount + ' modules, ' + l2.edgeCount + ' connections</div>'
-            + '</div></div>';
+        if (l1Processes.length > 0) {
+            const l1 = buildPipelineSVG(l1Processes, edges, producerModule, 'pipeline-dag-svg');
+            html += '<div style="margin-bottom: 15px;">'
+                + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Participant-Level Pipeline (L1)</div>'
+                + '<div class="export-bar">'
+                + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
+                + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
+                + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&#8659; PDF</button>'
+                + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + l1.processCount + ' modules, ' + l1.edgeCount + ' connections</span>'
+                + '</div>'
+                + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
+                + '<div style="overflow-x: auto; overflow-y: auto; max-height: 600px;">' + l1.svg + '</div>';
+            if (producerModule && !l2Names.has(producerModule)) {
+                html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
+                    + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
+                    + 'Highlighted: module that produced this file'
+                    + '</div>';
+            }
+            html += '</div></div>';
+        }
+
+        if (l2Processes.length > 0) {
+            const l2 = buildPipelineSVG(l2Processes, edges, producerModule, 'pipeline-dag-svg-l2');
+            html += '<div style="margin-bottom: 15px;">'
+                + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Group-Level Pipeline (L2)</div>'
+                + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
+                + '<div style="overflow-x: auto; overflow-y: auto; max-height: 400px;">' + l2.svg + '</div>';
+            if (producerModule && l2Names.has(producerModule)) {
+                html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
+                    + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
+                    + 'Highlighted: module that produced this file'
+                    + '</div>';
+            }
+            html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">' + l2.processCount + ' modules, ' + l2.edgeCount + ' connections</div>'
+                + '</div></div>';
+        }
     }
 
     return html;
@@ -2227,17 +2286,20 @@ async function discoverAnalysisRepos(username) {
                 for (const dir of resultsDirs) {
                     // Extract participant structure directly from tree (zero extra API calls)
                     const participants = {};
+                    const escaped = dir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     for (const item of tree) {
                         if (item.type !== 'blob') continue;
-                        // Match pattern: {resultsDir}/{participant}/plots/{file}.parquet
-                        const match = item.path.match(new RegExp(`^${dir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/([^/]+)/plots/(.+\\.parquet)$`));
+                        // Match: {resultsDir}/(optional l1 or l2)/{participant}/plots/{file}.parquet
+                        const match = item.path.match(new RegExp(`^${escaped}(?:/(l[12]))?/([^/]+)/plots/(.+\\.parquet)$`));
                         if (match) {
-                            const participant = match[1];
+                            const level = match[1] || null;
+                            const participant = match[2];
                             if (!participants[participant]) participants[participant] = [];
                             participants[participant].push({
-                                name: match[2],
+                                name: match[3],
                                 path: item.path,
                                 size: item.size || 0,
+                                level: level,
                                 url: `https://raw.githubusercontent.com/${username}/${repo.name}/main/${item.path}`
                             });
                         }
