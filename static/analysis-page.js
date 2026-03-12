@@ -2103,7 +2103,9 @@ async function loadPlotFile(url, displayName, participant) {
         console.warn('[Analysis] analysisData not available');
     }
     
-    const fileSizeMB = (fileSize / (1024 * 1024)).toFixed(2);
+    const fileSizeStr = fileSize >= 1024 * 1024
+        ? (fileSize / (1024 * 1024)).toFixed(1) + ' MB'
+        : fileSize > 0 ? (fileSize / 1024).toFixed(1) + ' KB' : '';
     const isLargeFile = fileSize > 10 * 1024 * 1024; // > 10MB
     const isVeryLargeFile = fileSize > 50 * 1024 * 1024; // > 50MB
     
@@ -2115,14 +2117,14 @@ async function loadPlotFile(url, displayName, participant) {
     if (isVeryLargeFile) {
         sizeWarning = `
             <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 10px; margin-bottom: 15px; font-size: 0.85rem;">
-                <strong>Large File Warning:</strong> This file is ${fileSizeMB} MB. Loading may take 1-2 minutes and requires significant memory.
+                <strong>Large File Warning:</strong> This file is ${fileSizeStr}. Loading may take 1-2 minutes and requires significant memory.
                 <br><span style="font-size: 0.8rem; color: #856404;">Data files are highly compressed but may still be large. Please be patient.</span>
             </div>
         `;
     } else if (isLargeFile) {
         sizeWarning = `
             <div style="background: #d1ecf1; border: 1px solid #17a2b8; border-radius: 5px; padding: 8px; margin-bottom: 12px; font-size: 0.8rem;">
-                <strong>Info:</strong> This file is ${fileSizeMB} MB and may take 10-30 seconds to load.
+                <strong>Info:</strong> This file is ${fileSizeStr} and may take 10-30 seconds to load.
             </div>
         `;
     }
@@ -2150,14 +2152,14 @@ async function loadPlotFile(url, displayName, participant) {
                         &#8659; PDF
                     </button>
                     <span id="load-status" style="color: var(--text-muted, #999); font-size: 0.85rem; margin-left: auto;">
-                        Preparing... (${fileSizeMB} MB)
+                        Preparing...${fileSizeStr ? ' (' + fileSizeStr + ')' : ''}
                     </span>
                 </div>
             </div>
             <div id="current-plot-chart" style="width: 100%; height: calc(100vh - 300px); min-height: 500px;background: var(--bg-secondary, #f8f8f8); border: 1px solid var(--border-primary, #ddd); border-radius: 8px; overflow: hidden;">
                 <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 15px;">
                     <div class="spinner" style="width: 50px; height: 50px; border: 5px solid var(--bg-tertiary, #ddd); border-top: 5px solid var(--accent-primary, #c9a227); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                    <p id="load-progress" style="color: var(--text-secondary, #666); font-size: 0.95rem;">Fetching ${fileSizeMB} MB file from GitHub...</p>
+                    <p id="load-progress" style="color: var(--text-secondary, #666); font-size: 0.95rem;">Fetching${fileSizeStr ? ' ' + fileSizeStr : ''} file from GitHub...</p>
                     <p style="color: var(--text-muted, #999); font-size: 0.8rem;">Large files may take a moment to load</p>
                 </div>
             </div>
@@ -2174,7 +2176,7 @@ async function loadPlotFile(url, displayName, participant) {
         
         // Update progress: downloading
         const progressEl = document.getElementById('load-progress');
-        if (progressEl) progressEl.textContent = `Downloading ${fileSizeMB} MB...`;
+        if (progressEl) progressEl.textContent = `Downloading${fileSizeStr ? ' ' + fileSizeStr : ''}...`;
         
         const { rows } = await fetchParquetData(url, fileSize);
         
@@ -2194,7 +2196,7 @@ async function loadPlotFile(url, displayName, participant) {
         const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
         const statusSpan = document.getElementById('load-status');
         if (statusSpan) {
-            statusSpan.textContent = `Loaded in ${totalTime}s (${fileSizeMB} MB)`;
+            statusSpan.textContent = `Loaded in ${totalTime}s${fileSizeStr ? ' (' + fileSizeStr + ')' : ''}`;
             statusSpan.style.color = 'var(--accent-primary, #28a745)';
         }
     } catch (error) {
@@ -2233,7 +2235,7 @@ async function loadPlotFile(url, displayName, participant) {
                 <p style="color: var(--text-muted, #999); font-size: 0.85rem; margin-top: 15px; max-width: 500px;">
                     ${recommendations}
                 </p>
-                ${fileSize > 10 * 1024 * 1024 ? `<p style="color: var(--text-muted, #999); font-size: 0.8rem; margin-top: 10px;">File size: ${fileSizeMB} MB</p>` : ''}
+                ${fileSize > 10 * 1024 * 1024 ? `<p style="color: var(--text-muted, #999); font-size: 0.8rem; margin-top: 10px;">File size: ${fileSizeStr}</p>` : ''}
             </div>
         `;
     }
