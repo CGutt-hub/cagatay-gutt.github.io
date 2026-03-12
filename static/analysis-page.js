@@ -1864,7 +1864,8 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     if (!hasL2) {
         // Single unified pipeline tree (no L2 data in folder structure)
         const result = buildPipelineSVG(processes, edges, producerModule, 'pipeline-dag-svg');
-        html += '<div style="margin-bottom: 15px;">'
+        html += '<hr style="border: none; border-top: 1px solid var(--border-primary, #2a2a2a); margin: 25px 0;">'
+            + '<div style="margin-bottom: 15px;">'
             + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Processing Pipeline</div>'
             + '<div class="export-bar">'
             + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
@@ -1888,7 +1889,8 @@ function generatePipelineTreeHTML(filename, pipelineData) {
 
         if (l1Processes.length > 0) {
             const l1 = buildPipelineSVG(l1Processes, edges, producerModule, 'pipeline-dag-svg');
-            html += '<div style="margin-bottom: 15px;">'
+            html += '<hr style="border: none; border-top: 1px solid var(--border-primary, #2a2a2a); margin: 25px 0;">'
+                + '<div style="margin-bottom: 15px;">'
                 + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Participant-Level Pipeline (L1)</div>'
                 + '<div class="export-bar">'
                 + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
@@ -1909,8 +1911,15 @@ function generatePipelineTreeHTML(filename, pipelineData) {
 
         if (l2Processes.length > 0) {
             const l2 = buildPipelineSVG(l2Processes, edges, producerModule, 'pipeline-dag-svg-l2');
-            html += '<div style="margin-bottom: 15px;">'
+            html += '<hr style="border: none; border-top: 1px solid var(--border-primary, #2a2a2a); margin: 25px 0;">'
+                + '<div style="margin-bottom: 15px;">'
                 + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Group-Level Pipeline (L2)</div>'
+                + '<div class="export-bar">'
+                + '<button class="export-btn png" onclick="downloadPipelinePNG()">&dArr; PNG</button>'
+                + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&dArr; SVG</button>'
+                + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&dArr; PDF</button>'
+                + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + l2.processCount + ' modules, ' + l2.edgeCount + ' connections</span>'
+                + '</div>'
                 + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
                 + '<div style="overflow-x: auto; overflow-y: auto; max-height: 400px;">' + l2.svg + '</div>';
             if (producerModule && l2Names.has(producerModule)) {
@@ -1919,8 +1928,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
                     + 'Highlighted: module that produced this file'
                     + '</div>';
             }
-            html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">' + l2.processCount + ' modules, ' + l2.edgeCount + ' connections</div>'
-                + '</div></div>';
+            html += '</div></div>';
         }
     }
 
@@ -2053,9 +2061,11 @@ async function loadPlotFile(url, displayName, participant) {
         : '';
     
     // Create plot display — plot first (specific), then pipeline tree (global overview) below
+    const divider = '<hr style="border: none; border-top: 1px solid var(--border-primary, #2a2a2a); margin: 25px 0;">';
     plotDisplays.innerHTML = `
         <div class="plot-display active" id="current-plot">
             <div style="margin-bottom: 20px;">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Data Visualization</div>
                 ${sizeWarning}
                 <div class="export-bar">
                     <button class="export-btn png" onclick="exportPlotAsPNG('current-plot-chart')">
@@ -2079,7 +2089,7 @@ async function loadPlotFile(url, displayName, participant) {
                     <p style="color: var(--text-muted, #999); font-size: 0.8rem;">Large files may take a moment to load</p>
                 </div>
             </div>
-            ${pipelineHTML}
+            ${pipelineHTML ? divider + pipelineHTML : ''}
         </div>
     `;
     
