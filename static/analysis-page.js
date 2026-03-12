@@ -24,12 +24,12 @@ function downloadPlotData(plotItem) {
 
 // Wait for hyparquet to be available (loaded as ES module in analysis.html)
 async function waitForHyparquet() {
-    if (window.hyparquetRead) return;
+    if (window.hyparquetReadObjects) return;
     console.log('[Analysis] Waiting for hyparquet to load...');
     await new Promise((resolve, reject) => {
         const start = Date.now();
         const check = setInterval(() => {
-            if (window.hyparquetRead) { clearInterval(check); resolve(); }
+            if (window.hyparquetReadObjects) { clearInterval(check); resolve(); }
             else if (Date.now() - start > 15000) { clearInterval(check); reject(new Error('hyparquet library failed to load after 15s. Check internet connection.')); }
         }, 100);
     });
@@ -38,22 +38,9 @@ async function waitForHyparquet() {
 // Parse an ArrayBuffer containing a parquet file into row objects using hyparquet
 async function parseParquetBuffer(arrayBuffer) {
     await waitForHyparquet();
-    const metadata = window.hyparquetMetadata(arrayBuffer);
-    const columnNames = metadata.schema.slice(1).map(s => s.name); // skip root schema element
-    let rawRows = [];
-    await window.hyparquetRead({
-        file: arrayBuffer,
-        metadata: metadata,
-        onComplete: data => { rawRows = data; }
-    });
-    // Convert from array-of-arrays to array-of-objects
-    return rawRows.map(row => {
-        const obj = {};
-        for (let i = 0; i < columnNames.length; i++) {
-            obj[columnNames[i]] = row[i];
-        }
-        return obj;
-    });
+    // parquetReadObjects accepts ArrayBuffer directly and returns row objects
+    const rows = await window.hyparquetReadObjects({ file: arrayBuffer });
+    return rows;
 }
 
 // Fetch and parse parquet file from GitHub repo using hyparquet
@@ -61,6 +48,8 @@ async function fetchParquetData(repoNameOrUrl, filePathOrSize = null) {
     console.log('[Analysis] fetchParquetData called:', { repoNameOrUrl, filePathOrSize });
     
     try {
+        await waitForHyparquet();
+        
         const url = typeof filePathOrSize === 'string'
             ? `https://raw.githubusercontent.com/CGutt-hub/${repoNameOrUrl}/main/${filePathOrSize}`
             : repoNameOrUrl;
@@ -69,27 +58,19 @@ async function fetchParquetData(repoNameOrUrl, filePathOrSize = null) {
         
         console.log('[Analysis] Fetching:', url);
         
-        // Fetch with timeout
-        const controller = new AbortController();
-        const timeoutDuration = fileSize > 50 * 1024 * 1024 ? 120000 : 60000;
-        const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
+        // Use hyparquet's asyncBufferFromUrl for efficient HTTP range requests
+        const file = await window.hyparquetAsyncBufferFromUrl({ url, byteLength: fileSize || undefined });
         
-        const response = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const arrayBuffer = await response.arrayBuffer();
-        console.log(`[Analysis] Downloaded ${(arrayBuffer.byteLength / 1024 / 1024).toFixed(2)} MB`);
-        
-        // Parse with hyparquet
-        console.log('[Analysis] Parsing parquet file with hyparquet');
+        console.log('[Analysis] Parsing parquet file with hyparquet...');
         const parseStart = Date.now();
-        const rows = await parseParquetBuffer(arrayBuffer);
+        const rows = await window.hyparquetReadObjects({ file });
         const parseTime = ((Date.now() - parseStart) / 1000).toFixed(1);
         console.log(`[Analysis] Parsed ${rows.length} rows in ${parseTime}s`);
+        
+        // Also fetch the full buffer for download capability
+        const arrayBuffer = await file.slice(0, file.byteLength);
+        const sizeMB = (file.byteLength / 1024 / 1024).toFixed(2);
+        console.log(`[Analysis] File size: ${sizeMB} MB`);
         
         return { rows, arrayBuffer };
     } catch (error) {
