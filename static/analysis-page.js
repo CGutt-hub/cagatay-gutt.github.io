@@ -1356,12 +1356,37 @@ function parsePipelineTrace(traceText) {
     return { processes, edges };
 }
 
-// Download pipeline SVG
-function downloadPipelineSVG() {
+// Create a print-ready grayscale clone of the pipeline SVG
+function cloneSvgForPrint() {
     const svg = document.getElementById('pipeline-dag-svg');
-    if (!svg) return;
+    if (!svg) return null;
     const clone = svg.cloneNode(true);
     clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    // Background: white
+    const bg = clone.querySelector('rect');
+    if (bg) bg.setAttribute('fill', '#ffffff');
+    // Arrow markers
+    const marker = clone.querySelector('#dag-arrow path');
+    if (marker) marker.setAttribute('fill', '#999');
+    // Edges: medium gray
+    clone.querySelectorAll('path[marker-end]').forEach(p => p.setAttribute('stroke', '#bbb'));
+    // Nodes and text
+    const rects = clone.querySelectorAll('rect[rx]');
+    const texts = clone.querySelectorAll('text');
+    rects.forEach(r => {
+        const isProducer = r.getAttribute('stroke-width') === '1.8';
+        r.setAttribute('fill', isProducer ? '#e0e0e0' : '#f5f5f5');
+        r.setAttribute('stroke', isProducer ? '#333' : '#aaa');
+    });
+    texts.forEach(t => t.setAttribute('fill', '#222'));
+    // Failed-process strikethrough lines stay as-is (#c00)
+    return clone;
+}
+
+// Download pipeline SVG (grayscale for print)
+function downloadPipelineSVG() {
+    const clone = cloneSvgForPrint();
+    if (!clone) return;
     const blob = new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1372,10 +1397,8 @@ function downloadPipelineSVG() {
 
 // Download pipeline as greyscale PNG (2x resolution for print)
 function downloadPipelinePNG() {
-    const svg = document.getElementById('pipeline-dag-svg');
-    if (!svg) return;
-    const clone = svg.cloneNode(true);
-    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    const clone = cloneSvgForPrint();
+    if (!clone) return;
     const svgStr = new XMLSerializer().serializeToString(clone);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -1394,6 +1417,54 @@ function downloadPipelinePNG() {
         }, 'image/png');
     };
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr)));
+}
+
+// Download pipeline as PDF (A4 landscape, greyscale, paper-ready)
+async function downloadPipelinePDF() {
+    const svg = document.getElementById('pipeline-dag-svg');
+    if (!svg) return;
+    if (typeof PDFLib === 'undefined') {
+        await new Promise(resolve => {
+            const check = setInterval(() => { if (typeof PDFLib !== 'undefined') { clearInterval(check); resolve(); } }, 100);
+        });
+    }
+    const { PDFDocument, rgb } = PDFLib;
+    const clone = cloneSvgForPrint();
+    if (!clone) return;
+    const svgStr = new XMLSerializer().serializeToString(clone);
+    // Render SVG to PNG via canvas at 2x
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    const pngDataUrl = await new Promise((resolve) => {
+        img.onload = () => {
+            canvas.width = img.width * 2;
+            canvas.height = img.height * 2;
+            ctx.scale(2, 2);
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+        };
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr)));
+    });
+    const pngBytes = Uint8Array.from(atob(pngDataUrl.split(',')[1]), c => c.charCodeAt(0));
+    const pdfDoc = await PDFDocument.create();
+    const pngImage = await pdfDoc.embedPng(pngBytes);
+    const pageW = 842, pageH = 595; // A4 landscape
+    const page = pdfDoc.addPage([pageW, pageH]);
+    const margin = 40;
+    const maxW = pageW - margin * 2, maxH = pageH - margin * 2;
+    const scale = Math.min(maxW / pngImage.width, maxH / pngImage.height, 1);
+    const drawW = pngImage.width * scale, drawH = pngImage.height * scale;
+    page.drawImage(pngImage, { x: margin, y: pageH - margin - drawH, width: drawW, height: drawH });
+    pdfDoc.setTitle('Processing Pipeline');
+    pdfDoc.setCreator('Open Data - 5ha99y');
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pipeline.pdf';
+    a.click();
+    URL.revokeObjectURL(a.href);
 }
 
 // Generate SVG-based DAG pipeline tree
@@ -1490,15 +1561,26 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     }
     const svgH = padY * 2 + sortedLayers.length * (nodeH + vGap) - vGap;
 
+    // Read CSS custom properties for theme-aware SVG
+    const cs = getComputedStyle(document.documentElement);
+    const thBg = cs.getPropertyValue('--bg-tertiary').trim() || '#1c1c1c';
+    const thNodeFill = cs.getPropertyValue('--bg-elevated').trim() || '#242424';
+    const thNodeStroke = cs.getPropertyValue('--border-primary').trim() || '#2a2a2a';
+    const thProdFill = cs.getPropertyValue('--bg-secondary').trim() || '#161616';
+    const thProdStroke = cs.getPropertyValue('--accent-primary').trim() || '#c9a227';
+    const thText = cs.getPropertyValue('--text-primary').trim() || '#e8e8e8';
+    const thMuted = cs.getPropertyValue('--text-muted').trim() || '#6a6a6a';
+    const thEdge = cs.getPropertyValue('--text-muted').trim() || '#6a6a6a';
+
     // Build SVG
     let svg = '';
     svg += '<svg id="pipeline-dag-svg" xmlns="http://www.w3.org/2000/svg" ';
     svg += 'width="' + svgW + '" height="' + svgH + '" ';
     svg += 'viewBox="0 0 ' + svgW + ' ' + svgH + '" ';
     svg += "style=\"font-family:'Segoe UI',Helvetica,Arial,sans-serif;\">";
-    svg += '<rect width="' + svgW + '" height="' + svgH + '" fill="#fff"/>';
+    svg += '<rect width="' + svgW + '" height="' + svgH + '" fill="' + thBg + '"/>';
     svg += '<defs><marker id="dag-arrow" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="7" markerHeight="6" orient="auto">';
-    svg += '<path d="M0,0 L10,4 L0,8 z" fill="#999"/></marker></defs>';
+    svg += '<path d="M0,0 L10,4 L0,8 z" fill="' + thMuted + '"/></marker></defs>';
 
     // Edges
     for (const e of edges) {
@@ -1508,7 +1590,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
         const x1 = from.x + from.w / 2, y1 = from.y + from.h;
         const x2 = to.x + to.w / 2, y2 = to.y;
         const cy1 = y1 + (y2 - y1) * 0.4, cy2 = y1 + (y2 - y1) * 0.6;
-        svg += '<path d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + cy1 + ' ' + x2 + ',' + cy2 + ' ' + x2 + ',' + y2 + '" fill="none" stroke="#bbb" stroke-width="1" marker-end="url(#dag-arrow)"/>';
+        svg += '<path d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + cy1 + ' ' + x2 + ',' + cy2 + ' ' + x2 + ',' + y2 + '" fill="none" stroke="' + thEdge + '" stroke-width="1" marker-end="url(#dag-arrow)"/>';
     }
 
     // Nodes
@@ -1516,33 +1598,32 @@ function generatePipelineTreeHTML(filename, pipelineData) {
         const pos = positions.get(p.name);
         if (!pos) continue;
         const isProd = p.name === producerModule;
-        const fill = isProd ? '#ddd' : '#f7f7f7';
-        const stroke = isProd ? '#333' : '#aaa';
+        const fill = isProd ? thProdFill : thNodeFill;
+        const stroke = isProd ? thProdStroke : thNodeStroke;
         const sw = isProd ? '1.8' : '0.8';
         const fw = isProd ? 'bold' : 'normal';
         const label = p.count > 1 ? p.displayName + ' x' + p.count : p.displayName;
         svg += '<rect x="' + pos.x + '" y="' + pos.y + '" width="' + pos.w + '" height="' + pos.h + '" rx="3" ry="3" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + sw + '"/>';
-        svg += '<text x="' + (pos.x + pos.w / 2) + '" y="' + (pos.y + pos.h / 2 + 3.5) + '" text-anchor="middle" font-size="9" font-weight="' + fw + '" fill="#333">' + label + '</text>';
+        svg += '<text x="' + (pos.x + pos.w / 2) + '" y="' + (pos.y + pos.h / 2 + 3.5) + '" text-anchor="middle" font-size="9" font-weight="' + fw + '" fill="' + thText + '">' + label + '</text>';
         if (p.failed) {
             svg += '<line x1="' + pos.x + '" y1="' + pos.y + '" x2="' + (pos.x + pos.w) + '" y2="' + (pos.y + pos.h) + '" stroke="#c00" stroke-width="1" opacity="0.5"/>';
         }
     }
     svg += '</svg>';
 
-    return '<div style="margin-bottom: 15px; padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
-        + '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">'
-        + '<h4 style="margin: 0; font-size: 0.9rem; color: var(--text-primary, #333); font-weight: 600;">Processing Pipeline</h4>'
-        + '<div style="display: flex; gap: 6px; align-items: center;">'
-        + '<span style="font-size: 0.7rem; color: var(--text-muted, #999);">' + processes.length + ' modules, ' + edges.length + ' connections</span>'
-        + '<div class="export-bar" style="margin-bottom:0; gap:6px;">'
-        + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
+    return '<div style="margin-bottom: 15px;">'
+        + '<div class="export-bar">'
         + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
-        + '</div></div></div>'
+        + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
+        + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&#8659; PDF</button>'
+        + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + processes.length + ' modules, ' + edges.length + ' connections</span>'
+        + '</div>'
+        + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
         + '<div style="overflow-x: auto; overflow-y: auto; max-height: 500px;">' + svg + '</div>'
         + '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
-        + '<span style="display: inline-block; width: 14px; height: 10px; background: #ddd; border: 1.8px solid #333; border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
+        + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
         + 'Highlighted: module likely produced this file'
-        + '</div></div>';
+        + '</div></div></div>';
 }
 
 // Toggle folder expand/collapse
@@ -1775,53 +1856,129 @@ async function loadPlotFile(url, displayName, participant) {
     }
 }
 
-// Export functions for plot downloads
+// Print-friendly layout overrides for Plotly exports
+const PRINT_LAYOUT = {
+    paper_bgcolor: '#ffffff',
+    plot_bgcolor: '#ffffff',
+    font: { color: '#222' },
+    xaxis: { gridcolor: '#ddd', zerolinecolor: '#aaa', color: '#222' },
+    yaxis: { gridcolor: '#ddd', zerolinecolor: '#aaa', color: '#222' },
+    title: { font: { color: '#111' } },
+    legend: { font: { color: '#222' } }
+};
+
+// Temporarily apply print layout, run export, then restore original
+async function exportPlotWithPrintLayout(plotDiv, exportFn) {
+    // Capture current layout values to restore later
+    const origLayout = {};
+    for (const key of Object.keys(PRINT_LAYOUT)) {
+        origLayout[key] = plotDiv.layout ? plotDiv.layout[key] : undefined;
+    }
+    await Plotly.relayout(plotDiv, PRINT_LAYOUT);
+    await exportFn();
+    // Restore original layout
+    const restore = {};
+    for (const [key, val] of Object.entries(origLayout)) {
+        restore[key] = val === undefined ? null : val;
+    }
+    await Plotly.relayout(plotDiv, restore);
+}
+
+// Export functions for plot downloads (print-friendly grayscale)
 function exportPlotAsPNG(plotId) {
     const plotDiv = document.getElementById(plotId);
-    if (plotDiv) {
+    if (!plotDiv) return;
+    exportPlotWithPrintLayout(plotDiv, () =>
         Plotly.downloadImage(plotDiv, {
             format: 'png',
             width: 1920,
             height: 1080,
             filename: 'analysis_plot'
-        });
-    }
+        })
+    );
 }
 
 function exportPlotAsSVG(plotId) {
     const plotDiv = document.getElementById(plotId);
-    if (plotDiv) {
+    if (!plotDiv) return;
+    exportPlotWithPrintLayout(plotDiv, () =>
         Plotly.downloadImage(plotDiv, {
             format: 'svg',
             filename: 'analysis_plot'
-        });
-    }
+        })
+    );
 }
 
 function exportPlotAsPDF(plotId, participant, displayName) {
     const plotDiv = document.getElementById(plotId);
-    if (plotDiv) {
-        const filename = `${participant}_${displayName.replace(/\s+/g, '_')}`;
+    if (!plotDiv) return;
+    const filename = `${participant}_${displayName.replace(/\s+/g, '_')}`;
+    exportPlotWithPrintLayout(plotDiv, () =>
         Plotly.downloadImage(plotDiv, {
             format: 'pdf',
             width: 1920,
             height: 1080,
             filename: filename
-        });
-    }
+        })
+    );
 }
 
 // Initialize page: data is already loaded via window.plotsData
 // Discover all repos with analysis results
+// Check GitHub API rate limit and return remaining calls
+async function checkRateLimit() {
+    try {
+        const response = await fetch('https://api.github.com/rate_limit');
+        if (response.ok) {
+            const data = await response.json();
+            const core = data.rate || data.resources?.core;
+            if (core) {
+                const resetDate = new Date(core.reset * 1000);
+                return { remaining: core.remaining, limit: core.limit, reset: resetDate };
+            }
+        }
+    } catch (e) { /* ignore */ }
+    return null;
+}
+
+// Fetch the full Git tree for a repo in a single API call (replaces multiple contents API calls)
+async function fetchRepoTree(owner, repo) {
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1`;
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            if (response.status === 403 || response.status === 429) {
+                const rateInfo = await checkRateLimit();
+                if (rateInfo && rateInfo.remaining === 0) {
+                    throw new Error(`RATE_LIMIT:${rateInfo.reset.toISOString()}`);
+                }
+            }
+            return null;
+        }
+        const data = await response.json();
+        return data.tree || null; // Array of {path, type: 'blob'|'tree', size, ...}
+    } catch (error) {
+        if (error.message.startsWith('RATE_LIMIT:')) throw error;
+        console.error('[Analysis] Error fetching tree for', repo, error);
+        return null;
+    }
+}
+
 async function discoverAnalysisRepos(username) {
     console.log('[Analysis] Discovering repos for user:', username);
     
     try {
-        // Fetch all public repos for the user
+        // Fetch all public repos for the user (1 API call)
         const reposUrl = `https://api.github.com/users/${username}/repos?per_page=100`;
         const response = await fetch(reposUrl);
         
         if (!response.ok) {
+            if (response.status === 403 || response.status === 429) {
+                const rateInfo = await checkRateLimit();
+                if (rateInfo && rateInfo.remaining === 0) {
+                    throw new Error(`RATE_LIMIT:${rateInfo.reset.toISOString()}`);
+                }
+            }
             throw new Error(`GitHub API error: ${response.status}`);
         }
         
@@ -1830,27 +1987,47 @@ async function discoverAnalysisRepos(username) {
         
         const analysisRepos = [];
         
-        // Check each repo for *_results folders
+        // Fetch full tree for each repo (1 API call per repo instead of N)
         for (const repo of repos) {
-            const contents = await fetchRepoStructure(username, repo.name, '');
+            const tree = await fetchRepoTree(username, repo.name);
+            if (!tree) continue;
             
-            if (!contents) continue;
+            // Find all directories ending with _results
+            const resultsDirs = new Set();
+            for (const item of tree) {
+                const parts = item.path.split('/');
+                if (parts.length >= 1 && parts[0].endsWith('_results')) {
+                    resultsDirs.add(parts[0]);
+                }
+            }
             
-            // Look for folders ending with _results
-            const resultsFolders = contents.filter(item => 
-                item.type === 'dir' && 
-                item.name.endsWith('_results')
-            );
-            
-            if (resultsFolders.length > 0) {
-                console.log('[Analysis] Found analysis repo:', repo.name, 'with folders:', resultsFolders.map(f => f.name));
+            if (resultsDirs.size > 0) {
+                console.log('[Analysis] Found analysis repo:', repo.name, 'with folders:', [...resultsDirs]);
                 
-                // Add each results folder
-                for (const folder of resultsFolders) {
+                for (const dir of resultsDirs) {
+                    // Extract participant structure directly from tree (zero extra API calls)
+                    const participants = {};
+                    for (const item of tree) {
+                        if (item.type !== 'blob') continue;
+                        // Match pattern: {resultsDir}/{participant}/plots/{file}.parquet
+                        const match = item.path.match(new RegExp(`^${dir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/([^/]+)/plots/(.+\\.parquet)$`));
+                        if (match) {
+                            const participant = match[1];
+                            if (!participants[participant]) participants[participant] = [];
+                            participants[participant].push({
+                                name: match[2],
+                                path: item.path,
+                                size: item.size || 0,
+                                url: `https://raw.githubusercontent.com/${username}/${repo.name}/main/${item.path}`
+                            });
+                        }
+                    }
+                    
                     analysisRepos.push({
                         owner: username,
                         name: repo.name,
-                        resultsDir: folder.name
+                        resultsDir: dir,
+                        participants: participants
                     });
                 }
             }
@@ -1860,78 +2037,10 @@ async function discoverAnalysisRepos(username) {
         return analysisRepos;
         
     } catch (error) {
+        if (error.message.startsWith('RATE_LIMIT:')) throw error;
         console.error('[Analysis] Error discovering repos:', error);
         return [];
     }
-}
-
-// Fetch repository structure from GitHub API
-async function fetchRepoStructure(owner, repo, path) {
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-    console.log('[Analysis] Fetching repo structure:', apiUrl);
-    
-    try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            throw new Error(`GitHub API error: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('[Analysis] Error fetching repo structure:', error);
-        return null;
-    }
-}
-
-// Build file tree structure from GitHub repo
-async function buildTreeFromRepo(repoConfig) {
-    console.log('[Analysis] Building tree for:', repoConfig.name);
-    
-    const { owner, name, resultsDir } = repoConfig;
-    const contents = await fetchRepoStructure(owner, name, resultsDir);
-    
-    if (!contents) {
-        console.error('[Analysis] Could not fetch contents for', name);
-        return null;
-    }
-    
-    // Filter for participant folders (directories)
-    const participantFolders = contents.filter(item => 
-        item.type === 'dir' && 
-        !item.name.startsWith('.') && 
-        item.name !== 'scripts' &&
-        item.name !== 'docs'
-    );
-    
-    console.log('[Analysis] Found participant folders:', participantFolders.map(f => f.name));
-    
-    // Build structure
-    const structure = {
-        repoName: name,
-        repoOwner: owner,
-        resultsDir: resultsDir,
-        participants: {}
-    };
-    
-    // Fetch files for each participant
-    for (const folder of participantFolders) {
-        const participantPath = `${resultsDir}/${folder.name}/plots`;
-        const files = await fetchRepoStructure(owner, name, participantPath);
-        
-        if (files && Array.isArray(files)) {
-            const parquetFiles = files
-                .filter(f => f.type === 'file' && f.name.endsWith('.parquet'))
-                .map(f => ({
-                    name: f.name,
-                    path: f.path,
-                    size: f.size,
-                    url: `https://raw.githubusercontent.com/${owner}/${name}/main/${f.path}`
-                }));
-            
-            structure.participants[folder.name] = parquetFiles;
-        }
-    }
-    
-    return structure;
 }
 
 // Render file tree in sidebar
@@ -2014,71 +2123,84 @@ async function initAnalysisPage() {
     emptyState.innerHTML = `
         <h2>Discovering Analysis Repositories...</h2>
         <p>Scanning GitHub for repositories with analysis results</p>
-        <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #ddd; border-top: 4px solid #c9a227; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto;"></div>
+        <div class="spinner" style="width: 40px; height: 40px; border: 4px solid var(--border-primary, #ddd); border-top: 4px solid var(--accent-primary, #c9a227); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto;"></div>
     `;
     
     try {
         // Fetch GitHub username from our own data
         const baseUrl = (window.SITE_BASE_URL || '').replace(/\/$/, '') + '/';
-        const githubDataResponse = await fetch(baseUrl + 'data/github.json');
-        if (!githubDataResponse.ok) {
-            throw new Error('Could not load GitHub data');
+        let username = 'CGutt-hub';
+        try {
+            const githubDataResponse = await fetch(baseUrl + 'data/github.json');
+            if (githubDataResponse.ok) {
+                const githubData = await githubDataResponse.json();
+                if (githubData.repos && githubData.repos[0]) {
+                    username = githubData.repos[0].url.split('/')[3] || username;
+                }
+            }
+        } catch (e) {
+            console.warn('[Analysis] Could not load github.json, using fallback username');
         }
-        
-        const githubData = await githubDataResponse.json();
-        const username = githubData.repos && githubData.repos[0] 
-            ? githubData.repos[0].url.split('/')[3]  // Extract username from URL
-            : 'CGutt-hub';  // Fallback
         
         console.log('[Analysis] GitHub username:', username);
         
-        // Discover all repos with *_results folders
+        // Discover all repos with *_results folders (uses Git Trees API: 1 call per repo)
         const analysisRepos = await discoverAnalysisRepos(username);
         
         if (analysisRepos.length === 0) {
-            emptyState.innerHTML = `
-                <h2>No Analysis Results Found</h2>
-                <p>No repositories with <code>*_results</code> folders found for <strong>${username}</strong></p>
-                <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 20px;">
-                    To add a repository to this page:
-                </p>
-                <ol style="text-align: left; max-width: 500px; margin: 15px auto; line-height: 1.8;">
-                    <li>Create a folder ending with <code>_results</code> (e.g., <code>EV_results</code>)</li>
-                    <li>Add participant folders inside (e.g., <code>EV_002</code>, <code>EV_003</code>)</li>
-                    <li>Add a <code>plots/</code> subfolder with <code>.parquet</code> files</li>
-                    <li>This page will automatically discover and display them!</li>
-                </ol>
-            `;
+            // Check if rate limiting is the cause
+            const rateInfo = await checkRateLimit();
+            if (rateInfo && rateInfo.remaining === 0) {
+                const resetMin = Math.ceil((rateInfo.reset - new Date()) / 60000);
+                emptyState.innerHTML = `
+                    <h2>GitHub API Rate Limit Reached</h2>
+                    <p>The unauthenticated GitHub API allows 60 requests per hour.</p>
+                    <p style="color: var(--text-secondary); margin-top: 10px;">Rate limit resets in <strong>${resetMin > 0 ? resetMin : '< 1'} minute(s)</strong> (at ${rateInfo.reset.toLocaleTimeString()}).</p>
+                    <p style="color: var(--text-muted); font-size: 0.85em; margin-top: 15px;">Please wait and refresh the page afterward.</p>
+                `;
+            } else {
+                emptyState.innerHTML = `
+                    <h2>No Analysis Results Found</h2>
+                    <p>No repositories with <code>*_results/*/plots/*.parquet</code> structure found for <strong>${username}</strong>.</p>
+                    <p style="color: var(--text-muted); font-size: 0.85em; margin-top: 15px;">Check console for details or try refreshing.</p>
+                `;
+            }
             return;
         }
         
         console.log('[Analysis] Found', analysisRepos.length, 'analysis repos');
         
-        // Build tree for each discovered repo
+        // Render tree for each discovered repo (data already extracted from Trees API)
         let loadedCount = 0;
         for (const repoConfig of analysisRepos) {
-            const structure = await buildTreeFromRepo(repoConfig);
+            const structure = {
+                repoName: repoConfig.name,
+                repoOwner: repoConfig.owner,
+                resultsDir: repoConfig.resultsDir,
+                participants: repoConfig.participants
+            };
             
-            if (structure) {
-                // Render tree in sidebar (append for multiple repos)
-                renderFileTree(structure, loadedCount > 0);  // append=true for 2nd+ repos
-                
-                // Hide empty state after first successful load
-                if (loadedCount === 0) {
-                    emptyState.style.display = 'none';
-                }
-                
-                // Fetch pipeline trace
-                fetchPipelineTrace(`${structure.repoOwner}/${structure.repoName}`, structure.resultsDir);
-                
-                loadedCount++;
+            const hasFiles = Object.values(structure.participants).some(files => files.length > 0);
+            if (!hasFiles) continue;
+            
+            // Render tree in sidebar (append for multiple repos)
+            renderFileTree(structure, loadedCount > 0);
+            
+            // Hide empty state after first successful load
+            if (loadedCount === 0) {
+                emptyState.style.display = 'none';
             }
+            
+            // Fetch pipeline trace (uses raw.githubusercontent.com, not API)
+            fetchPipelineTrace(`${structure.repoOwner}/${structure.repoName}`, structure.resultsDir);
+            
+            loadedCount++;
         }
         
         if (loadedCount === 0) {
             emptyState.innerHTML = `
-                <h2>Error Loading Repositories</h2>
-                <p>Found ${analysisRepos.length} repos but could not load their data</p>
+                <h2>No Plot Data Found</h2>
+                <p>Found ${analysisRepos.length} result folder(s) but none contain <code>.parquet</code> files in <code>plots/</code> subfolders.</p>
             `;
         } else {
             // Initialize search after all repos loaded
@@ -2093,11 +2215,23 @@ async function initAnalysisPage() {
         
     } catch (error) {
         console.error('[Analysis] Error initializing page:', error);
-        emptyState.innerHTML = `
-            <h2>Error Loading Data</h2>
-            <p>Could not discover analysis repositories: ${error.message}</p>
-            <p style="color: var(--text-secondary); font-size: 0.9em;">Check the console for details or try refreshing.</p>
-        `;
+        
+        if (error.message.startsWith('RATE_LIMIT:')) {
+            const resetDate = new Date(error.message.split(':').slice(1).join(':'));
+            const resetMin = Math.ceil((resetDate - new Date()) / 60000);
+            emptyState.innerHTML = `
+                <h2>GitHub API Rate Limit Reached</h2>
+                <p>The unauthenticated GitHub API allows 60 requests per hour.</p>
+                <p style="color: var(--text-secondary); margin-top: 10px;">Rate limit resets in <strong>${resetMin > 0 ? resetMin : '< 1'} minute(s)</strong> (at ${resetDate.toLocaleTimeString()}).</p>
+                <p style="color: var(--text-muted); font-size: 0.85em; margin-top: 15px;">Please wait and refresh the page afterward.</p>
+            `;
+        } else {
+            emptyState.innerHTML = `
+                <h2>Error Loading Data</h2>
+                <p>Could not discover analysis repositories: ${error.message}</p>
+                <p style="color: var(--text-secondary); font-size: 0.9em;">Check the console for details or try refreshing.</p>
+            `;
+        }
     }
 }
 
