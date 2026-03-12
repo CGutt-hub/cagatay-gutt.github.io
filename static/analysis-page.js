@@ -83,9 +83,17 @@ async function fetchParquetData(repoNameOrUrl, filePathOrSize = null) {
 }
 
 // Convert parquet data to Plotly format
+// Handles AnalysisToolbox plot specification parquet files:
+//   plot_type: 'bar' | 'grid'
+//   x_data[0]: array of x-axis categories
+//   y_data[0]: array of arrays (one per condition/series)
+//   labels[0] or condition column: series names
+//   y_var[0]: error bars (std dev)
+//   ci_lower/ci_upper: confidence intervals
+//   x_label/y_label: axis titles
 async function parquetToPlotly(rowsOrBuffer, title = null) {
     let rows;
-    
+
     // Handle arrayBuffer input (parse it first)
     if (rowsOrBuffer instanceof ArrayBuffer || ArrayBuffer.isView(rowsOrBuffer)) {
         const buf = rowsOrBuffer instanceof ArrayBuffer ? rowsOrBuffer : rowsOrBuffer.buffer;
@@ -93,44 +101,269 @@ async function parquetToPlotly(rowsOrBuffer, title = null) {
     } else {
         rows = rowsOrBuffer;
     }
-    
-    if (!rows || rows.length === 0) {
-        return null;
+
+    if (!rows || rows.length === 0) return null;
+
+    const columns = Object.keys(rows[0]);
+
+    // Vibrant color palette for the dark theme
+    const COLORS = [
+        '#c9a227', // gold (accent)
+        '#4fc3f7', // sky blue
+        '#ef5350', // coral red
+        '#66bb6a', // green
+        '#ab47bc', // purple
+        '#ff7043', // orange
+        '#26c6da', // teal
+        '#ec407a', // pink
+        '#8d6e63', // brown
+        '#42a5f5', // blue
+    ];
+
+    // Detect AnalysisToolbox plot spec format (has x_data, y_data, plot_type)
+    const isPlotSpec = columns.includes('x_data') && columns.includes('y_data') && columns.includes('plot_type');
+
+    if (isPlotSpec) {
+        return plotSpecToPlotly(rows, title, COLORS);
     }
-    
-    // Detect column types  
-    const firstRow = rows[0];
-    const columns = Object.keys(firstRow);
-    
-    // Simple heuristic: if we have x/y or time/value columns, create line plot
-    const xCol = columns.find(c => c.toLowerCase().match(/^(x|time|timestamp|index)$/)) || columns[0];
-    const yCol = columns.find(c => c.toLowerCase().match(/^(y|value|signal|data)$/)) || columns[1];
-    
-    if (!yCol) {
-        return null;
+
+    // Multi-row condition format (e.g. eeg_psd with 'condition' column, one row per condition)
+    if (columns.includes('condition') && columns.includes('x_data') && columns.includes('y_data')) {
+        return conditionRowsToPlotly(rows, title, COLORS);
     }
-    
-    // Extract x and y data
-    const xData = rows.map(r => r[xCol]);
-    const yData = rows.map(r => r[yCol]);
-    
-    const trace = {
-        x: xData,
-        y: yData,
+
+    // Fallback: generic columnar data — plot all numeric columns
+    return genericToPlotly(rows, title, COLORS);
+}
+
+// AnalysisToolbox plot spec: single row contains full plot definition
+function plotSpecToPlotly(rows, title, COLORS) {
+    // May have multiple rows (e.g., per-condition) or a single row with nested arrays
+    const row0 = rows[0];
+    const plotType = row0.plot_type || 'bar';
+    const xData = Array.isArray(row0.x_data) ? row0.x_data : [row0.x_data];
+    const yDataNested = Array.isArray(row0.y_data) ? row0.y_data : [[row0.y_data]];
+    const yVarNested = row0.y_var ? (Array.isArray(row0.y_var) ? row0.y_var : [[row0.y_var]]) : null;
+    const ciLower = row0.ci_lower ? (Array.isArray(row0.ci_lower) ? row0.ci_lower : null) : null;
+    const ciUpper = row0.ci_upper ? (Array.isArray(row0.ci_upper) ? row0.ci_upper : null) : null;
+
+    // Get series labels
+    let seriesLabels = null;
+    if (row0.labels && Array.isArray(row0.labels)) {
+        seriesLabels = row0.labels;
+    }
+    // For multi-row data, use condition column or row index
+    if (!seriesLabels && rows.length > 1 && rows[0].condition) {
+        seriesLabels = rows.map(r => r.condition);
+    }
+
+    const xLabels = xData;
+    const xAxisTitle = row0.x_label || '';
+    const yAxisTitle = row0.y_label || '';
+
+    // Determine if y_data is nested (array of series arrays) or flat
+    let seriesData;
+    if (yDataNested.length > 0 && Array.isArray(yDataNested[0]) && Array.isArray(yDataNested[0][0])) {
+        // Double nested: y_data = [[series1_vals], [series2_vals], [series3_vals]]
+        seriesData = yDataNested[0];
+    } else if (yDataNested.length > 0 && Array.isArray(yDataNested[0])) {
+        // Single series
+        seriesData = [yDataNested[0]];
+    } else {
+        seriesData = [yDataNested];
+    }
+
+    let varData = null;
+    if (yVarNested) {
+        if (yVarNested.length > 0 && Array.isArray(yVarNested[0]) && Array.isArray(yVarNested[0][0])) {
+            varData = yVarNested[0];
+        } else if (yVarNested.length > 0 && Array.isArray(yVarNested[0])) {
+            varData = [yVarNested[0]];
+        }
+    }
+
+    const traces = [];
+    for (let s = 0; s < seriesData.length; s++) {
+        const yVals = seriesData[s];
+        const label = seriesLabels ? (seriesLabels[s] || `Series ${s + 1}`) : `Series ${s + 1}`;
+        const color = COLORS[s % COLORS.length];
+
+        const trace = {
+            x: xLabels,
+            y: yVals,
+            name: label,
+            type: 'bar',
+            marker: {
+                color: color,
+                line: { color: color, width: 1 },
+                opacity: 0.85,
+            },
+        };
+
+        // Add error bars from y_var or ci bounds
+        if (varData && varData[s]) {
+            const errVals = varData[s];
+            const hasError = errVals.some(v => v > 0);
+            if (hasError) {
+                trace.error_y = {
+                    type: 'data',
+                    array: errVals,
+                    visible: true,
+                    color: '#aaa',
+                    thickness: 1.5,
+                    width: 4,
+                };
+            }
+        } else if (ciLower && ciUpper && ciLower[s] && ciUpper[s]) {
+            const errPlus = yVals.map((v, i) => (ciUpper[s][i] || 0) - v);
+            const errMinus = yVals.map((v, i) => v - (ciLower[s][i] || 0));
+            trace.error_y = {
+                type: 'data',
+                array: errPlus,
+                arrayminus: errMinus,
+                visible: true,
+                color: '#aaa',
+                thickness: 1.5,
+                width: 4,
+            };
+        }
+
+        traces.push(trace);
+    }
+
+    const cs = typeof getComputedStyle !== 'undefined' ? getComputedStyle(document.documentElement) : null;
+    const bgColor = cs ? (cs.getPropertyValue('--bg-secondary').trim() || '#161616') : '#161616';
+    const textColor = cs ? (cs.getPropertyValue('--text-primary').trim() || '#e8e8e8') : '#e8e8e8';
+    const gridColor = cs ? (cs.getPropertyValue('--border-primary').trim() || '#2a2a2a') : '#2a2a2a';
+
+    const layout = {
+        title: { text: title || yAxisTitle || 'Analysis Result', font: { color: textColor, size: 16 } },
+        xaxis: {
+            title: { text: xAxisTitle, font: { color: textColor } },
+            tickfont: { color: textColor, size: 11 },
+            gridcolor: gridColor,
+            linecolor: gridColor,
+        },
+        yaxis: {
+            title: { text: yAxisTitle, font: { color: textColor } },
+            tickfont: { color: textColor, size: 11 },
+            gridcolor: gridColor,
+            linecolor: gridColor,
+        },
+        barmode: 'group',
+        bargap: 0.2,
+        bargroupgap: 0.1,
+        paper_bgcolor: bgColor,
+        plot_bgcolor: bgColor,
+        font: { color: textColor, family: "'JetBrains Mono', monospace" },
+        legend: {
+            font: { color: textColor, size: 11 },
+            bgcolor: 'rgba(0,0,0,0)',
+        },
+        hovermode: 'closest',
+        margin: { t: 60, b: 80, l: 70, r: 30 },
+    };
+
+    return { data: traces, layout };
+}
+
+// Multi-row condition format: one row per condition, each with x_data and y_data
+function conditionRowsToPlotly(rows, title, COLORS) {
+    const xAxisTitle = rows[0].x_label || '';
+    const yAxisTitle = rows[0].y_label || '';
+
+    const traces = rows.map((row, i) => {
+        const xData = Array.isArray(row.x_data) ? row.x_data : [row.x_data];
+        const yData = Array.isArray(row.y_data) ? row.y_data : [row.y_data];
+        const label = row.condition || `Series ${i + 1}`;
+        const color = COLORS[i % COLORS.length];
+
+        const trace = {
+            x: xData,
+            y: yData,
+            name: label,
+            type: 'bar',
+            marker: { color: color, opacity: 0.85 },
+        };
+
+        if (row.y_var) {
+            const errVals = Array.isArray(row.y_var) ? row.y_var : [row.y_var];
+            const hasError = errVals.some(v => v > 0);
+            if (hasError) {
+                trace.error_y = { type: 'data', array: errVals, visible: true, color: '#aaa', thickness: 1.5, width: 4 };
+            }
+        }
+        if (row.ci_lower && row.ci_upper) {
+            const cl = Array.isArray(row.ci_lower) ? row.ci_lower : [row.ci_lower];
+            const cu = Array.isArray(row.ci_upper) ? row.ci_upper : [row.ci_upper];
+            trace.error_y = {
+                type: 'data',
+                array: yData.map((v, j) => (cu[j] || 0) - v),
+                arrayminus: yData.map((v, j) => v - (cl[j] || 0)),
+                visible: true, color: '#aaa', thickness: 1.5, width: 4,
+            };
+        }
+        return trace;
+    });
+
+    const cs = typeof getComputedStyle !== 'undefined' ? getComputedStyle(document.documentElement) : null;
+    const bgColor = cs ? (cs.getPropertyValue('--bg-secondary').trim() || '#161616') : '#161616';
+    const textColor = cs ? (cs.getPropertyValue('--text-primary').trim() || '#e8e8e8') : '#e8e8e8';
+    const gridColor = cs ? (cs.getPropertyValue('--border-primary').trim() || '#2a2a2a') : '#2a2a2a';
+
+    return {
+        data: traces,
+        layout: {
+            title: { text: title || yAxisTitle || 'Analysis Result', font: { color: textColor, size: 16 } },
+            xaxis: { title: { text: xAxisTitle, font: { color: textColor } }, tickfont: { color: textColor }, gridcolor: gridColor, linecolor: gridColor },
+            yaxis: { title: { text: yAxisTitle, font: { color: textColor } }, tickfont: { color: textColor }, gridcolor: gridColor, linecolor: gridColor },
+            barmode: 'group', bargap: 0.2, bargroupgap: 0.1,
+            paper_bgcolor: bgColor, plot_bgcolor: bgColor,
+            font: { color: textColor, family: "'JetBrains Mono', monospace" },
+            legend: { font: { color: textColor, size: 11 }, bgcolor: 'rgba(0,0,0,0)' },
+            hovermode: 'closest', margin: { t: 60, b: 80, l: 70, r: 30 },
+        },
+    };
+}
+
+// Fallback: generic columnar data — plot all numeric columns vs first column
+function genericToPlotly(rows, title, COLORS) {
+    const columns = Object.keys(rows[0]);
+    const xCol = columns[0];
+    const numericCols = columns.slice(1).filter(c => {
+        const v = rows[0][c];
+        return typeof v === 'number' || (typeof v === 'string' && !isNaN(parseFloat(v)));
+    });
+
+    if (numericCols.length === 0) return null;
+
+    const traces = numericCols.map((col, i) => ({
+        x: rows.map(r => r[xCol]),
+        y: rows.map(r => typeof r[col] === 'number' ? r[col] : parseFloat(r[col])),
+        name: col,
         type: 'scatter',
         mode: 'lines+markers',
-        name: yCol,
-        marker: { size: 4 }
+        line: { color: COLORS[i % COLORS.length], width: 2 },
+        marker: { color: COLORS[i % COLORS.length], size: 5 },
+    }));
+
+    const cs = typeof getComputedStyle !== 'undefined' ? getComputedStyle(document.documentElement) : null;
+    const bgColor = cs ? (cs.getPropertyValue('--bg-secondary').trim() || '#161616') : '#161616';
+    const textColor = cs ? (cs.getPropertyValue('--text-primary').trim() || '#e8e8e8') : '#e8e8e8';
+    const gridColor = cs ? (cs.getPropertyValue('--border-primary').trim() || '#2a2a2a') : '#2a2a2a';
+
+    return {
+        data: traces,
+        layout: {
+            title: { text: title || `${numericCols.join(', ')} vs ${xCol}`, font: { color: textColor, size: 16 } },
+            xaxis: { title: { text: xCol, font: { color: textColor } }, tickfont: { color: textColor }, gridcolor: gridColor, linecolor: gridColor },
+            yaxis: { tickfont: { color: textColor }, gridcolor: gridColor, linecolor: gridColor },
+            paper_bgcolor: bgColor, plot_bgcolor: bgColor,
+            font: { color: textColor, family: "'JetBrains Mono', monospace" },
+            legend: { font: { color: textColor, size: 11 }, bgcolor: 'rgba(0,0,0,0)' },
+            hovermode: 'closest', margin: { t: 60, b: 80, l: 70, r: 30 },
+        },
     };
-    
-    const layout = {
-        title: title || `${yCol} vs ${xCol}`,
-        xaxis: { title: xCol },
-        yaxis: { title: yCol },
-        hovermode: 'closest'
-    };
-    
-    return { data: [trace], layout };
 }
 
 async function findParquetFile(plotItem) {
@@ -1807,38 +2040,16 @@ async function loadPlotFile(url, displayName, participant) {
 }
 
 // Print-friendly layout overrides for Plotly exports
-const PRINT_LAYOUT = {
-    paper_bgcolor: '#ffffff',
-    plot_bgcolor: '#ffffff',
-    font: { color: '#222' },
-    xaxis: { gridcolor: '#ddd', zerolinecolor: '#aaa', color: '#222' },
-    yaxis: { gridcolor: '#ddd', zerolinecolor: '#aaa', color: '#222' },
-    title: { font: { color: '#111' } },
-    legend: { font: { color: '#222' } }
-};
-
-// Temporarily apply print layout, run export, then restore original
-async function exportPlotWithPrintLayout(plotDiv, exportFn) {
-    // Capture current layout values to restore later
-    const origLayout = {};
-    for (const key of Object.keys(PRINT_LAYOUT)) {
-        origLayout[key] = plotDiv.layout ? plotDiv.layout[key] : undefined;
-    }
-    await Plotly.relayout(plotDiv, PRINT_LAYOUT);
+// Export plots as-is (keep the colorful theme)
+async function exportPlotDirect(plotDiv, exportFn) {
     await exportFn();
-    // Restore original layout
-    const restore = {};
-    for (const [key, val] of Object.entries(origLayout)) {
-        restore[key] = val === undefined ? null : val;
-    }
-    await Plotly.relayout(plotDiv, restore);
 }
 
 // Export functions for plot downloads (print-friendly grayscale)
 function exportPlotAsPNG(plotId) {
     const plotDiv = document.getElementById(plotId);
     if (!plotDiv) return;
-    exportPlotWithPrintLayout(plotDiv, () =>
+    exportPlotDirect(plotDiv, () =>
         Plotly.downloadImage(plotDiv, {
             format: 'png',
             width: 1920,
@@ -1851,7 +2062,7 @@ function exportPlotAsPNG(plotId) {
 function exportPlotAsSVG(plotId) {
     const plotDiv = document.getElementById(plotId);
     if (!plotDiv) return;
-    exportPlotWithPrintLayout(plotDiv, () =>
+    exportPlotDirect(plotDiv, () =>
         Plotly.downloadImage(plotDiv, {
             format: 'svg',
             filename: 'analysis_plot'
@@ -1863,7 +2074,7 @@ function exportPlotAsPDF(plotId, participant, displayName) {
     const plotDiv = document.getElementById(plotId);
     if (!plotDiv) return;
     const filename = `${participant}_${displayName.replace(/\s+/g, '_')}`;
-    exportPlotWithPrintLayout(plotDiv, () =>
+    exportPlotDirect(plotDiv, () =>
         Plotly.downloadImage(plotDiv, {
             format: 'pdf',
             width: 1920,
