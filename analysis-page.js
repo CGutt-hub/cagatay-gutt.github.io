@@ -339,7 +339,7 @@ async function downloadPlotPDFA(plotItem, plotIndex) {
             });
             
             // Add note about attachment
-            page.drawText('📎 Source data attached as: ' + parquetFile.filename, {
+            page.drawText('Source data attached as: ' + parquetFile.filename, {
                 x: 50,
                 y: 70,
                 size: 9,
@@ -348,7 +348,7 @@ async function downloadPlotPDFA(plotItem, plotIndex) {
             });
         } else {
             // Add note about no attachment
-            page.drawText('⚠ No source parquet file found', {
+            page.drawText('No source parquet file found', {
                 x: 50,
                 y: 70,
                 size: 9,
@@ -421,7 +421,7 @@ function buildFileTree() {
         
         const repoHeader = document.createElement('div');
         repoHeader.className = 'repo-name';
-        repoHeader.innerHTML = `<span class="repo-toggle">▶</span> 📁 ${repoName}`;
+        repoHeader.innerHTML = `<span class="repo-toggle">▶</span> ${repoName}`;
         
         const fileList = document.createElement('div');
         fileList.className = 'file-list';
@@ -450,7 +450,7 @@ function buildFileTree() {
             
             // JSON download button
             const jsonBtn = document.createElement('button');
-            jsonBtn.innerHTML = '📥';
+            jsonBtn.innerHTML = 'JSON';
             jsonBtn.title = 'Download JSON';
             jsonBtn.className = 'sidebar-download-btn';
             jsonBtn.style.padding = '2px 6px';
@@ -466,7 +466,7 @@ function buildFileTree() {
             
             // PDF/A download button
             const pdfBtn = document.createElement('button');
-            pdfBtn.innerHTML = '📄';
+            pdfBtn.innerHTML = 'PDF';
             pdfBtn.title = 'Download PDF/A + Parquet';
             pdfBtn.className = 'sidebar-download-btn';
             pdfBtn.style.padding = '2px 6px';
@@ -689,7 +689,7 @@ function renderPlots() {
         const header = document.createElement('div');
         header.className = 'plot-header';
         header.innerHTML = `
-            <h2>📊 ${plotItem.file_path}</h2>
+            <h2>${plotItem.file_path}</h2>
             <div class="plot-meta">
                 <p><strong>Repository:</strong> <a href="${plotItem.repo_url}" target="_blank">${plotItem.repo_name}</a></p>
                 <p><strong>Last Updated:</strong> ${new Date(plotItem.updated).toLocaleString()}</p>
@@ -711,7 +711,7 @@ function renderPlots() {
             summary.style.cursor = 'pointer';
             summary.style.fontWeight = 'bold';
             summary.style.marginBottom = '10px';
-            summary.textContent = '📖 Context & Documentation';
+            summary.textContent = 'Context & Documentation';
             
             const readmeContent = document.createElement('div');
             readmeContent.className = 'readme-content';
@@ -750,7 +750,7 @@ function renderPlots() {
             pipelineSummary.style.cursor = 'pointer';
             pipelineSummary.style.fontWeight = 'bold';
             pipelineSummary.style.marginBottom = '15px';
-            pipelineSummary.textContent = `🔄 Analysis Pipeline (${plotItem.pipeline_trace.total_processes} processes, ${plotItem.pipeline_trace.total_tasks} tasks completed)`;
+            pipelineSummary.textContent = `Analysis Pipeline (${plotItem.pipeline_trace.total_processes} processes, ${plotItem.pipeline_trace.total_tasks} tasks completed)`;
             
             const pipelineContent = document.createElement('div');
             pipelineContent.className = 'pipeline-content';
@@ -764,7 +764,7 @@ function renderPlots() {
             note.style.padding = '8px 12px';
             note.style.background = 'var(--bg-tertiary, #e9ecef)';
             note.style.borderRadius = '4px';
-            note.innerHTML = '📊 This shows the complete analysis workflow from a participant run. Each process represents a step in the data processing pipeline.';
+            note.innerHTML = 'This shows the complete analysis workflow from a participant run. Each process represents a step in the data processing pipeline.';
             pipelineContent.appendChild(note);
             
             // Create visual pipeline tree
@@ -787,16 +787,16 @@ function renderPlots() {
                 
                 // Color based on status (only final states visible in public repo)
                 let borderColor = '#28a745';  // Default: completed
-                let statusIcon = '✅';
+                let statusIcon = '';
                 if (process.status === 'FAILED') {
                     borderColor = '#dc3545';
-                    statusIcon = '❌';
+                    statusIcon = 'FAIL';
                 } else if (process.status === 'CACHED') {
                     borderColor = '#17a2b8';
-                    statusIcon = '💾';
+                    statusIcon = 'CACHED';
                 } else if (process.status === 'COMPLETED') {
                     borderColor = '#28a745';
-                    statusIcon = '✅';
+                    statusIcon = 'OK';
                 }
                 processNode.style.borderColor = borderColor;
                 
@@ -905,7 +905,7 @@ function renderPlots() {
                         plotContainer.innerHTML = `
                             <div style="padding: 20px;">
                                 <div style="margin-bottom: 25px; text-align: center;">
-                                    <h3 style="margin: 0 0 10px 0; color: var(--text-primary);">📊 Analysis Data</h3>
+                                    <h3 style="margin: 0 0 10px 0; color: var(--text-primary);">Analysis Data</h3>
                                     <p style="margin: 0; color: var(--text-secondary); font-size: 0.95em;">
                                         Found <strong>${parquetFiles.length} plots</strong> across <strong>${participantKeys.length} participants</strong>
                                     </p>
@@ -999,13 +999,13 @@ function renderPlots() {
                                 `;
                                 
                                 try {
-                                    const arrayBuffer = await fetchParquetData(url);
-                                    const plotlyData = await parquetToPlotly(arrayBuffer, displayName);
+                                    const { rows } = await fetchParquetData(url);
+                                    const plotlyData = await parquetToPlotly(rows, displayName);
                                     Plotly.newPlot(plotChart, plotlyData.data, plotlyData.layout, {responsive: true});
                                 } catch (error) {
                                     plotChart.innerHTML = `
                                         <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                                            <p>⚠️ Error loading plot: ${error.message}</p>
+                                            <p>Error loading plot: ${error.message}</p>
                                             <p style="font-size: 0.9em; margin-top: 10px;">This file might be too large or in an unsupported format.</p>
                                         </div>
                                     `;
@@ -1016,7 +1016,7 @@ function renderPlots() {
                     .catch(error => {
                         plotContainer.innerHTML = `
                             <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
-                                <p>⚠️ Error loading data: ${error.message}</p>
+                                <p>Error loading data: ${error.message}</p>
                             </div>
                         `;
                     });
@@ -1075,7 +1075,7 @@ function renderPlots() {
                     .catch(error => {
                         plotContainer.innerHTML = `
                             <div style="padding: 20px; color: var(--text-secondary);">
-                                <p style="color: red; margin-bottom: 10px;">⚠️ Error loading parquet file</p>
+                                <p style="color: red; margin-bottom: 10px;">Error loading parquet file</p>
                                 <p>${error.message}</p>
                                 <p style="margin-top: 15px; font-size: 0.9em;">
                                     File path: <code>${plotItem.file_path}</code>
@@ -1105,7 +1105,7 @@ function renderPlots() {
         } catch (error) {
             plotContainer.innerHTML = `
                 <div style="padding: 20px; color: var(--text-secondary);">
-                    <p style="color: red; margin-bottom: 10px;">⚠️ Error rendering analysis: ${error.message}</p>
+                    <p style="color: red; margin-bottom: 10px;">Error rendering analysis: ${error.message}</p>
                     <details>
                         <summary style="cursor: pointer; margin-bottom: 10px;">View raw JSON</summary>
                         <pre style="background: var(--bg-tertiary); padding: 15px; overflow: auto; border-radius: 4px;">
@@ -1134,7 +1134,7 @@ function buildAnalysisFileTree() {
     let html = `
         <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
             <span class="tree-folder-icon">▶</span>
-            <span>📁 ${repoName}</span>
+            <span>${repoName}</span>
         </div>
         <div class="tree-folder-content" style="margin-left: 10px;">
     `;
@@ -1144,7 +1144,7 @@ function buildAnalysisFileTree() {
         html += `
             <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
                 <span class="tree-folder-icon">▶</span>
-                <span>📂 ${participant}</span>
+                <span>${participant}</span>
                 <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${files.length})</span>
             </div>
             <div class="tree-folder-content" style="margin-left: 10px;">
@@ -1153,7 +1153,7 @@ function buildAnalysisFileTree() {
         files.forEach(file => {
             html += `
                 <div class="tree-item" onclick="loadPlotFile('${file.url}', '${file.filename}', '${participant}')" data-filename="${file.filename.toLowerCase()}">
-                    📊 ${file.filename}
+                    ${file.filename}
                     <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">
                         (${(file.size / 1024).toFixed(1)}KB)
                     </span>
@@ -1404,7 +1404,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     if (nodesByType.readers.length > 0) {
         html += `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">📥 Input</div>
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Input</div>
                 <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
                     ${nodesByType.readers.map(p => createNode(p, false)).join('')}
                 </div>
@@ -1416,7 +1416,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     if (nodesByType.extractors.length > 0) {
         html += `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">🔧 Extract</div>
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Extract</div>
                 <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
                     ${nodesByType.extractors.map(p => createNode(p, false)).join('')}
                 </div>
@@ -1428,7 +1428,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     if (nodesByType.filters.length > 0) {
         html += `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">🔄 Filter</div>
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Filter</div>
                 <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
                     ${nodesByType.filters.map(p => createNode(p, false)).join('')}
                 </div>
@@ -1440,7 +1440,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     if (nodesByType.ica.length > 0) {
         html += `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">🧹 ICA</div>
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">ICA</div>
                 <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
                     ${nodesByType.ica.map(p => createNode(p, false)).join('')}
                 </div>
@@ -1452,7 +1452,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     if (nodesByType.epochs.length > 0) {
         html += `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">📊 Segment</div>
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Segment</div>
                 <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
                     ${nodesByType.epochs.map(p => createNode(p, false)).join('')}
                 </div>
@@ -1464,7 +1464,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     if (nodesByType.analyzers.length > 0) {
         html += `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">📈 Analyze</div>
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Analyze</div>
                 <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
                     ${nodesByType.analyzers.map(p => createNode(p, false)).join('')}
                 </div>
@@ -1476,7 +1476,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     if (nodesByType.stats.length > 0) {
         html += `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">📉 Statistics</div>
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Statistics</div>
                 <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
                     ${nodesByType.stats.map(p => createNode(p, false)).join('')}
                 </div>
@@ -1488,7 +1488,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     if (nodesByType.questionnaires.length > 0) {
         html += `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">📋 Survey</div>
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Survey</div>
                 <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
                     ${nodesByType.questionnaires.map(p => createNode(p, false)).join('')}
                 </div>
@@ -1500,7 +1500,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     if (nodesByType.concatenators.length > 0) {
         html += `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">🔗 Combine</div>
+                <div style="min-width: 100px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Combine</div>
                 <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center;">
                     ${nodesByType.concatenators.map(p => createNode(p, false)).join('')}
                 </div>
@@ -1628,7 +1628,7 @@ async function loadPlotFile(url, displayName, participant) {
     if (isVeryLargeFile) {
         sizeWarning = `
             <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 10px; margin-bottom: 15px; font-size: 0.85rem;">
-                <strong>⚠️ Large File Warning:</strong> This file is ${fileSizeMB} MB. Loading may take 1-2 minutes and requires significant memory.
+                <strong>Large File Warning:</strong> This file is ${fileSizeMB} MB. Loading may take 1-2 minutes and requires significant memory.
                 <br><span style="font-size: 0.8rem; color: #856404;">Data files are highly compressed but may still be large. Please be patient.</span>
             </div>
         `;
@@ -1687,13 +1687,13 @@ async function loadPlotFile(url, displayName, participant) {
         const progressEl = document.getElementById('load-progress');
         if (progressEl) progressEl.textContent = `Downloading ${fileSizeMB} MB...`;
         
-        const arrayBuffer = await fetchParquetData(url, fileSize);
+        const { rows } = await fetchParquetData(url, fileSize);
         
         // Update progress: parsing
         const downloadTime = ((Date.now() - startTime) / 1000).toFixed(1);
         if (progressEl) progressEl.textContent = `Downloaded in ${downloadTime}s. Parsing parquet data...`;
         
-        const plotlyData = await parquetToPlotly(arrayBuffer, displayName);
+        const plotlyData = await parquetToPlotly(rows, displayName);
         
         // Update progress: rendering
         if (progressEl) progressEl.textContent = `Rendering ${plotlyData.data.length} trace(s)...`;
@@ -1705,7 +1705,7 @@ async function loadPlotFile(url, displayName, participant) {
         const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
         const statusSpan = document.getElementById('load-status');
         if (statusSpan) {
-            statusSpan.textContent = `✅ Loaded in ${totalTime}s (${fileSizeMB} MB)`;
+            statusSpan.textContent = `Loaded in ${totalTime}s (${fileSizeMB} MB)`;
             statusSpan.style.color = 'var(--accent-primary, #28a745)';
         }
     } catch (error) {
@@ -1714,7 +1714,7 @@ async function loadPlotFile(url, displayName, participant) {
         const statusSpan = document.getElementById('load-status');
         
         if (statusSpan) {
-            statusSpan.textContent = '❌ Failed to load';
+            statusSpan.textContent = 'Failed to load';
             statusSpan.style.color = '#dc3545';
         }
         
@@ -1739,7 +1739,7 @@ async function loadPlotFile(url, displayName, participant) {
         
         chartDiv.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; padding: 40px; text-align: center;">
-                <p style="color: var(--text-secondary, #666); font-size: 1.1rem; margin-bottom: 10px;">⚠️ Error loading plot</p>
+                <p style="color: var(--text-secondary, #666); font-size: 1.1rem; margin-bottom: 10px;">Error loading plot</p>
                 <p style="color: var(--text-muted, #999); font-size: 0.9rem; max-width: 500px;">${errorDetails}</p>
                 <p style="color: var(--text-muted, #999); font-size: 0.85rem; margin-top: 15px; max-width: 500px;">
                     ${recommendations}
@@ -1922,7 +1922,7 @@ function renderFileTree(structure, append = false) {
     let html = `
         <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
             <span class="tree-folder-icon">▶</span>
-            <span>📁 ${repoName}</span>
+            <span>${repoName}</span>
         </div>
         <div class="tree-folder-content" style="margin-left: 10px;">
     `;
@@ -1932,7 +1932,7 @@ function renderFileTree(structure, append = false) {
         html += `
             <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
                 <span class="tree-folder-icon">▶</span>
-                <span>📂 ${participant}</span>
+                <span>${participant}</span>
                 <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${files.length})</span>
             </div>
             <div class="tree-folder-content" style="margin-left: 10px;">
@@ -1942,7 +1942,7 @@ function renderFileTree(structure, append = false) {
             const sizeKB = (file.size / 1024).toFixed(1);
             html += `
                 <div class="tree-item" onclick="loadPlotFile('${file.url}', '${file.name}', '${participant}')" data-filename="${file.name.toLowerCase()}">
-                    📊 ${file.name}
+                    ${file.name}
                     <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">
                         (${sizeKB}KB)
                     </span>
@@ -1987,7 +1987,7 @@ async function initAnalysisPage() {
     
     // Show loading state
     emptyState.innerHTML = `
-        <h2>🔍 Discovering Analysis Repositories...</h2>
+        <h2>Discovering Analysis Repositories...</h2>
         <p>Scanning GitHub for repositories with analysis results</p>
         <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #ddd; border-top: 4px solid #c9a227; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto;"></div>
     `;
@@ -2052,7 +2052,7 @@ async function initAnalysisPage() {
         
         if (loadedCount === 0) {
             emptyState.innerHTML = `
-                <h2>⚠️ Error Loading Repositories</h2>
+                <h2>Error Loading Repositories</h2>
                 <p>Found ${analysisRepos.length} repos but could not load their data</p>
             `;
         } else {
@@ -2069,7 +2069,7 @@ async function initAnalysisPage() {
     } catch (error) {
         console.error('[Analysis] Error initializing page:', error);
         emptyState.innerHTML = `
-            <h2>⚠️ Error Loading Data</h2>
+            <h2>Error Loading Data</h2>
             <p>Could not discover analysis repositories: ${error.message}</p>
             <p style="color: var(--text-secondary); font-size: 0.9em;">Check the console for details or try refreshing.</p>
         `;
