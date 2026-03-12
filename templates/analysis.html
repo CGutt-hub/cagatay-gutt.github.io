@@ -507,11 +507,16 @@
 </div>
 
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
-<script src="https://unpkg.com/parquetjs-lite@2.3.0/dist/parquetjs-lite.min.js" charset="utf-8"></script>
+<script type="module">
+// Load hyparquet (pure JS parquet reader) as ES module
+import { parquetRead, parquetMetadata } from 'https://cdn.jsdelivr.net/npm/hyparquet@1.25.1/+esm';
+window.hyparquetRead = parquetRead;
+window.hyparquetMetadata = parquetMetadata;
+console.log('[Analysis] hyparquet loaded successfully');
+</script>
 <script>
 // Debug: Check if libraries loaded
 console.log('[Analysis] Plotly loaded:', typeof Plotly !== 'undefined');
-console.log('[Analysis] Parquet loaded:', typeof parquet !== 'undefined');
 // Provide base URL to JS for asset resolution
 window.SITE_BASE_URL = "{{ config.base_url | safe }}";
 </script>

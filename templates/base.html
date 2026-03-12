@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+    <meta name="description" content="{% block description %}{{ config.description }}{% endblock description %}">
+    <link rel="canonical" href="{% block canonical %}{{ current_url | default(value=config.base_url) }}{% endblock canonical %}">
+    <meta property="og:title" content="{% block og_title %}{{ config.title }}{% endblock og_title %}">
+    <meta property="og:description" content="{% block og_description %}{{ config.description }}{% endblock og_description %}">
+    <meta property="og:url" content="{% block og_url %}{{ current_url | default(value=config.base_url) }}{% endblock og_url %}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ config.title }}">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{% block tw_title %}{{ config.title }}{% endblock tw_title %}">
+    <meta name="twitter:description" content="{% block tw_description %}{{ config.description }}{% endblock tw_description %}">
     <link rel="stylesheet" href="{{ get_url(path='style.css') }}">
     <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="{{ get_url(path='blog/atom.xml') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">

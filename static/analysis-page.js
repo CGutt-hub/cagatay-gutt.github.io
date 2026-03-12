@@ -1,9 +1,6 @@
 // Open Data Analysis Page JavaScript
 // Fetches and renders parquet files directly from GitHub repos
 
-// Check if parquet library is available on page load
-console.log('[Analysis] Script loaded. Parquet library status:', typeof parquet !== 'undefined' ? 'Available' : 'Not yet loaded');
-
 // Global variable for plot data (loaded from JSON)
 let plotsData = [];
 
@@ -25,45 +22,56 @@ function downloadPlotData(plotItem) {
     downloadJSON(plotItem, filename);
 }
 
-// Fetch and parse parquet file from GitHub repo
-// Supports two call signatures:
-//   fetchParquetData(repoName, filePath) - legacy format
-//   fetchParquetData(url, fileSize) - when url is provided directly with optional file size
+// Wait for hyparquet to be available (loaded as ES module in analysis.html)
+async function waitForHyparquet() {
+    if (window.hyparquetRead) return;
+    console.log('[Analysis] Waiting for hyparquet to load...');
+    await new Promise((resolve, reject) => {
+        const start = Date.now();
+        const check = setInterval(() => {
+            if (window.hyparquetRead) { clearInterval(check); resolve(); }
+            else if (Date.now() - start > 15000) { clearInterval(check); reject(new Error('hyparquet library failed to load after 15s. Check internet connection.')); }
+        }, 100);
+    });
+}
+
+// Parse an ArrayBuffer containing a parquet file into row objects using hyparquet
+async function parseParquetBuffer(arrayBuffer) {
+    await waitForHyparquet();
+    const metadata = window.hyparquetMetadata(arrayBuffer);
+    const columnNames = metadata.schema.slice(1).map(s => s.name); // skip root schema element
+    let rawRows = [];
+    await window.hyparquetRead({
+        file: arrayBuffer,
+        metadata: metadata,
+        onComplete: data => { rawRows = data; }
+    });
+    // Convert from array-of-arrays to array-of-objects
+    return rawRows.map(row => {
+        const obj = {};
+        for (let i = 0; i < columnNames.length; i++) {
+            obj[columnNames[i]] = row[i];
+        }
+        return obj;
+    });
+}
+
+// Fetch and parse parquet file from GitHub repo using hyparquet
 async function fetchParquetData(repoNameOrUrl, filePathOrSize = null) {
     console.log('[Analysis] fetchParquetData called:', { repoNameOrUrl, filePathOrSize });
     
     try {
-        // Construct raw GitHub URL
         const url = typeof filePathOrSize === 'string'
             ? `https://raw.githubusercontent.com/CGutt-hub/${repoNameOrUrl}/main/${filePathOrSize}`
             : repoNameOrUrl;
         
         const fileSize = typeof filePathOrSize === 'number' ? filePathOrSize : 0;
         
-        console.log('[Analysis] Will fetch from URL:', url);
-        console.log('[Analysis] File size estimate:', fileSize, 'bytes');
-        
-        // Check available memory (if supported)
-        if (performance && performance.memory) {
-            const memoryInfo = performance.memory;
-            const usedMemoryMB = memoryInfo.usedJSHeapSize / (1024 * 1024);
-            const limitMemoryMB = memoryInfo.jsHeapSizeLimit / (1024 * 1024);
-            const availableMemoryMB = limitMemoryMB - usedMemoryMB;
-            const fileSizeMB = fileSize / (1024 * 1024);
-            
-            console.log(`[Analysis] Memory check: ${usedMemoryMB.toFixed(0)}MB used, ${availableMemoryMB.toFixed(0)}MB available, file is ${fileSizeMB.toFixed(1)}MB`);
-            
-            // Warn if file is more than 50% of available memory
-            if (fileSizeMB > availableMemoryMB * 0.5) {
-                console.warn('[Analysis] Large file relative to available memory - may cause performance issues');
-            }
-        }
-        
         console.log('[Analysis] Fetching:', url);
         
-        // Fetch the file with timeout for large files
+        // Fetch with timeout
         const controller = new AbortController();
-        const timeoutDuration = fileSize > 50 * 1024 * 1024 ? 120000 : 60000; // 2min for large files, 1min otherwise
+        const timeoutDuration = fileSize > 50 * 1024 * 1024 ? 120000 : 60000;
         const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
         
         const response = await fetch(url, { signal: controller.signal });
@@ -73,67 +81,20 @@ async function fetchParquetData(repoNameOrUrl, filePathOrSize = null) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
-        const contentLength = response.headers.get('content-length');
-        if (contentLength) {
-            console.log(`[Analysis] File size: ${(parseInt(contentLength) / 1024 / 1024).toFixed(2)} MB`);
-        }
-        
         const arrayBuffer = await response.arrayBuffer();
         console.log(`[Analysis] Downloaded ${(arrayBuffer.byteLength / 1024 / 1024).toFixed(2)} MB`);
         
-        // Wait for parquet library to load
-        if (typeof parquet === 'undefined') {
-            console.log('[Analysis] Parquet library not loaded yet, waiting...');
-            await new Promise(resolve => {
-                const checkInterval = setInterval(() => {
-                    if (typeof parquet !== 'undefined') {
-                        console.log('[Analysis] Parquet library loaded successfully');
-                        clearInterval(checkInterval);
-                        resolve();
-                    }
-                }, 100);
-                setTimeout(() => {
-                    clearInterval(checkInterval);
-                    console.warn('[Analysis] Parquet library loading timeout after 10s');
-                    resolve();
-                }, 10000); // Increased timeout to 10s for slow connections
-            });
-        }
-        
-        // Check if parquet library is available
-        if (typeof parquet === 'undefined') {
-            throw new Error('Parquet library failed to load. Please check your internet connection and try refreshing the page.');
-        }
-        
-        // Parse parquet file
-        console.log('[Analysis] Parsing parquet file with parquet.ParquetReader');
-        const parseStartTime = Date.now();
-        const reader = await parquet.ParquetReader.openBuffer(new Uint8Array(arrayBuffer));
-        const cursor = reader.getCursor();
-        const rows = [];
-        let record = null;
-        let rowCount = 0;
-        
-        // Read rows with periodic progress logging for large files
-        while (record = await cursor.next()) {
-            rows.push(record);
-            rowCount++;
-            
-            // Log progress every 10000 rows for large files
-            if (rowCount % 10000 === 0 && fileSize > 10 * 1024 * 1024) {
-                console.log(`[Analysis] Parsed ${rowCount} rows...`);
-            }
-        }
-        
-        await reader.close();
-        
-        const parseTime = ((Date.now() - parseStartTime) / 1000).toFixed(1);
-        console.log(`[Analysis] Parsed ${rowCount} rows in ${parseTime}s`);
+        // Parse with hyparquet
+        console.log('[Analysis] Parsing parquet file with hyparquet');
+        const parseStart = Date.now();
+        const rows = await parseParquetBuffer(arrayBuffer);
+        const parseTime = ((Date.now() - parseStart) / 1000).toFixed(1);
+        console.log(`[Analysis] Parsed ${rows.length} rows in ${parseTime}s`);
         
         return { rows, arrayBuffer };
     } catch (error) {
         if (error.name === 'AbortError') {
-            throw new Error('Download timeout - file is too large or connection too slow. Please try again or use a smaller file.');
+            throw new Error('Download timeout - file is too large or connection too slow.');
         }
         console.error('Error fetching/parsing parquet:', error);
         throw error;
@@ -141,25 +102,13 @@ async function fetchParquetData(repoNameOrUrl, filePathOrSize = null) {
 }
 
 // Convert parquet data to Plotly format
-// Supports two call signatures:
-//   parquetToPlotly(rows) - when rows are already parsed
-//   parquetToPlotly(arrayBuffer, title) - when arrayBuffer needs parsing
 async function parquetToPlotly(rowsOrBuffer, title = null) {
     let rows;
     
     // Handle arrayBuffer input (parse it first)
     if (rowsOrBuffer instanceof ArrayBuffer || ArrayBuffer.isView(rowsOrBuffer)) {
-        if (typeof parquet === 'undefined') {
-            throw new Error('Parquet library not loaded yet');
-        }
-        const reader = await parquet.ParquetReader.openBuffer(new Uint8Array(rowsOrBuffer));
-        const cursor = reader.getCursor();
-        rows = [];
-        let record = null;
-        while (record = await cursor.next()) {
-            rows.push(record);
-        }
-        await reader.close();
+        const buf = rowsOrBuffer instanceof ArrayBuffer ? rowsOrBuffer : rowsOrBuffer.buffer;
+        rows = await parseParquetBuffer(buf);
     } else {
         rows = rowsOrBuffer;
     }
@@ -1362,6 +1311,13 @@ function cloneSvgForPrint() {
     if (!svg) return null;
     const clone = svg.cloneNode(true);
     clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    // Set explicit pixel width from viewBox for export
+    const vb = clone.getAttribute('viewBox');
+    if (vb) {
+        const parts = vb.split(/\s+/);
+        clone.setAttribute('width', parts[2]);
+        clone.setAttribute('height', parts[3]);
+    }
     // Background: white
     const bg = clone.querySelector('rect');
     if (bg) bg.setAttribute('fill', '#ffffff');
@@ -1369,7 +1325,10 @@ function cloneSvgForPrint() {
     const marker = clone.querySelector('#dag-arrow path');
     if (marker) marker.setAttribute('fill', '#999');
     // Edges: medium gray
-    clone.querySelectorAll('path[marker-end]').forEach(p => p.setAttribute('stroke', '#bbb'));
+    clone.querySelectorAll('path[marker-end]').forEach(p => {
+        p.setAttribute('stroke', '#bbb');
+        p.setAttribute('stroke-opacity', '1');
+    });
     // Nodes and text
     const rects = clone.querySelectorAll('rect[rx]');
     const texts = clone.querySelectorAll('text');
@@ -1524,42 +1483,51 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     }
     const sortedLayers = Array.from(layerGroups.keys()).sort((a, b) => a - b);
 
-    // Node dimensions
-    const nodeH = 24;
-    const hGap = 14;
-    const vGap = 42;
-    const padX = 16;
-    const padY = 16;
+    // Node dimensions — compact layout
+    const nodeH = 20;
+    const hGap = 8;
+    const vGap = 32;
+    const padX = 12;
+    const padY = 12;
+    const maxRowWidth = 900; // wrap layers wider than this
+    const fontSize = 7.5;
     const nodeWidths = new Map();
     for (const p of processes) {
         const label = p.count > 1 ? p.displayName + ' x' + p.count : p.displayName;
-        nodeWidths.set(p.name, Math.max(64, label.length * 5.8 + 18));
+        nodeWidths.set(p.name, Math.max(50, label.length * 4.5 + 14));
     }
 
-    // Position nodes, center each layer
+    // Position nodes — wrap long layers into sub-rows
     const positions = new Map();
     let maxLayerW = 0;
-    const layerWidths = new Map();
+    let totalLayerRows = 0; // track total sub-rows for height calc
+    const layerStartRow = new Map(); // layer index -> starting sub-row
+
     for (const li of sortedLayers) {
+        layerStartRow.set(li, totalLayerRows);
         const nodes = layerGroups.get(li);
-        let totalW = 0;
-        for (const p of nodes) totalW += nodeWidths.get(p.name);
-        totalW += (nodes.length - 1) * hGap;
-        layerWidths.set(li, totalW);
-        if (totalW > maxLayerW) maxLayerW = totalW;
-    }
-    const svgW = maxLayerW + padX * 2;
-    for (const li of sortedLayers) {
-        const nodes = layerGroups.get(li);
-        const y = padY + li * (nodeH + vGap);
-        let x = padX + (maxLayerW - layerWidths.get(li)) / 2;
+        // Sort nodes alphabetically within layer for consistency
+        nodes.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+        let subRow = 0;
+        let x = padX;
         for (const p of nodes) {
             const w = nodeWidths.get(p.name);
+            if (x > padX && x + w > maxRowWidth) {
+                // Wrap to next sub-row
+                subRow++;
+                x = padX;
+            }
+            const y = padY + (totalLayerRows + subRow) * (nodeH + vGap);
             positions.set(p.name, { x, y, w, h: nodeH });
             x += w + hGap;
+            if (x - hGap > maxLayerW) maxLayerW = x - hGap;
         }
+        totalLayerRows += subRow + 1;
     }
-    const svgH = padY * 2 + sortedLayers.length * (nodeH + vGap) - vGap;
+
+    const svgW = Math.max(maxLayerW + padX, 400);
+    const svgH = padY * 2 + totalLayerRows * (nodeH + vGap) - vGap;
 
     // Read CSS custom properties for theme-aware SVG
     const cs = getComputedStyle(document.documentElement);
@@ -1575,11 +1543,12 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     // Build SVG
     let svg = '';
     svg += '<svg id="pipeline-dag-svg" xmlns="http://www.w3.org/2000/svg" ';
-    svg += 'width="' + svgW + '" height="' + svgH + '" ';
+    svg += 'width="100%" height="' + svgH + '" ';
     svg += 'viewBox="0 0 ' + svgW + ' ' + svgH + '" ';
+    svg += 'preserveAspectRatio="xMinYMin meet" ';
     svg += "style=\"font-family:'Segoe UI',Helvetica,Arial,sans-serif;\">";
     svg += '<rect width="' + svgW + '" height="' + svgH + '" fill="' + thBg + '"/>';
-    svg += '<defs><marker id="dag-arrow" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="7" markerHeight="6" orient="auto">';
+    svg += '<defs><marker id="dag-arrow" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="5" markerHeight="4" orient="auto">';
     svg += '<path d="M0,0 L10,4 L0,8 z" fill="' + thMuted + '"/></marker></defs>';
 
     // Edges
@@ -1590,7 +1559,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
         const x1 = from.x + from.w / 2, y1 = from.y + from.h;
         const x2 = to.x + to.w / 2, y2 = to.y;
         const cy1 = y1 + (y2 - y1) * 0.4, cy2 = y1 + (y2 - y1) * 0.6;
-        svg += '<path d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + cy1 + ' ' + x2 + ',' + cy2 + ' ' + x2 + ',' + y2 + '" fill="none" stroke="' + thEdge + '" stroke-width="1" marker-end="url(#dag-arrow)"/>';
+        svg += '<path d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + cy1 + ' ' + x2 + ',' + cy2 + ' ' + x2 + ',' + y2 + '" fill="none" stroke="' + thEdge + '" stroke-width="0.7" stroke-opacity="0.6" marker-end="url(#dag-arrow)"/>';
     }
 
     // Nodes
@@ -1604,7 +1573,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
         const fw = isProd ? 'bold' : 'normal';
         const label = p.count > 1 ? p.displayName + ' x' + p.count : p.displayName;
         svg += '<rect x="' + pos.x + '" y="' + pos.y + '" width="' + pos.w + '" height="' + pos.h + '" rx="3" ry="3" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + sw + '"/>';
-        svg += '<text x="' + (pos.x + pos.w / 2) + '" y="' + (pos.y + pos.h / 2 + 3.5) + '" text-anchor="middle" font-size="9" font-weight="' + fw + '" fill="' + thText + '">' + label + '</text>';
+        svg += '<text x="' + (pos.x + pos.w / 2) + '" y="' + (pos.y + pos.h / 2 + 3) + '" text-anchor="middle" font-size="' + fontSize + '" font-weight="' + fw + '" fill="' + thText + '">' + label + '</text>';
         if (p.failed) {
             svg += '<line x1="' + pos.x + '" y1="' + pos.y + '" x2="' + (pos.x + pos.w) + '" y2="' + (pos.y + pos.h) + '" stroke="#c00" stroke-width="1" opacity="0.5"/>';
         }
@@ -1619,7 +1588,7 @@ function generatePipelineTreeHTML(filename, pipelineData) {
         + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + processes.length + ' modules, ' + edges.length + ' connections</span>'
         + '</div>'
         + '<div style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd);">'
-        + '<div style="overflow-x: auto; overflow-y: auto; max-height: 500px;">' + svg + '</div>'
+        + '<div style="overflow-x: auto; overflow-y: auto; max-height: 600px;">' + svg + '</div>'
         + '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
         + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
         + 'Highlighted: module likely produced this file'
