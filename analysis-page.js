@@ -2157,17 +2157,92 @@ async function loadPlotFile(url, displayName, participant) {
     }
 }
 
-// Print-friendly layout overrides for Plotly exports
-// Export plots as-is (keep the colorful theme)
-async function exportPlotDirect(plotDiv, exportFn) {
-    await exportFn();
+// Grayscale color palette for print-friendly exports
+const PRINT_GRAYS = [
+    '#222222', '#666666', '#999999', '#444444', '#bbbbbb',
+    '#333333', '#777777', '#555555', '#aaaaaa', '#888888',
+];
+
+// Apply print-friendly layout overrides and export, then restore original
+async function exportPlotWithPrintLayout(plotDiv, exportFn) {
+    // Capture current layout
+    const origLayout = JSON.parse(JSON.stringify(plotDiv.layout || {}));
+    const origData = plotDiv.data ? plotDiv.data.map(t => ({
+        'marker.color': t.marker?.color,
+        'marker.line.color': t.marker?.line?.color,
+        'error_y.color': t.error_y?.color,
+        'line.color': t.line?.color,
+    })) : [];
+
+    // Apply grayscale trace colors
+    const traceUpdates = {};
+    if (plotDiv.data) {
+        for (let i = 0; i < plotDiv.data.length; i++) {
+            const gray = PRINT_GRAYS[i % PRINT_GRAYS.length];
+            traceUpdates[i] = { 'marker.color': gray, 'marker.line.color': gray, 'line.color': gray };
+            if (plotDiv.data[i].error_y) traceUpdates[i]['error_y.color'] = '#555';
+        }
+        for (const [idx, updates] of Object.entries(traceUpdates)) {
+            await Plotly.restyle(plotDiv, updates, [parseInt(idx)]);
+        }
+    }
+
+    // Apply white background + dark text layout
+    await Plotly.relayout(plotDiv, {
+        'paper_bgcolor': '#ffffff',
+        'plot_bgcolor': '#ffffff',
+        'font.color': '#222222',
+        'title.font.color': '#222222',
+        'xaxis.tickfont.color': '#222222',
+        'xaxis.title.font.color': '#222222',
+        'xaxis.gridcolor': '#ddd',
+        'xaxis.linecolor': '#999',
+        'yaxis.tickfont.color': '#222222',
+        'yaxis.title.font.color': '#222222',
+        'yaxis.gridcolor': '#ddd',
+        'yaxis.linecolor': '#999',
+        'legend.font.color': '#222222',
+    });
+
+    try {
+        await exportFn();
+    } finally {
+        // Restore original trace colors
+        if (plotDiv.data) {
+            for (let i = 0; i < origData.length; i++) {
+                const restore = {};
+                if (origData[i]['marker.color'] !== undefined) restore['marker.color'] = origData[i]['marker.color'];
+                if (origData[i]['marker.line.color'] !== undefined) restore['marker.line.color'] = origData[i]['marker.line.color'];
+                if (origData[i]['error_y.color'] !== undefined) restore['error_y.color'] = origData[i]['error_y.color'];
+                if (origData[i]['line.color'] !== undefined) restore['line.color'] = origData[i]['line.color'];
+                if (Object.keys(restore).length > 0) await Plotly.restyle(plotDiv, restore, [i]);
+            }
+        }
+
+        // Restore original layout
+        await Plotly.relayout(plotDiv, {
+            'paper_bgcolor': origLayout.paper_bgcolor || '#161616',
+            'plot_bgcolor': origLayout.plot_bgcolor || '#161616',
+            'font.color': origLayout.font?.color || '#e8e8e8',
+            'title.font.color': origLayout.title?.font?.color || '#e8e8e8',
+            'xaxis.tickfont.color': origLayout.xaxis?.tickfont?.color || '#e8e8e8',
+            'xaxis.title.font.color': origLayout.xaxis?.title?.font?.color || '#e8e8e8',
+            'xaxis.gridcolor': origLayout.xaxis?.gridcolor || '#2a2a2a',
+            'xaxis.linecolor': origLayout.xaxis?.linecolor || '#2a2a2a',
+            'yaxis.tickfont.color': origLayout.yaxis?.tickfont?.color || '#e8e8e8',
+            'yaxis.title.font.color': origLayout.yaxis?.title?.font?.color || '#e8e8e8',
+            'yaxis.gridcolor': origLayout.yaxis?.gridcolor || '#2a2a2a',
+            'yaxis.linecolor': origLayout.yaxis?.linecolor || '#2a2a2a',
+            'legend.font.color': origLayout.legend?.font?.color || '#e8e8e8',
+        });
+    }
 }
 
-// Export functions for plot downloads (print-friendly grayscale)
+// Export functions for plot downloads (print-friendly grayscale on white)
 function exportPlotAsPNG(plotId) {
     const plotDiv = document.getElementById(plotId);
     if (!plotDiv) return;
-    exportPlotDirect(plotDiv, () =>
+    exportPlotWithPrintLayout(plotDiv, () =>
         Plotly.downloadImage(plotDiv, {
             format: 'png',
             width: 1920,
@@ -2180,7 +2255,7 @@ function exportPlotAsPNG(plotId) {
 function exportPlotAsSVG(plotId) {
     const plotDiv = document.getElementById(plotId);
     if (!plotDiv) return;
-    exportPlotDirect(plotDiv, () =>
+    exportPlotWithPrintLayout(plotDiv, () =>
         Plotly.downloadImage(plotDiv, {
             format: 'svg',
             filename: 'analysis_plot'
@@ -2188,18 +2263,43 @@ function exportPlotAsSVG(plotId) {
     );
 }
 
-function exportPlotAsPDF(plotId, participant, displayName) {
+async function exportPlotAsPDF(plotId, participant, displayName) {
     const plotDiv = document.getElementById(plotId);
     if (!plotDiv) return;
-    const filename = `${participant}_${displayName.replace(/\s+/g, '_')}`;
-    exportPlotDirect(plotDiv, () =>
-        Plotly.downloadImage(plotDiv, {
-            format: 'pdf',
-            width: 1920,
-            height: 1080,
-            filename: filename
-        })
-    );
+    const filename = `${participant}_${(displayName || 'plot').replace(/\s+/g, '_').replace(/\.parquet$/i, '')}`;
+
+    await exportPlotWithPrintLayout(plotDiv, async () => {
+        // Render to PNG first (Plotly PDF export is unreliable in many browsers)
+        const dataUrl = await Plotly.toImage(plotDiv, { format: 'png', width: 1920, height: 1080 });
+        const pngBytes = Uint8Array.from(atob(dataUrl.split(',')[1]), c => c.charCodeAt(0));
+
+        // Wait for pdf-lib
+        if (typeof PDFLib === 'undefined') {
+            await new Promise(resolve => {
+                const check = setInterval(() => { if (typeof PDFLib !== 'undefined') { clearInterval(check); resolve(); } }, 100);
+            });
+        }
+        const { PDFDocument } = PDFLib;
+        const pdfDoc = await PDFDocument.create();
+        const pngImage = await pdfDoc.embedPng(pngBytes);
+        const pageW = 842, pageH = 595; // A4 landscape
+        const page = pdfDoc.addPage([pageW, pageH]);
+        const margin = 30;
+        const maxW = pageW - margin * 2, maxH = pageH - margin * 2;
+        const scale = Math.min(maxW / pngImage.width, maxH / pngImage.height, 1);
+        const drawW = pngImage.width * scale, drawH = pngImage.height * scale;
+        const x = margin + (maxW - drawW) / 2;
+        page.drawImage(pngImage, { x, y: pageH - margin - drawH, width: drawW, height: drawH });
+        pdfDoc.setTitle(filename);
+        pdfDoc.setCreator('Open Data - 5ha99y');
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename + '.pdf';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    });
 }
 
 // Initialize page: data is already loaded via window.plotsData
