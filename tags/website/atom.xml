@@ -26,11 +26,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/website-update/">&lt;p&gt;This website has been updated with the following changes:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-changes&quot;&gt;Recent Changes&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;5f24073&lt;&#x2F;code&gt; Style scrollbars to match dark&#x2F;light theme&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;e29c2c9&lt;&#x2F;code&gt; Clean line breaks in filenames at underscores and dots&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;52964cf&lt;&#x2F;code&gt; Wrap long filenames in sidebar, remove horizontal scrollbar&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;8c020cc&lt;&#x2F;code&gt; Event-driven deploy: check repos every 15min, build only on changes&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;c35fc8e&lt;&#x2F;code&gt; Show file size in KB for small files, MB for large&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;b81e244&lt;&#x2F;code&gt; Add drag-to-pan, remove scrollbars from pipeline, support L2 zoom&#x2F;pan&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The site continues to sync automatically with GitHub (projects) and ORCID (publications).&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;5ha99y&quot;&gt;View source on GitHub →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
