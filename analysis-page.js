@@ -2540,9 +2540,11 @@ function renderFileTree(structure, append = false) {
         
         files.forEach(file => {
             const sizeKB = (file.size / 1024).toFixed(1);
+            // Insert <wbr> after underscores and before dots for clean line breaks
+            const displayName = file.name.replace(/_/g, '_<wbr>').replace(/\./g, '<wbr>.');
             html += `
                 <div class="tree-item" onclick="loadPlotFile('${file.url}', '${file.name}', '${participant}')" data-filename="${file.name.toLowerCase()}">
-                    ${file.name}
+                    ${displayName}
                     <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">
                         (${sizeKB}KB)
                     </span>
