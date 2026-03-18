@@ -2492,6 +2492,7 @@ async function discoverAnalysisRepos(username) {
                     analysisRepos.push({
                         owner: username,
                         name: repo.name,
+                        description: repo.description || '',
                         resultsDir: dir,
                         participants: participants
                     });
@@ -2514,17 +2515,25 @@ function renderFileTree(structure, append = false) {
     console.log('[Analysis] Rendering file tree for:', structure.repoName, 'append:', append);
     
     const fileTree = document.getElementById('file-tree');
-    const { repoName, participants } = structure;
+    const { repoName, repoOwner, description, participants } = structure;
     
     const participantKeys = Object.keys(participants).sort();
+    const infoId = 'repo-info-' + repoName.replace(/[^a-zA-Z0-9]/g, '_');
     
-    // Build tree HTML: Project > Participants > Files
+    // Build tree HTML: Project > Info + Participants > Files
     let html = `
         <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
             <span class="tree-folder-icon">▶</span>
             <span>${repoName}</span>
         </div>
         <div class="tree-folder-content" style="margin-left: 10px;">
+            <div class="tree-item" onclick="toggleRepoInfo('${infoId}', '${repoOwner}', '${repoName}')" style="font-style: italic; color: var(--accent-primary, #c9a227); font-size: 0.82rem; cursor: pointer;">
+                ℹ Project Info
+            </div>
+            <div id="${infoId}" style="display: none; padding: 8px 12px; font-size: 0.8rem; color: var(--text-secondary, #aaa); border-left: 2px solid var(--accent-primary, #c9a227); margin: 4px 0 8px 0; max-height: 300px; overflow-y: auto;">
+                ${description ? '<p style="margin-bottom: 6px;">' + description + '</p>' : ''}
+                <div id="${infoId}-readme" style="color: var(--text-muted, #999); font-size: 0.78rem;">Loading README...</div>
+            </div>
     `;
     
     participantKeys.forEach(participant => {
@@ -2596,6 +2605,7 @@ function loadReposFromData(analysisRepos, emptyState) {
         const structure = {
             repoName: repoConfig.name,
             repoOwner: repoConfig.owner,
+            description: repoConfig.description || '',
             resultsDir: repoConfig.resultsDir,
             participants: repoConfig.participants
         };
@@ -2811,9 +2821,42 @@ document.addEventListener('wheel', function(e) {
     });
 })();
 
+// Toggle project info panel and lazy-load README
+function toggleRepoInfo(infoId, owner, repoName) {
+    var panel = document.getElementById(infoId);
+    if (!panel) return;
+    var visible = panel.style.display !== 'none';
+    panel.style.display = visible ? 'none' : 'block';
+    if (!visible && !panel.dataset.loaded) {
+        panel.dataset.loaded = '1';
+        var readmeEl = document.getElementById(infoId + '-readme');
+        fetch('https://raw.githubusercontent.com/' + owner + '/' + repoName + '/main/README.md')
+            .then(function(r) { return r.ok ? r.text() : null; })
+            .then(function(text) {
+                if (!text) { readmeEl.textContent = 'No README available.'; return; }
+                // Simple markdown to HTML: headings, bold, italic, links, lists, code blocks
+                var html = text
+                    .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/^### (.+)$/gm, '<strong style="font-size:0.85rem;">$1</strong>')
+                    .replace(/^## (.+)$/gm, '<strong style="font-size:0.9rem;">$1</strong>')
+                    .replace(/^# (.+)$/gm, '<strong style="font-size:0.95rem;">$1</strong>')
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                    .replace(/`([^`]+)`/g, '<code style="background:var(--bg-tertiary,#1c1c1c);padding:1px 4px;border-radius:3px;font-size:0.78rem;">$1</code>')
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--accent-primary,#c9a227);">$1</a>')
+                    .replace(/^\- (.+)$/gm, '• $1')
+                    .replace(/\n\n/g, '<br><br>')
+                    .replace(/\n/g, '<br>');
+                readmeEl.innerHTML = html;
+            })
+            .catch(function() { readmeEl.textContent = 'Could not load README.'; });
+    }
+}
+
 // Expose functions to global scope for inline onclick handlers
 window.loadPlotFile = loadPlotFile;
 window.toggleFolder = toggleFolder;
+window.toggleRepoInfo = toggleRepoInfo;
 window.exportPlotAsPNG = exportPlotAsPNG;
 window.exportPlotAsSVG = exportPlotAsSVG;
 window.exportPlotAsPDF = exportPlotAsPDF;

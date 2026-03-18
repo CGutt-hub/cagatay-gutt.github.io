@@ -51,11 +51,11 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/website-update/">&lt;p&gt;This website has been updated with the following changes:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-changes&quot;&gt;Recent Changes&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;c946218&lt;&#x2F;code&gt; Add project info dropdown with README in Open Data sidebar&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;9b02745&lt;&#x2F;code&gt; Use Actions cache for snapshot state, no repo commits&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;7aa1dbd&lt;&#x2F;code&gt; Fix: force-add repo_snapshots.json (ignored by .gitignore)&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;23776c8&lt;&#x2F;code&gt; Fix scrollbar styling: move Firefox rules after :root vars&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;5f24073&lt;&#x2F;code&gt; Style scrollbars to match dark&#x2F;light theme&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;e29c2c9&lt;&#x2F;code&gt; Clean line breaks in filenames at underscores and dots&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The site continues to sync automatically with GitHub (projects) and ORCID (publications).&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;5ha99y&quot;&gt;View source on GitHub →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
