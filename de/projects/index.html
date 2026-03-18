@@ -66,6 +66,305 @@
     <div class="content">
         <p><em>Aktive Entwicklungsprojekte via <a rel="external" href="https://github.com/CGutt-hub">GitHub</a>. Mein offenes Backoffice für kollaborative Wissenschaft.</em></p>
 <hr />
+<h3 id="labouraivolt">labourAIVolt</h3>
+<p><strong>Sprache:</strong> Python<br />
+<strong>Zuletzt aktualisiert:</strong> 2026-03-18</p>
+<details>
+<summary>README anzeigen</summary>
+<h1 id="labouraivolt-ai-human-labour-displacement-analysis-for-volt">labourAIVolt: AI &amp; Human Labour Displacement Analysis for Volt</h1>
+<p><a rel="external" href="https://github.com/CGutt-hub/labourAIVolt/actions/workflows/lav_analysis.yml"><img src="https://github.com/CGutt-hub/labourAIVolt/actions/workflows/lav_analysis.yml/badge.svg" alt="LAV Analysis" /></a></p>
+<p>This repository hosts a <strong>Nextflow + Python analysis pipeline</strong> that automatically
+fetches current labour-market data from the
+<a rel="external" href="https://datahelpdesk.worldbank.org/knowledgebase/articles/889392">World Bank public API</a>
+and quantifies <strong>AI-driven labour displacement</strong> across the six Volt EU countries with
+the most active chapters — Germany, France, the Netherlands, Belgium, Italy, and Spain.</p>
+<p>The aim is to give <a rel="external" href="https://www.volteuropa.org/">Volt Europa</a> and its national chapters
+an evidence base for labour-market and technology policy: <em>which sectors are shedding jobs
+fastest as AI and automation accelerate, which countries are most exposed, and how does
+digital readiness moderate that exposure?</em></p>
+<p>The pipeline is architecturally modelled after the
+<strong><a rel="external" href="https://github.com/CGutt-hub/EmotiView">EmotiView</a></strong> project and extends the
+<strong><a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">AnalysisToolbox</a></strong> modular Nextflow
+framework for scalable, reproducible analysis with automatic result synchronisation.</p>
+<table><thead><tr><th>Platform</th><th>Role</th><th>Contents</th></tr></thead><tbody>
+<tr><td><strong><a rel="external" href="https://github.com/CGutt-hub/labourAIVolt">GitHub</a></strong></td><td>Technical implementation</td><td>Pipeline, scripts, results</td></tr>
+<tr><td><strong>World Bank API</strong></td><td>Data source</td><td>Live labour-market indicators</td></tr>
+</tbody></table>
+<hr />
+<h2 id="research-background">Research Background</h2>
+<p>The labour-market impact of AI and automation is one of the defining policy challenges
+of the 2020s. Early projections (Frey &amp; Osborne, 2013) estimated that up to 47 % of US
+jobs faced high computerisation risk; subsequent analyses have moderated that figure while
+broadening it to task-level disruption rather than wholesale job destruction. What is clear
+is that the <em>pace</em> and <em>sector distribution</em> of displacement vary substantially across
+countries depending on industrial structure, education levels, and digital infrastructure.</p>
+<p>For a pan-European political movement like Volt, the relevant questions are:</p>
+<ol>
+<li><strong>Which EU sectors show the clearest employment decline correlated with automation?</strong></li>
+<li><strong>Are Volt's home countries converging toward or diverging from each other on displacement pressure?</strong></li>
+<li><strong>Does a country's digital readiness (internet penetration, high-tech exports) buffer it against displacement?</strong></li>
+<li><strong>Where should Volt's labour policy — reskilling funds, working-time reform, Universal Basic Income pilots — be concentrated first?</strong></li>
+</ol>
+<p>This pipeline operationalises those questions with reproducible, automatically updated data.</p>
+<hr />
+<h2 id="core-research-questions-hypotheses">Core Research Questions &amp; Hypotheses</h2>
+<ol>
+<li>
+<p><strong>Sector displacement ordering</strong>: Industry and agriculture will show larger negative
+employment-share trends than services, consistent with higher Frey &amp; Osborne automation
+risk for routine physical/cognitive tasks.</p>
+</li>
+<li>
+<p><strong>Cross-country heterogeneity</strong>: Countries with larger manufacturing sectors (Germany,
+Italy) will exhibit higher AI Displacement Pressure Index (ADPI) than service-dominant
+economies (Netherlands, Belgium).</p>
+</li>
+<li>
+<p><strong>Digitalization buffer</strong>: Countries with higher Digitalization Readiness Scores
+(internet penetration + high-tech export share) will show lower net Vulnerability Scores,
+suggesting that digital transformation simultaneously creates displacement <em>and</em> provides
+adaptive capacity.</p>
+</li>
+<li>
+<p><strong>Temporal acceleration</strong>: Employment-share trends will steepen post-2018 as AI adoption
+accelerates across all three sectors, visible as a structural break in the time-series.</p>
+</li>
+</ol>
+<hr />
+<h2 id="analysis-pipeline">Analysis Pipeline</h2>
+<p>The pipeline is built on the
+<strong><a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">AnalysisToolbox</a></strong> — a modular Nextflow
+framework for scalable, reproducible data processing with automatic result synchronisation.
+The LAV-specific pipeline in <code>LAV_analysis/</code> extends this framework to:</p>
+<ul>
+<li>Discover country datasets and create per-country output directories (L1).</li>
+<li>Fetch and parse live labour-market time-series from the World Bank API.</li>
+<li>Perform standardised normalisation and cleaning.</li>
+<li>Extract displacement signals and automation-risk-weighted scores per sector.</li>
+<li>Fit time-series trend models to all available indicators.</li>
+<li>Aggregate across countries into cross-country rankings and Volt policy metrics (L2).</li>
+</ul>
+<p>Configuration is managed via <code>LAV_analysis/LAV_parameters.config</code>.
+See the <a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">AnalysisToolbox documentation</a>
+for framework details.</p>
+<h3 id="pipeline-steps">Pipeline steps</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>L1 (per country)</span></span>
+<span class="giallo-l"><span>┌─────────────────────────────────────────────────────────────────────┐</span></span>
+<span class="giallo-l"><span>│  api_reader              Fetch 13 World Bank indicators (2010–2023) │</span></span>
+<span class="giallo-l"><span>│       ↓                                                             │</span></span>
+<span class="giallo-l"><span>│  normalizing_processor   Pivot long→wide; sort; deduplicate         │</span></span>
+<span class="giallo-l"><span>│       ↓              ↘                                              │</span></span>
+<span class="giallo-l"><span>│  displacement_analyzer   trend_analyzer                             │</span></span>
+<span class="giallo-l"><span>│  sector scores ×         OLS slope + p-value + R²                  │</span></span>
+<span class="giallo-l"><span>│  Frey &amp; Osborne risk     per indicator                              │</span></span>
+<span class="giallo-l"><span>└─────────────────────────────────────────────────────────────────────┘</span></span>
+<span class="giallo-l"><span>       ↓ collect all countries</span></span>
+<span class="giallo-l"><span>L2 (cross-country)</span></span>
+<span class="giallo-l"><span>┌─────────────────────────────────────────────────────────────────────┐</span></span>
+<span class="giallo-l"><span>│  volt_report_analyzer    Displacement ranking · ADPI · DRS          │</span></span>
+<span class="giallo-l"><span>│                          Vulnerability Score · policy metrics       │</span></span>
+<span class="giallo-l"><span>└─────────────────────────────────────────────────────────────────────┘</span></span></code></pre><h3 id="displacement-model">Displacement model</h3>
+<p>Each broad employment sector receives a <strong>displacement score</strong>:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>displacement_score  =  displacement_signal  ×  automation_risk</span></span></code></pre><table><thead><tr><th>Term</th><th>Definition</th></tr></thead><tbody>
+<tr><td><code>displacement_signal</code></td><td>Normalised negative employment-share trend: <code>max(0, −slope / mean_level)</code>. A sector losing share faster relative to its baseline scores higher.</td></tr>
+<tr><td><code>automation_risk</code></td><td>Sector-level probability of computerisation from Frey &amp; Osborne (2013): agriculture 0.82, industry 0.79, services 0.63.</td></tr>
+<tr><td><code>displacement_score</code></td><td>Composite: high score = fast employment decline <em>and</em> high intrinsic automation susceptibility.</td></tr>
+</tbody></table>
+<h3 id="group-level-metrics-l2">Group-level metrics (L2)</h3>
+<table><thead><tr><th>Metric</th><th>Definition</th></tr></thead><tbody>
+<tr><td><strong>ADPI</strong> (AI Displacement Pressure Index)</td><td>Mean <code>displacement_score</code> across all sectors for a country.</td></tr>
+<tr><td><strong>DRS</strong> (Digitalization Readiness Score)</td><td>Normalised mean of internet-user percentage and high-tech export share (latest year).</td></tr>
+<tr><td><strong>Vulnerability Score</strong></td><td><code>ADPI / (DRS + ε)</code> — high ADPI <em>and</em> low digital readiness = most vulnerable.</td></tr>
+</tbody></table>
+<h3 id="data-indicators-world-bank-api-no-key-required">Data indicators (World Bank API, no key required)</h3>
+<table><thead><tr><th>Column</th><th>World Bank code</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>employment_agriculture_pct</code></td><td>SL.AGR.EMPL.ZS</td><td>Employment in agriculture (% total)</td></tr>
+<tr><td><code>employment_industry_pct</code></td><td>SL.IND.EMPL.ZS</td><td>Employment in industry (% total)</td></tr>
+<tr><td><code>employment_services_pct</code></td><td>SL.SRV.EMPL.ZS</td><td>Employment in services (% total)</td></tr>
+<tr><td><code>unemployment_rate</code></td><td>SL.UEM.TOTL.ZS</td><td>Unemployment (% labour force)</td></tr>
+<tr><td><code>youth_unemployment_rate</code></td><td>SL.UEM.1524.ZS</td><td>Youth unemployment (%)</td></tr>
+<tr><td><code>employment_to_pop_ratio</code></td><td>SL.EMP.TOTL.SP.ZS</td><td>Employment-to-population ratio</td></tr>
+<tr><td><code>wage_salary_workers_pct</code></td><td>SL.EMP.WORK.ZS</td><td>Wage &amp; salaried workers (%)</td></tr>
+<tr><td><code>internet_users_pct</code></td><td>IT.NET.USER.ZS</td><td>Internet users (% population)</td></tr>
+<tr><td><code>gdp_per_capita_usd</code></td><td>NY.GDP.PCAP.CD</td><td>GDP per capita (current USD)</td></tr>
+<tr><td><code>gdp_growth_annual_pct</code></td><td>NY.GDP.MKTP.KD.ZG</td><td>GDP growth (annual %)</td></tr>
+<tr><td><code>high_tech_exports_pct_mfg</code></td><td>TX.VAL.TECH.MF.ZS</td><td>High-tech exports (% manufactured exports)</td></tr>
+<tr><td><code>ict_goods_exports_pct</code></td><td>TX.VAL.ICTG.ZS.UN</td><td>ICT goods exports (% total goods exports)</td></tr>
+<tr><td><code>labor_force_total</code></td><td>SL.TLF.TOTL.IN</td><td>Total labour force</td></tr>
+</tbody></table>
+<hr />
+<h2 id="repository-structure">Repository Structure</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>labourAIVolt/</span></span>
+<span class="giallo-l"><span>│</span></span>
+<span class="giallo-l"><span>├── LAV_analysis/                    Nextflow pipeline (mirrors EV_analysis/)</span></span>
+<span class="giallo-l"><span>│   ├── LAV_pipeline.nf              Main workflow orchestration</span></span>
+<span class="giallo-l"><span>│   ├── LAV_modules.nf               IOInterface alias declarations</span></span>
+<span class="giallo-l"><span>│   └── LAV_parameters.config        All pipeline parameters &amp; script paths</span></span>
+<span class="giallo-l"><span>│</span></span>
+<span class="giallo-l"><span>├── LAV_data/                        Per-country input configs (mirrors rawData/)</span></span>
+<span class="giallo-l"><span>│   ├── LAV_001/  LAV_001_config.json    Germany        (Volt Deutschland)</span></span>
+<span class="giallo-l"><span>│   ├── LAV_002/  LAV_002_config.json    France         (Volt France)</span></span>
+<span class="giallo-l"><span>│   ├── LAV_003/  LAV_003_config.json    Netherlands    (Volt Nederland)</span></span>
+<span class="giallo-l"><span>│   ├── LAV_004/  LAV_004_config.json    Belgium        (Volt Belgium)</span></span>
+<span class="giallo-l"><span>│   ├── LAV_005/  LAV_005_config.json    Italy          (Volt Italia)</span></span>
+<span class="giallo-l"><span>│   └── LAV_006/  LAV_006_config.json    Spain          (Volt España)</span></span>
+<span class="giallo-l"><span>│</span></span>
+<span class="giallo-l"><span>├── LAV_results/                     Pipeline outputs (mirrors EV_results/)</span></span>
+<span class="giallo-l"><span>│   ├── .bin/                        Shared infrastructure (logs, HTML archive)</span></span>
+<span class="giallo-l"><span>│   ├── LAV_l1/                      First-level: per-country results</span></span>
+<span class="giallo-l"><span>│   │   ├── LAV_001/</span></span>
+<span class="giallo-l"><span>│   │   │   ├── plots/               Parquet output copies for QC</span></span>
+<span class="giallo-l"><span>│   │   │   ├── LAV_001_api_raw.parquet</span></span>
+<span class="giallo-l"><span>│   │   │   ├── LAV_001_normalized.parquet</span></span>
+<span class="giallo-l"><span>│   │   │   ├── LAV_001_displacement.parquet</span></span>
+<span class="giallo-l"><span>│   │   │   ├── LAV_001_trends.parquet</span></span>
+<span class="giallo-l"><span>│   │   │   └── LAV_001.log.parquet  Live execution log</span></span>
+<span class="giallo-l"><span>│   │   └── LAV_002/ … LAV_006/</span></span>
+<span class="giallo-l"><span>│   └── LAV_l2/                      Second-level: cross-country group results</span></span>
+<span class="giallo-l"><span>│       ├── LAV_volt_report.parquet</span></span>
+<span class="giallo-l"><span>│       ├── LAV_displacement_summary.parquet</span></span>
+<span class="giallo-l"><span>│       └── LAV_trends_summary.parquet</span></span>
+<span class="giallo-l"><span>│</span></span>
+<span class="giallo-l"><span>├── Python/                          Analysis scripts (no Nextflow dependency)</span></span>
+<span class="giallo-l"><span>│   ├── lav_run.py                   Standalone orchestrator (used by CI)</span></span>
+<span class="giallo-l"><span>│   ├── requirements.txt</span></span>
+<span class="giallo-l"><span>│   ├── readers/</span></span>
+<span class="giallo-l"><span>│   │   └── api_reader.py            Fetches World Bank labour-market data</span></span>
+<span class="giallo-l"><span>│   ├── processors/</span></span>
+<span class="giallo-l"><span>│   │   └── normalizing_processor.py Long→wide pivot, clean, sort</span></span>
+<span class="giallo-l"><span>│   └── analyzers/</span></span>
+<span class="giallo-l"><span>│       ├── displacement_analyzer.py AI displacement scores (Frey &amp; Osborne)</span></span>
+<span class="giallo-l"><span>│       ├── trend_analyzer.py        OLS time-series trends per indicator</span></span>
+<span class="giallo-l"><span>│       └── volt_report_analyzer.py  Cross-country Volt policy synthesis</span></span>
+<span class="giallo-l"><span>│</span></span>
+<span class="giallo-l"><span>└── .github/workflows/</span></span>
+<span class="giallo-l"><span>    └── lav_analysis.yml             GitHub Actions CI (weekly + on push)</span></span></code></pre>
+<hr />
+<h2 id="running-the-analysis">Running the Analysis</h2>
+<h3 id="option-a-github-actions-recommended-no-local-setup-needed">Option A — GitHub Actions <em>(recommended — no local setup needed)</em></h3>
+<p>The workflow in <code>.github/workflows/lav_analysis.yml</code> runs automatically:</p>
+<table><thead><tr><th>Trigger</th><th>When</th></tr></thead><tbody>
+<tr><td><strong>Scheduled</strong></td><td>Every Monday at 06:00 UTC (pulls the latest World Bank data)</td></tr>
+<tr><td><strong>On push</strong></td><td>Any change to <code>LAV_data/**</code> or <code>Python/**</code> on <code>main</code></td></tr>
+<tr><td><strong>Manual</strong></td><td>Actions tab → <em>LAV Labour-AI-Volt Analysis</em> → <strong>Run workflow</strong></td></tr>
+</tbody></table>
+<p>Results are:</p>
+<ol>
+<li>Uploaded as a <strong>downloadable artifact</strong> (<code>lav-results-&lt;run-number&gt;</code>) for 90 days.</li>
+<li><strong>Committed back</strong> to <code>LAV_results/</code> in the repository so outputs are versioned
+alongside the code.</li>
+</ol>
+<p>No API keys, secrets, or local software are required.</p>
+<hr />
+<h3 id="option-b-standalone-python-local-no-nextflow">Option B — Standalone Python <em>(local, no Nextflow)</em></h3>
+<p>Use this for quick local runs or debugging individual scripts.</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># 1. Clone the repository</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">git</span><span style="color: #A6E3A1;"> clone https://github.com/CGutt-hub/labourAIVolt.git</span></span>
+<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> labourAIVolt</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># 2. Install Python dependencies</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install -r Python/requirements.txt</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># 3. Run the full pipeline</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> Python/lav_run.py</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Optional: override data/output directories</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> Python/lav_run.py --data-dir LAV_data --output-dir LAV_results</span></span></code></pre>
+<p>Results are written to <code>LAV_results/LAV_l1/&lt;id&gt;/</code> (per country) and
+<code>LAV_results/LAV_l2/</code> (group synthesis).</p>
+<hr />
+<h3 id="option-c-full-nextflow-pipeline-local-requires-analysistoolbox">Option C — Full Nextflow Pipeline <em>(local, requires AnalysisToolbox)</em></h3>
+<p>Use this for full pipeline tracing, parallel execution, and integration with the
+AnalysisToolbox interactive HTML archive.</p>
+<p><strong>Prerequisites:</strong> Java ≥ 11, <a rel="external" href="https://www.nextflow.io/docs/latest/install.html">Nextflow</a></p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># 1. Clone both repos as siblings</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">git</span><span style="color: #A6E3A1;"> clone https://github.com/CGutt-hub/labourAIVolt.git</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">git</span><span style="color: #A6E3A1;"> clone https://github.com/CGutt-hub/AnalysisToolbox.git</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Your directory should now look like:</span></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;">#   parent/</span></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;">#   ├── AnalysisToolbox/</span></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;">#   └── labourAIVolt/</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># 2. Install Python dependencies</span></span>
+<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> labourAIVolt</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install -r Python/requirements.txt</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># 3. Adjust python_exe in LAV_parameters.config if needed</span></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;">#    (default: &#39;python3&#39;)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># 4. Launch the pipeline from the LAV_analysis/ directory</span></span>
+<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> LAV_analysis</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> run LAV_pipeline.nf -c LAV_parameters.config</span></span></code></pre>
+<p>The Nextflow pipeline adds on top of the standalone runner:</p>
+<ul>
+<li>Parallel per-country execution</li>
+<li>Full Nextflow trace (<code>LAV_results/.bin/pipeline_trace.txt</code>)</li>
+<li>Interactive HTML result archive (via AnalysisToolbox <code>interactive_plotter</code>)</li>
+<li>Automatic git commit + push of results after each country completes</li>
+</ul>
+<hr />
+<h2 id="output-files-reference">Output Files Reference</h2>
+<h3 id="per-country-l1-lav-results-lav-l1-lav-xxx">Per-country (L1) — <code>LAV_results/LAV_l1/LAV_XXX/</code></h3>
+<table><thead><tr><th>File</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>LAV_XXX_api_raw.parquet</code></td><td>Raw long-format data as returned by the World Bank API. Columns: <code>participant_id</code>, <code>country</code>, <code>iso3</code>, <code>source</code>, <code>indicator</code>, <code>indicator_code</code>, <code>year</code>, <code>value</code>.</td></tr>
+<tr><td><code>LAV_XXX_normalized.parquet</code></td><td>Wide-format time-series. One row per year, one column per indicator. Ready for analysis scripts.</td></tr>
+<tr><td><code>LAV_XXX_displacement.parquet</code></td><td>Per-sector displacement scores. Key columns: <code>sector</code>, <code>employment_mean_pct</code>, <code>trend_slope_pp_per_yr</code>, <code>trend_significant</code>, <code>automation_risk_frey_osborne</code>, <code>displacement_score</code>.</td></tr>
+<tr><td><code>LAV_XXX_trends.parquet</code></td><td>OLS trend results for every indicator. Key columns: <code>indicator</code>, <code>trend_slope</code>, <code>trend_p_value</code>, <code>trend_r_squared</code>, <code>trend_significant</code>, <code>total_change_pct</code>.</td></tr>
+<tr><td><code>LAV_XXX.log.parquet</code></td><td>Live pipeline execution log (Nextflow mode only).</td></tr>
+</tbody></table>
+<h3 id="group-level-l2-lav-results-lav-l2">Group-level (L2) — <code>LAV_results/LAV_l2/</code></h3>
+<table><thead><tr><th>File</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>LAV_volt_report.parquet</code></td><td>Full combined table (displacement + policy metrics for all countries).</td></tr>
+<tr><td><code>LAV_displacement_summary.parquet</code></td><td>Cross-country displacement ranking per sector, with EU-wide mean, std, and per-country rank.</td></tr>
+<tr><td><code>LAV_trends_summary.parquet</code></td><td>EU-wide mean slope and significance counts for key indicators across all countries.</td></tr>
+</tbody></table>
+<hr />
+<h2 id="adding-a-new-country">Adding a New Country</h2>
+<ol>
+<li>Create a new directory: <code>LAV_data/LAV_007/</code></li>
+<li>Add a config file <code>LAV_data/LAV_007/LAV_007_config.json</code>:</li>
+</ol>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="json"><span class="giallo-l"><span style="color: #9399B2;">{</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">  &quot;</span><span style="color: #89B4FA;">participant_id</span><span style="color: #9399B2;">&quot;:</span><span style="color: #A6E3A1;"> &quot;LAV_007&quot;</span><span style="color: #9399B2;">,</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">  &quot;</span><span style="color: #89B4FA;">country</span><span style="color: #9399B2;">&quot;:</span><span style="color: #A6E3A1;"> &quot;Portugal&quot;</span><span style="color: #9399B2;">,</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">  &quot;</span><span style="color: #89B4FA;">iso3</span><span style="color: #9399B2;">&quot;:</span><span style="color: #A6E3A1;"> &quot;PRT&quot;</span><span style="color: #9399B2;">,</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">  &quot;</span><span style="color: #89B4FA;">iso2</span><span style="color: #9399B2;">&quot;:</span><span style="color: #A6E3A1;"> &quot;PT&quot;</span><span style="color: #9399B2;">,</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">  &quot;</span><span style="color: #89B4FA;">year_start</span><span style="color: #9399B2;">&quot;:</span><span style="color: #FAB387;"> 2010</span><span style="color: #9399B2;">,</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">  &quot;</span><span style="color: #89B4FA;">year_end</span><span style="color: #9399B2;">&quot;:</span><span style="color: #FAB387;"> 2025</span><span style="color: #9399B2;">,</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">  &quot;</span><span style="color: #89B4FA;">volt_chapter</span><span style="color: #9399B2;">&quot;:</span><span style="color: #A6E3A1;"> &quot;Volt Portugal&quot;</span><span style="color: #9399B2;">,</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">  &quot;</span><span style="color: #89B4FA;">population_millions</span><span style="color: #9399B2;">&quot;:</span><span style="color: #FAB387;"> 10.3</span><span style="color: #9399B2;">,</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">  &quot;</span><span style="color: #89B4FA;">eu_member</span><span style="color: #9399B2;">&quot;:</span><span style="color: #FAB387;"> true</span><span style="color: #9399B2;">,</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">  &quot;</span><span style="color: #89B4FA;">notes</span><span style="color: #9399B2;">&quot;:</span><span style="color: #A6E3A1;"> &quot;Optional notes about the country context&quot;</span></span>
+<span class="giallo-l"><span style="color: #9399B2;">}</span></span></code></pre>
+<ol start="3">
+<li>Push the file — the GitHub Action will pick it up automatically on the next run.</li>
+</ol>
+<hr />
+<h2 id="project-status">Project Status</h2>
+<p>Active development. Data fetching, pipeline, and group analysis are operational.
+Planned additions: visualisation layer, structural-break detection (2018 AI inflection
+point), and integration with OECD employment-by-occupation microdata for finer-grained
+occupational risk scoring.</p>
+<hr />
+<h2 id="references">References</h2>
+<ul>
+<li>Frey, C. B., &amp; Osborne, M. A. (2013). <em>The Future of Employment: How Susceptible Are
+Jobs to Computerisation?</em> Oxford Martin School Working Paper.</li>
+<li>World Bank Open Data. <a rel="external" href="https://data.worldbank.org">https://data.worldbank.org</a></li>
+<li>Acemoglu, D., &amp; Restrepo, P. (2020). Robots and Employment: Evidence from Europe.
+<em>American Economic Review</em>, 110(6), 2188–2220.</li>
+<li>Autor, D. (2015). Why Are There Still So Many Jobs? <em>Journal of Economic Perspectives</em>,
+29(3), 3–30.</li>
+</ul>
+<hr />
+<h2 id="contributors">Contributors</h2>
+<table><thead><tr><th>Name</th><th>Role</th><th>Contact</th></tr></thead><tbody>
+<tr><td><strong>Cagatay Özcan Jagiello Gutt</strong></td><td>Principal Investigator</td><td><a rel="external" href="https://orcid.org/0000-0002-1774-532X"><img src="https://img.shields.io/badge/ORCID-0000--0002--1774--532X-green?logo=orcid" alt="ORCID" /></a></td></tr>
+</tbody></table>
+</details>
+<p><a rel="external" href="https://github.com/CGutt-hub/labourAIVolt">Auf GitHub ansehen →</a></p>
+<hr />
 <h3 id="analysistoolbox">AnalysisToolbox</h3>
 <p><strong>Sprache:</strong> Python<br />
 <strong>Zuletzt aktualisiert:</strong> 2026-03-18</p>
@@ -185,7 +484,7 @@
 <span class="giallo-l"><span>   ↓</span></span>
 <span class="giallo-l"><span>5. Deploys to gh-pages branch</span></span>
 <span class="giallo-l"><span>   ↓</span></span>
-<span class="giallo-l"><span>6. Website updates automatically!</span></span></code></pre><h2 id="repository-structure">Repository Structure</h2>
+<span class="giallo-l"><span>6. Website updates automatically!</span></span></code></pre><h2 id="repository-structure-1">Repository Structure</h2>
 <h3 id="source-files-edit-these">Source Files (Edit These)</h3>
 <ul>
 <li><code>config.toml</code> - Site configuration</li>
@@ -296,15 +595,6 @@
 </details>
 <p><a rel="external" href="https://github.com/CGutt-hub/5ha99y">Auf GitHub ansehen →</a></p>
 <hr />
-<h3 id="labouraivolt">labourAIVolt</h3>
-<p><strong>Sprache:</strong> Unbekannt<br />
-<strong>Zuletzt aktualisiert:</strong> 2026-03-18</p>
-<details>
-<summary>README anzeigen</summary>
-<h1 id="labouraivolt-1">labourAIVolt</h1>
-</details>
-<p><a rel="external" href="https://github.com/CGutt-hub/labourAIVolt">Auf GitHub ansehen →</a></p>
-<hr />
 <h3 id="emotiview">EmotiView</h3>
 <p><strong>Sprache:</strong> Nextflow<br />
 <strong>Zuletzt aktualisiert:</strong> 2026-03-16</p>
@@ -357,7 +647,7 @@
 <li><strong><code>EV_presentation/</code></strong>: Slides and presentation materials.</li>
 <li><strong><code>EV_proposal/</code></strong>: The original research proposal with methodology and analysis plan.</li>
 </ul>
-<h2 id="analysis-pipeline">Analysis Pipeline</h2>
+<h2 id="analysis-pipeline-1">Analysis Pipeline</h2>
 <p>The analysis pipeline is built on the <strong><a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">AnalysisToolbox</a></strong>—a modular Nextflow framework for scalable, reproducible data processing with automatic result synchronization. The EmotiView-specific pipeline in <code>EV_analysis/</code> extends this framework to:</p>
 <ul>
 <li>Load and parse multi-modal raw data (EEG, fNIRS, ECG, EDA, questionnaires).</li>
@@ -366,9 +656,9 @@
 <li>Generate participant-level results and aggregated summaries.</li>
 </ul>
 <p>Configuration is managed via <code>EV_analysis/EV_parameters.config</code>. See the <a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">AnalysisToolbox documentation</a> for framework details.</p>
-<h2 id="project-status">Project Status</h2>
+<h2 id="project-status-1">Project Status</h2>
 <p>Data collection and Thesis writing.</p>
-<h2 id="contributors">Contributors</h2>
+<h2 id="contributors-1">Contributors</h2>
 <table><thead><tr><th>Name</th><th>Role</th><th>Contact</th></tr></thead><tbody>
 <tr><td><strong>Cagatay Özcan Jagiello Gutt</strong></td><td>Principal Investigator</td><td><a rel="external" href="https://orcid.org/0000-0002-1774-532X"><img src="https://img.shields.io/badge/ORCID-0000--0002--1774--532X-green?logo=orcid" alt="ORCID" /></a></td></tr>
 <tr><td><strong>Ben Gopin</strong></td><td>Technical Assistant</td><td><a href="mailto:ben.gopin001@stud.fh-dortmund.de"><img src="https://img.shields.io/badge/Email-ben.gopin001-blue?logo=gmail" alt="Email" /></a></td></tr>
