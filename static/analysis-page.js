@@ -2472,37 +2472,26 @@ async function discoverAnalysisRepos(username) {
                 console.log('[Analysis] Found analysis repo:', repo.name, 'with folders:', [...resultsDirs]);
                 
                 for (const dir of resultsDirs) {
-                    // Extract participant structure directly from tree (zero extra API calls)
-                    const participants = {};
+                    // Build a nested folder structure from all files under this results dir
+                    const folders = {};
                     const escaped = dir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const prefix = new RegExp(`^${escaped}/`);
                     for (const item of tree) {
                         if (item.type !== 'blob') continue;
-                        // Match: {resultsDir}/(optional l1 or l2)/{participant}/{subfolder}/{file}
-                        const match = item.path.match(new RegExp(`^${escaped}(?:/(l[12]))?/([^/]+)/([^/]+)/(.+)$`));
-                        if (match) {
-                            const level = match[1] || null;
-                            const participant = match[2];
-                            const subfolder = match[3];
-                            const fileName = match[4];
-                            if (!participants[participant]) participants[participant] = { plots: [], logs: [] };
-                            if (subfolder === 'plots' && fileName.endsWith('.parquet')) {
-                                participants[participant].plots.push({
-                                    name: fileName,
-                                    path: item.path,
-                                    size: item.size || 0,
-                                    level: level,
-                                    url: `https://raw.githubusercontent.com/${username}/${repo.name}/main/${item.path}`
-                                });
-                            } else if (fileName.match(/\.(log|txt)$/i) && subfolder !== 'plots') {
-                                participants[participant].logs.push({
-                                    name: fileName,
-                                    path: item.path,
-                                    size: item.size || 0,
-                                    subfolder: subfolder,
-                                    url: `https://raw.githubusercontent.com/${username}/${repo.name}/main/${item.path}`
-                                });
-                            }
-                        }
+                        if (!prefix.test(item.path)) continue;
+                        // Get relative path within results dir
+                        const relPath = item.path.replace(prefix, '');
+                        const parts = relPath.split('/');
+                        const fileName = parts.pop();
+                        const folderPath = parts.join('/');
+                        if (!folders[folderPath]) folders[folderPath] = [];
+                        folders[folderPath].push({
+                            name: fileName,
+                            path: item.path,
+                            size: item.size || 0,
+                            folderPath: folderPath,
+                            url: `https://raw.githubusercontent.com/${username}/${repo.name}/main/${item.path}`
+                        });
                     }
                     
                     analysisRepos.push({
@@ -2510,7 +2499,7 @@ async function discoverAnalysisRepos(username) {
                         name: repo.name,
                         description: repo.description || '',
                         resultsDir: dir,
-                        participants: participants
+                        folders: folders
                     });
                 }
             }
@@ -2526,80 +2515,149 @@ async function discoverAnalysisRepos(username) {
     }
 }
 
+// Render a single file item in the sidebar tree
+function renderFileItem(file, repoOwner, repoName) {
+    const sizeKB = (file.size / 1024).toFixed(1);
+    const displayName = file.name.replace(/_/g, '_<wbr>').replace(/\./g, '<wbr>.');
+    const folderLabel = file.folderPath || '';
+    if (file.name.endsWith('.parquet')) {
+        return `
+            <div class="tree-item" onclick="loadPlotFile('${file.url}', '${file.name}', '${folderLabel}')" data-filename="${file.name.toLowerCase()}">
+                \ud83d\udcca ${displayName}
+                <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">(${sizeKB}KB)</span>
+            </div>
+        `;
+    } else if (/\.(log|txt)$/i.test(file.name)) {
+        return `
+            <div class="tree-item" onclick="loadLogFile('${file.url}', '${file.name}', '${folderLabel}')" data-filename="${file.name.toLowerCase()}">
+                \ud83d\udcc4 ${displayName}
+                <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">(${sizeKB}KB)</span>
+            </div>
+        `;
+    }
+    return '';
+}
+
 // Render file tree in sidebar
 function renderFileTree(structure, append = false) {
     console.log('[Analysis] Rendering file tree for:', structure.repoName, 'append:', append);
     
     const fileTree = document.getElementById('file-tree');
-    const { repoName, repoOwner, description, participants } = structure;
-    
-    const participantKeys = Object.keys(participants).sort();
+    const { repoName, repoOwner, description, folders } = structure;
     
     // Store description for lookup by showRepoInfo
     window._repoDescriptions = window._repoDescriptions || {};
     window._repoDescriptions[repoOwner + '/' + repoName] = description || '';
 
-    // Build tree HTML: Project > Info + Participants > Files
+    // Sort folder paths: root files first, then alphabetically
+    const folderPaths = Object.keys(folders).sort((a, b) => {
+        if (a === '' && b !== '') return -1;
+        if (b === '' && a !== '') return 1;
+        return a.localeCompare(b);
+    });
+
+    // Count total files
+    let totalFiles = 0;
+    for (const files of Object.values(folders)) totalFiles += files.length;
+
+    // Build tree HTML
     let html = `
         <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false" data-repo-owner="${repoOwner}" data-repo-name="${repoName}">
             <span class="tree-folder-icon">▶</span>
             <span>${repoName}</span>
+            <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${totalFiles})</span>
         </div>
         <div class="tree-folder-content" style="margin-left: 10px;">
-            <div class="tree-item" onclick="showRepoInfo('${repoOwner}', '${repoName}')" style="font-style: italic; color: var(--accent-primary, #c9a227); font-size: 0.82rem; cursor: pointer;">
-                ℹ Project Info
-            </div>
     `;
-    
-    participantKeys.forEach(participant => {
-        const pData = participants[participant];
-        const plots = pData.plots || pData || [];
-        const logs = pData.logs || [];
-        const totalFiles = (Array.isArray(plots) ? plots.length : 0) + logs.length;
+
+    // Build a nested folder tree from flat paths
+    function buildNestedTree(folderPaths, folders) {
+        // Collect root-level files (folderPath === '')
+        const rootFiles = folders[''] || [];
+        // Build tree nodes: group by first path segment
+        const subgroups = {};
+        for (const fp of folderPaths) {
+            if (fp === '') continue;
+            const parts = fp.split('/');
+            const top = parts[0];
+            if (!subgroups[top]) subgroups[top] = [];
+            subgroups[top].push(fp);
+        }
+        return { rootFiles, subgroups };
+    }
+
+    const { rootFiles, subgroups } = buildNestedTree(folderPaths, folders);
+
+    // Render root-level files
+    rootFiles.forEach(file => {
+        html += renderFileItem(file, repoOwner, repoName);
+    });
+
+    // Render subfolders
+    const sortedGroups = Object.keys(subgroups).sort();
+    sortedGroups.forEach(groupName => {
+        const paths = subgroups[groupName];
+        // Collect all files under this group
+        let groupFiles = [];
+        for (const fp of paths) {
+            groupFiles = groupFiles.concat(folders[fp] || []);
+        }
+        // If only one level, show files directly; if nested, show subfolders
+        const hasSubfolders = paths.some(fp => fp.split('/').length > 1);
+        
         html += `
             <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
                 <span class="tree-folder-icon">▶</span>
-                <span>${participant}</span>
-                <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${totalFiles})</span>
+                <span>${groupName}</span>
+                <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${groupFiles.length})</span>
             </div>
             <div class="tree-folder-content" style="margin-left: 10px;">
         `;
         
-        // Render plot files
-        const plotFiles = Array.isArray(plots) ? plots : [];
-        plotFiles.forEach(file => {
-            const sizeKB = (file.size / 1024).toFixed(1);
-            const displayName = file.name.replace(/_/g, '_<wbr>').replace(/\./g, '<wbr>.');
-            html += `
-                <div class="tree-item" onclick="loadPlotFile('${file.url}', '${file.name}', '${participant}')" data-filename="${file.name.toLowerCase()}">
-                    📊 ${displayName}
-                    <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">
-                        (${sizeKB}KB)
-                    </span>
-                </div>
-            `;
-        });
+        if (hasSubfolders) {
+            // Group by second-level path
+            const subMap = {};
+            for (const fp of paths) {
+                const parts = fp.split('/');
+                const subName = parts.slice(1).join('/');
+                if (!subMap[subName]) subMap[subName] = [];
+                subMap[subName] = subMap[subName].concat(folders[fp] || []);
+            }
+            Object.keys(subMap).sort().forEach(subName => {
+                if (!subName) {
+                    // Files directly in this group folder
+                    subMap[subName].forEach(file => {
+                        html += renderFileItem(file, repoOwner, repoName);
+                    });
+                } else {
+                    html += `
+                        <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
+                            <span class="tree-folder-icon">▶</span>
+                            <span>${subName}</span>
+                            <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${subMap[subName].length})</span>
+                        </div>
+                        <div class="tree-folder-content" style="margin-left: 10px;">
+                    `;
+                    subMap[subName].forEach(file => {
+                        html += renderFileItem(file, repoOwner, repoName);
+                    });
+                    html += '</div>';
+                }
+            });
+        } else {
+            groupFiles.forEach(file => {
+                html += renderFileItem(file, repoOwner, repoName);
+            });
+        }
         
-        // Render log files
-        logs.forEach(file => {
-            const sizeKB = (file.size / 1024).toFixed(1);
-            const displayName = file.name.replace(/_/g, '_<wbr>').replace(/\./g, '<wbr>.');
-            html += `
-                <div class="tree-item" onclick="loadLogFile('${file.url}', '${file.name}', '${participant}')" data-filename="${file.name.toLowerCase()}">
-                    📄 ${displayName}
-                    <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">
-                        (${sizeKB}KB)
-                    </span>
-                </div>
-            `;
-        });
-        
-        html += `
-            </div>
-        `;
+        html += '</div>';
     });
-    
+
+    // README as last item
     html += `
+            <div class="tree-item" onclick="showRepoInfo('${repoOwner}', '${repoName}')" style="font-style: italic; color: var(--accent-primary, #c9a227); font-size: 0.82rem; cursor: pointer;">
+                📖 README
+            </div>
         </div>
     `;
     
@@ -2612,10 +2670,8 @@ function renderFileTree(structure, append = false) {
     
     // Flatten all files for size lookup in loadPlotFile
     const allFiles = [];
-    for (const pData of Object.values(participants)) {
-        const plots = pData.plots || pData || [];
-        if (Array.isArray(plots)) allFiles.push(...plots);
-        if (pData.logs) allFiles.push(...pData.logs);
+    for (const files of Object.values(folders)) {
+        allFiles.push(...files);
     }
 
     // Store globally for search and pipeline trace (extend if appending)
@@ -2642,10 +2698,10 @@ function loadReposFromData(analysisRepos, emptyState) {
             repoOwner: repoConfig.owner,
             description: repoConfig.description || '',
             resultsDir: repoConfig.resultsDir,
-            participants: repoConfig.participants
+            folders: repoConfig.folders
         };
         
-        const hasFiles = Object.values(structure.participants).some(p => (p.plots && p.plots.length > 0) || (p.logs && p.logs.length > 0));
+        const hasFiles = structure.folders && Object.values(structure.folders).some(f => f.length > 0);
         if (!hasFiles) continue;
         
         renderFileTree(structure, loadedCount > 0);
