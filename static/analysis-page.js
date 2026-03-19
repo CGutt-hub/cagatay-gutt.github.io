@@ -2021,6 +2021,10 @@ function toggleFolder(element) {
         icon.style.transform = 'rotate(90deg)';
         content.classList.add('expanded');
         element.dataset.expanded = 'true';
+        // Auto-show README when expanding a repo-level folder
+        if (element.dataset.repoOwner && element.dataset.repoName) {
+            showRepoInfo(element.dataset.repoOwner, element.dataset.repoName);
+        }
     }
 }
 
@@ -2473,19 +2477,31 @@ async function discoverAnalysisRepos(username) {
                     const escaped = dir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     for (const item of tree) {
                         if (item.type !== 'blob') continue;
-                        // Match: {resultsDir}/(optional l1 or l2)/{participant}/plots/{file}.parquet
-                        const match = item.path.match(new RegExp(`^${escaped}(?:/(l[12]))?/([^/]+)/plots/(.+\\.parquet)$`));
+                        // Match: {resultsDir}/(optional l1 or l2)/{participant}/{subfolder}/{file}
+                        const match = item.path.match(new RegExp(`^${escaped}(?:/(l[12]))?/([^/]+)/([^/]+)/(.+)$`));
                         if (match) {
                             const level = match[1] || null;
                             const participant = match[2];
-                            if (!participants[participant]) participants[participant] = [];
-                            participants[participant].push({
-                                name: match[3],
-                                path: item.path,
-                                size: item.size || 0,
-                                level: level,
-                                url: `https://raw.githubusercontent.com/${username}/${repo.name}/main/${item.path}`
-                            });
+                            const subfolder = match[3];
+                            const fileName = match[4];
+                            if (!participants[participant]) participants[participant] = { plots: [], logs: [] };
+                            if (subfolder === 'plots' && fileName.endsWith('.parquet')) {
+                                participants[participant].plots.push({
+                                    name: fileName,
+                                    path: item.path,
+                                    size: item.size || 0,
+                                    level: level,
+                                    url: `https://raw.githubusercontent.com/${username}/${repo.name}/main/${item.path}`
+                                });
+                            } else if (fileName.match(/\.(log|txt)$/i) && subfolder !== 'plots') {
+                                participants[participant].logs.push({
+                                    name: fileName,
+                                    path: item.path,
+                                    size: item.size || 0,
+                                    subfolder: subfolder,
+                                    url: `https://raw.githubusercontent.com/${username}/${repo.name}/main/${item.path}`
+                                });
+                            }
                         }
                     }
                     
@@ -2525,32 +2541,52 @@ function renderFileTree(structure, append = false) {
 
     // Build tree HTML: Project > Info + Participants > Files
     let html = `
-        <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
+        <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false" data-repo-owner="${repoOwner}" data-repo-name="${repoName}">
             <span class="tree-folder-icon">▶</span>
             <span>${repoName}</span>
         </div>
         <div class="tree-folder-content" style="margin-left: 10px;">
             <div class="tree-item" onclick="showRepoInfo('${repoOwner}', '${repoName}')" style="font-style: italic; color: var(--accent-primary, #c9a227); font-size: 0.82rem; cursor: pointer;">
+                ℹ Project Info
+            </div>
     `;
     
     participantKeys.forEach(participant => {
-        const files = participants[participant];
+        const pData = participants[participant];
+        const plots = pData.plots || pData || [];
+        const logs = pData.logs || [];
+        const totalFiles = (Array.isArray(plots) ? plots.length : 0) + logs.length;
         html += `
             <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
                 <span class="tree-folder-icon">▶</span>
                 <span>${participant}</span>
-                <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${files.length})</span>
+                <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${totalFiles})</span>
             </div>
             <div class="tree-folder-content" style="margin-left: 10px;">
         `;
         
-        files.forEach(file => {
+        // Render plot files
+        const plotFiles = Array.isArray(plots) ? plots : [];
+        plotFiles.forEach(file => {
             const sizeKB = (file.size / 1024).toFixed(1);
-            // Insert <wbr> after underscores and before dots for clean line breaks
             const displayName = file.name.replace(/_/g, '_<wbr>').replace(/\./g, '<wbr>.');
             html += `
                 <div class="tree-item" onclick="loadPlotFile('${file.url}', '${file.name}', '${participant}')" data-filename="${file.name.toLowerCase()}">
-                    ${displayName}
+                    📊 ${displayName}
+                    <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">
+                        (${sizeKB}KB)
+                    </span>
+                </div>
+            `;
+        });
+        
+        // Render log files
+        logs.forEach(file => {
+            const sizeKB = (file.size / 1024).toFixed(1);
+            const displayName = file.name.replace(/_/g, '_<wbr>').replace(/\./g, '<wbr>.');
+            html += `
+                <div class="tree-item" onclick="loadLogFile('${file.url}', '${file.name}', '${participant}')" data-filename="${file.name.toLowerCase()}">
+                    📄 ${displayName}
                     <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">
                         (${sizeKB}KB)
                     </span>
@@ -2576,8 +2612,10 @@ function renderFileTree(structure, append = false) {
     
     // Flatten all files for size lookup in loadPlotFile
     const allFiles = [];
-    for (const pFiles of Object.values(participants)) {
-        allFiles.push(...pFiles);
+    for (const pData of Object.values(participants)) {
+        const plots = pData.plots || pData || [];
+        if (Array.isArray(plots)) allFiles.push(...plots);
+        if (pData.logs) allFiles.push(...pData.logs);
     }
 
     // Store globally for search and pipeline trace (extend if appending)
@@ -2607,7 +2645,7 @@ function loadReposFromData(analysisRepos, emptyState) {
             participants: repoConfig.participants
         };
         
-        const hasFiles = Object.values(structure.participants).some(files => files.length > 0);
+        const hasFiles = Object.values(structure.participants).some(p => (p.plots && p.plots.length > 0) || (p.logs && p.logs.length > 0));
         if (!hasFiles) continue;
         
         renderFileTree(structure, loadedCount > 0);
@@ -2625,7 +2663,7 @@ function loadReposFromData(analysisRepos, emptyState) {
     if (loadedCount === 0) {
         emptyState.innerHTML = `
             <h2>No Plot Data Found</h2>
-            <p>Found ${analysisRepos.length} result folder(s) but none contain <code>.parquet</code> files in <code>plots/</code> subfolders.</p>
+            <p>Found ${analysisRepos.length} result folder(s) but none contain displayable files.</p>
         `;
     } else {
         const searchInput = document.getElementById('search-box');
@@ -2869,10 +2907,106 @@ function showRepoInfo(owner, repoName) {
         .catch(function() { readmeEl.innerHTML = '<p style="color: var(--text-muted, #999);">Could not load README.</p>'; });
 }
 
+// Load and display a log file in the main content area with level filtering
+async function loadLogFile(url, displayName, participant) {
+    const emptyState = document.getElementById('empty-state');
+    const plotDisplays = document.getElementById('plot-displays');
+    if (!emptyState || !plotDisplays) return;
+
+    // Remove previous active states and mark clicked item
+    document.querySelectorAll('.tree-item.active').forEach(item => item.classList.remove('active'));
+    if (event && event.target) {
+        const item = event.target.closest('.tree-item');
+        if (item) item.classList.add('active');
+    }
+    emptyState.style.display = 'none';
+
+    plotDisplays.innerHTML = `
+        <div class="plot-display active" id="current-plot">
+            <div style="margin-bottom: 12px;">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 4px;">Log: ${displayName}</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary, #aaa); margin-bottom: 12px;">Participant: ${participant}</div>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <button id="log-filter-all" onclick="filterLog('all')" style="padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border-primary, #2a2a2a); background: var(--accent-primary, #c9a227); color: var(--bg-primary, #0f0f0f); font-size: 0.8rem; cursor: pointer; font-weight: 600;">All</button>
+                    <button id="log-filter-warn" onclick="filterLog('warn')" style="padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border-primary, #2a2a2a); background: var(--bg-secondary, #161616); color: var(--text-primary, #e8e8e8); font-size: 0.8rem; cursor: pointer;">⚠ Warnings</button>
+                    <button id="log-filter-error" onclick="filterLog('error')" style="padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border-primary, #2a2a2a); background: var(--bg-secondary, #161616); color: var(--text-primary, #e8e8e8); font-size: 0.8rem; cursor: pointer;">✖ Errors</button>
+                </div>
+            </div>
+            <div id="log-content" style="padding: 16px; background: var(--bg-secondary, #161616); border: 1px solid var(--border-primary, #2a2a2a); border-radius: 8px; min-height: 200px; max-height: calc(100vh - 280px); overflow-y: auto; font-family: monospace; font-size: 0.8rem; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: var(--text-primary, #e8e8e8);">
+                <div style="display: flex; align-items: center; justify-content: center; height: 120px; flex-direction: column; gap: 10px;">
+                    <div class="spinner" style="width: 30px; height: 30px; border: 3px solid var(--bg-tertiary, #ddd); border-top: 3px solid var(--accent-primary, #c9a227); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <p style="color: var(--text-muted, #999); font-size: 0.85rem;">Loading log file...</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const text = await response.text();
+        window._logLines = text.split('\n');
+        window._logFilter = 'all';
+        renderLogLines('all');
+    } catch (e) {
+        document.getElementById('log-content').innerHTML = '<span style="color: var(--text-muted, #999);">Could not load log file.</span>';
+    }
+}
+
+function filterLog(level) {
+    window._logFilter = level;
+    // Update button styles
+    ['all', 'warn', 'error'].forEach(function(l) {
+        var btn = document.getElementById('log-filter-' + l);
+        if (!btn) return;
+        if (l === level) {
+            btn.style.background = 'var(--accent-primary, #c9a227)';
+            btn.style.color = 'var(--bg-primary, #0f0f0f)';
+            btn.style.fontWeight = '600';
+        } else {
+            btn.style.background = 'var(--bg-secondary, #161616)';
+            btn.style.color = 'var(--text-primary, #e8e8e8)';
+            btn.style.fontWeight = 'normal';
+        }
+    });
+    renderLogLines(level);
+}
+
+function renderLogLines(level) {
+    var lines = window._logLines || [];
+    var el = document.getElementById('log-content');
+    if (!el) return;
+    var filtered;
+    if (level === 'warn') {
+        filtered = lines.filter(function(l) { return /warn|warning/i.test(l); });
+    } else if (level === 'error') {
+        filtered = lines.filter(function(l) { return /error|exception|fatal|critical/i.test(l); });
+    } else {
+        filtered = lines;
+    }
+    if (filtered.length === 0) {
+        el.innerHTML = '<span style="color: var(--text-muted, #999);">No ' + (level === 'all' ? '' : level + ' ') + 'entries found.</span>';
+        return;
+    }
+    // Colorize lines
+    var html = filtered.map(function(line) {
+        var escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        if (/error|exception|fatal|critical/i.test(line)) {
+            return '<span style="color: #ff6b6b;">' + escaped + '</span>';
+        } else if (/warn|warning/i.test(line)) {
+            return '<span style="color: #ffd93d;">' + escaped + '</span>';
+        }
+        return escaped;
+    }).join('\n');
+    el.innerHTML = html;
+}
+
 // Expose functions to global scope for inline onclick handlers
 window.loadPlotFile = loadPlotFile;
 window.toggleFolder = toggleFolder;
 window.showRepoInfo = showRepoInfo;
+window.loadLogFile = loadLogFile;
+window.filterLog = filterLog;
 window.exportPlotAsPNG = exportPlotAsPNG;
 window.exportPlotAsSVG = exportPlotAsSVG;
 window.exportPlotAsPDF = exportPlotAsPDF;
