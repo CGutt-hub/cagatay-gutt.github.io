@@ -107,11 +107,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/website-update/">&lt;p&gt;This website has been updated with the following changes:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-changes&quot;&gt;Recent Changes&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;1492a88&lt;&#x2F;code&gt; Ignore dotfiles&#x2F;dotdirs, per-repo pipeline data, cache v2&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;5b965af&lt;&#x2F;code&gt; Recursive tree rendering: mirror exact repo folder structure&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;2fb75ff&lt;&#x2F;code&gt; Flat folder discovery: show all files from results dirs, README at bottom&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;08ebe76&lt;&#x2F;code&gt; Auto-show README on folder expand, add log viewer with filtering, broaden file d&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;a88c520&lt;&#x2F;code&gt; Show project README in main content area instead of sidebar dropdown&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;c946218&lt;&#x2F;code&gt; Add project info dropdown with README in Open Data sidebar&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The site continues to sync automatically with GitHub (projects) and ORCID (publications).&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;5ha99y&quot;&gt;View source on GitHub →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
