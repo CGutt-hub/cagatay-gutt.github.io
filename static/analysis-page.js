@@ -2515,27 +2515,74 @@ async function discoverAnalysisRepos(username) {
     }
 }
 
+// Build a proper tree structure from flat folder-path → files map
+function buildFolderTree(folders) {
+    const root = { children: {}, files: folders[''] || [] };
+    for (const [folderPath, files] of Object.entries(folders)) {
+        if (folderPath === '') continue;
+        const parts = folderPath.split('/');
+        let node = root;
+        for (const part of parts) {
+            if (!node.children[part]) node.children[part] = { children: {}, files: [] };
+            node = node.children[part];
+        }
+        node.files = node.files.concat(files);
+    }
+    return root;
+}
+
+// Count all files recursively in a tree node
+function countTreeFiles(node) {
+    let count = node.files.length;
+    for (const child of Object.values(node.children)) count += countTreeFiles(child);
+    return count;
+}
+
 // Render a single file item in the sidebar tree
-function renderFileItem(file, repoOwner, repoName) {
+function renderFileItem(file) {
     const sizeKB = (file.size / 1024).toFixed(1);
     const displayName = file.name.replace(/_/g, '_<wbr>').replace(/\./g, '<wbr>.');
     const folderLabel = file.folderPath || '';
     if (file.name.endsWith('.parquet')) {
         return `
             <div class="tree-item" onclick="loadPlotFile('${file.url}', '${file.name}', '${folderLabel}')" data-filename="${file.name.toLowerCase()}">
-                \ud83d\udcca ${displayName}
+                📊 ${displayName}
                 <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">(${sizeKB}KB)</span>
             </div>
         `;
     } else if (/\.(log|txt)$/i.test(file.name)) {
         return `
             <div class="tree-item" onclick="loadLogFile('${file.url}', '${file.name}', '${folderLabel}')" data-filename="${file.name.toLowerCase()}">
-                \ud83d\udcc4 ${displayName}
+                📄 ${displayName}
                 <span style="color: var(--text-muted, #999); font-size: 0.8em; margin-left: 5px;">(${sizeKB}KB)</span>
             </div>
         `;
     }
     return '';
+}
+
+// Recursively render a tree node into sidebar HTML
+function renderTreeNode(node) {
+    let html = '';
+    // Render files at this level
+    node.files.forEach(file => { html += renderFileItem(file); });
+    // Render child folders
+    const childNames = Object.keys(node.children).sort();
+    childNames.forEach(name => {
+        const child = node.children[name];
+        const count = countTreeFiles(child);
+        html += `
+            <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
+                <span class="tree-folder-icon">▶</span>
+                <span>${name}</span>
+                <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${count})</span>
+            </div>
+            <div class="tree-folder-content" style="margin-left: 10px;">
+        `;
+        html += renderTreeNode(child);
+        html += '</div>';
+    });
+    return html;
 }
 
 // Render file tree in sidebar
@@ -2549,16 +2596,8 @@ function renderFileTree(structure, append = false) {
     window._repoDescriptions = window._repoDescriptions || {};
     window._repoDescriptions[repoOwner + '/' + repoName] = description || '';
 
-    // Sort folder paths: root files first, then alphabetically
-    const folderPaths = Object.keys(folders).sort((a, b) => {
-        if (a === '' && b !== '') return -1;
-        if (b === '' && a !== '') return 1;
-        return a.localeCompare(b);
-    });
-
-    // Count total files
-    let totalFiles = 0;
-    for (const files of Object.values(folders)) totalFiles += files.length;
+    const tree = buildFolderTree(folders);
+    const totalFiles = countTreeFiles(tree);
 
     // Build tree HTML
     let html = `
@@ -2570,88 +2609,7 @@ function renderFileTree(structure, append = false) {
         <div class="tree-folder-content" style="margin-left: 10px;">
     `;
 
-    // Build a nested folder tree from flat paths
-    function buildNestedTree(folderPaths, folders) {
-        // Collect root-level files (folderPath === '')
-        const rootFiles = folders[''] || [];
-        // Build tree nodes: group by first path segment
-        const subgroups = {};
-        for (const fp of folderPaths) {
-            if (fp === '') continue;
-            const parts = fp.split('/');
-            const top = parts[0];
-            if (!subgroups[top]) subgroups[top] = [];
-            subgroups[top].push(fp);
-        }
-        return { rootFiles, subgroups };
-    }
-
-    const { rootFiles, subgroups } = buildNestedTree(folderPaths, folders);
-
-    // Render root-level files
-    rootFiles.forEach(file => {
-        html += renderFileItem(file, repoOwner, repoName);
-    });
-
-    // Render subfolders
-    const sortedGroups = Object.keys(subgroups).sort();
-    sortedGroups.forEach(groupName => {
-        const paths = subgroups[groupName];
-        // Collect all files under this group
-        let groupFiles = [];
-        for (const fp of paths) {
-            groupFiles = groupFiles.concat(folders[fp] || []);
-        }
-        // If only one level, show files directly; if nested, show subfolders
-        const hasSubfolders = paths.some(fp => fp.split('/').length > 1);
-        
-        html += `
-            <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
-                <span class="tree-folder-icon">▶</span>
-                <span>${groupName}</span>
-                <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${groupFiles.length})</span>
-            </div>
-            <div class="tree-folder-content" style="margin-left: 10px;">
-        `;
-        
-        if (hasSubfolders) {
-            // Group by second-level path
-            const subMap = {};
-            for (const fp of paths) {
-                const parts = fp.split('/');
-                const subName = parts.slice(1).join('/');
-                if (!subMap[subName]) subMap[subName] = [];
-                subMap[subName] = subMap[subName].concat(folders[fp] || []);
-            }
-            Object.keys(subMap).sort().forEach(subName => {
-                if (!subName) {
-                    // Files directly in this group folder
-                    subMap[subName].forEach(file => {
-                        html += renderFileItem(file, repoOwner, repoName);
-                    });
-                } else {
-                    html += `
-                        <div class="tree-folder" onclick="toggleFolder(this)" data-expanded="false">
-                            <span class="tree-folder-icon">▶</span>
-                            <span>${subName}</span>
-                            <span style="color: var(--text-muted, #999); font-size: 0.85em; margin-left: 5px;">(${subMap[subName].length})</span>
-                        </div>
-                        <div class="tree-folder-content" style="margin-left: 10px;">
-                    `;
-                    subMap[subName].forEach(file => {
-                        html += renderFileItem(file, repoOwner, repoName);
-                    });
-                    html += '</div>';
-                }
-            });
-        } else {
-            groupFiles.forEach(file => {
-                html += renderFileItem(file, repoOwner, repoName);
-            });
-        }
-        
-        html += '</div>';
-    });
+    html += renderTreeNode(tree);
 
     // README as last item
     html += `
