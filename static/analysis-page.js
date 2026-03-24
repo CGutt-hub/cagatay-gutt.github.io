@@ -2918,9 +2918,13 @@ async function loadLogFile(url, displayName, participant) {
     }
     emptyState.style.display = 'none';
 
+    // Scroll the main area to top so the log header is visible
+    const mainArea = document.querySelector('.analysis-main');
+    if (mainArea) mainArea.scrollTop = 0;
+
     plotDisplays.innerHTML = `
-        <div class="plot-display active" id="current-plot">
-            <div style="margin-bottom: 12px;">
+        <div class="plot-display active" id="current-plot" style="display: flex; flex-direction: column; height: calc(100vh - 220px);">
+            <div style="margin-bottom: 12px; flex-shrink: 0;">
                 <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 4px;">Log: ${displayName}</div>
                 <div style="font-size: 0.8rem; color: var(--text-secondary, #aaa); margin-bottom: 12px;">Participant: ${participant}</div>
                 <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -2929,7 +2933,7 @@ async function loadLogFile(url, displayName, participant) {
                     <button id="log-filter-error" onclick="filterLog('error')" style="padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border-primary, #2a2a2a); background: var(--bg-secondary, #161616); color: var(--text-primary, #e8e8e8); font-size: 0.8rem; cursor: pointer;">✖ Errors</button>
                 </div>
             </div>
-            <div id="log-content" style="padding: 16px; background: var(--bg-secondary, #161616); border: 1px solid var(--border-primary, #2a2a2a); border-radius: 8px; min-height: 200px; max-height: calc(100vh - 280px); overflow-y: auto; font-family: monospace; font-size: 0.8rem; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: var(--text-primary, #e8e8e8);">
+            <div id="log-content" style="padding: 16px; background: var(--bg-secondary, #161616); border: 1px solid var(--border-primary, #2a2a2a); border-radius: 8px; flex: 1; min-height: 0; overflow-y: auto; font-family: monospace; font-size: 0.8rem; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: var(--text-primary, #e8e8e8);">
                 <div style="display: flex; align-items: center; justify-content: center; height: 120px; flex-direction: column; gap: 10px;">
                     <div class="spinner" style="width: 30px; height: 30px; border: 3px solid var(--bg-tertiary, #ddd); border-top: 3px solid var(--accent-primary, #c9a227); border-radius: 50%; animation: spin 1s linear infinite;"></div>
                     <p style="color: var(--text-muted, #999); font-size: 0.85rem;">Loading log file...</p>
@@ -3011,7 +3015,12 @@ function renderLogLines(level) {
         return escaped;
     }).join('\n');
     el.innerHTML = html;
-    el.scrollTop = 0;
+    // Reset scroll after layout to ensure we start at the top
+    requestAnimationFrame(function() {
+        el.scrollTop = 0;
+        var mainArea = document.querySelector('.analysis-main');
+        if (mainArea) mainArea.scrollTop = 0;
+    });
 }
 
 // Expose functions to global scope for inline onclick handlers
