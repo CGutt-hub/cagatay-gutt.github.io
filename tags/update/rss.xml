@@ -51,11 +51,11 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/website-update/">&lt;p&gt;This website has been updated with the following changes:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-changes&quot;&gt;Recent Changes&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;52268d4&lt;&#x2F;code&gt; debug: add log parsing diagnostics and line count indicator&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;3971a41&lt;&#x2F;code&gt; fix: detect LFS pointer stubs and show clear diagnostic message&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;dac4a41&lt;&#x2F;code&gt; fix: log viewer scrollability - flexbox layout + scroll reset&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;58175a1&lt;&#x2F;code&gt; remove: strip all LFS detection code - not needed for small parquet files&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;cfca63a&lt;&#x2F;code&gt; fix: detect Git LFS pointers, use marked.js for markdown, scroll log to top&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;257b3c1&lt;&#x2F;code&gt; fix: use plain fetch for parquet (no range requests), scrollable README&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The site continues to sync automatically with GitHub (projects) and ORCID (publications).&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;5ha99y&quot;&gt;View source on GitHub →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;

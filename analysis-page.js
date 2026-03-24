@@ -2937,7 +2937,7 @@ async function loadLogFile(url, displayName, participant) {
         <div class="plot-display active" id="current-plot" style="display: flex; flex-direction: column; height: calc(100vh - 220px);">
             <div style="margin-bottom: 12px; flex-shrink: 0;">
                 <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 4px;">Log: ${displayName}</div>
-                <div style="font-size: 0.8rem; color: var(--text-secondary, #aaa); margin-bottom: 12px;">Participant: ${participant}</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary, #aaa); margin-bottom: 12px;">Participant: ${participant} <span id="log-line-count" style="margin-left: 16px; color: var(--text-muted, #666);"></span></div>
                 <div style="display: flex; gap: 8px; margin-bottom: 12px;">
                     <button id="log-filter-all" onclick="filterLog('all')" style="padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border-primary, #2a2a2a); background: var(--accent-primary, #c9a227); color: var(--bg-primary, #0f0f0f); font-size: 0.8rem; cursor: pointer; font-weight: 600;">All</button>
                     <button id="log-filter-warn" onclick="filterLog('warn')" style="padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border-primary, #2a2a2a); background: var(--bg-secondary, #161616); color: var(--text-primary, #e8e8e8); font-size: 0.8rem; cursor: pointer;">⚠ Warnings</button>
@@ -2964,14 +2964,21 @@ async function loadLogFile(url, displayName, participant) {
         let text = '';
         if (rows.length > 0) {
             const cols = Object.keys(rows[0]);
+            console.log('[Log] Rows:', rows.length, 'Columns:', cols);
             // Find the column most likely containing log text
             const textCol = cols.find(c => /log|text|message|content|output/i.test(c)) || cols[0];
-            text = rows.map(r => {
+            console.log('[Log] Using column:', textCol);
+            // Each row's value may itself contain newlines (e.g. entire log in one cell)
+            const parts = [];
+            for (const r of rows) {
                 const val = r[textCol];
-                return val != null ? String(val) : '';
-            }).join('\n');
+                if (val != null) parts.push(String(val));
+            }
+            text = parts.join('\n');
+            console.log('[Log] Total text length:', text.length, 'chars');
         }
         window._logLines = text.split('\n');
+        console.log('[Log] Total lines after split:', window._logLines.length);
         window._logFilter = 'all';
         renderLogLines('all');
     } catch (e) {
@@ -3014,6 +3021,11 @@ function renderLogLines(level) {
     if (filtered.length === 0) {
         el.innerHTML = '<span style="color: var(--text-muted, #999);">No ' + (level === 'all' ? '' : level + ' ') + 'entries found.</span>';
         return;
+    }
+    // Show line count
+    var countEl = document.getElementById('log-line-count');
+    if (countEl) {
+        countEl.textContent = filtered.length + ' / ' + lines.length + ' lines';
     }
     // Colorize lines
     var html = filtered.map(function(line) {
