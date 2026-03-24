@@ -63,16 +63,6 @@ async function fetchParquetData(repoNameOrUrl, filePathOrSize = null) {
         if (!response.ok) throw new Error(`HTTP ${response.status} fetching ${url}`);
         const arrayBuffer = await response.arrayBuffer();
         
-        // Detect Git LFS pointer (starts with "version https://git-lfs")
-        const header = new Uint8Array(arrayBuffer, 0, Math.min(40, arrayBuffer.byteLength));
-        const headerStr = new TextDecoder().decode(header);
-        if (headerStr.startsWith('version https://git-lfs')) {
-            // Parse real size from LFS pointer
-            const sizeMatch = new TextDecoder().decode(new Uint8Array(arrayBuffer)).match(/^size\s+(\d+)/m);
-            const realSize = sizeMatch ? sizeMatch[1] : 'unknown';
-            throw new Error(`GIT_LFS:This file is stored in Git LFS (actual size: ${realSize} bytes). The data has not been pushed to LFS storage on GitHub yet.`);
-        }
-        
         console.log('[Analysis] Parsing parquet file with hyparquet...');
         const parseStart = Date.now();
         const rows = await window.hyparquetReadObjects({ file: arrayBuffer });
@@ -2218,10 +2208,7 @@ async function loadPlotFile(url, displayName, participant) {
         let errorDetails = error.message;
         let recommendations = '';
         
-        if (error.message.startsWith('GIT_LFS:')) {
-            errorDetails = 'File stored in Git LFS';
-            recommendations = 'This parquet file uses Git Large File Storage. The actual data has not been pushed to GitHub LFS yet, so only the pointer file is available. Please push the LFS objects with <code>git lfs push --all origin</code> from the source repository.';
-        } else if (error.message.includes('Parquet library failed')) {
+        if (error.message.includes('Parquet library failed')) {
             errorDetails = 'Parquet library could not load';
             recommendations = 'Please check your internet connection and try refreshing the page.';
         } else if (error.message.includes('HTTP 404')) {
@@ -2956,12 +2943,6 @@ async function loadLogFile(url, displayName, participant) {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status} fetching log ${url}`);
         const arrayBuffer = await response.arrayBuffer();
-        
-        // Detect Git LFS pointer
-        const hdr = new TextDecoder().decode(new Uint8Array(arrayBuffer, 0, Math.min(40, arrayBuffer.byteLength)));
-        if (hdr.startsWith('version https://git-lfs')) {
-            throw new Error('This log file is stored in Git LFS and the data has not been pushed to LFS storage yet.');
-        }
         
         const rows = await window.hyparquetReadObjects({ file: arrayBuffer });
         // Extract text: join all string values from all rows
