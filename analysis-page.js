@@ -43,6 +43,43 @@ async function parseParquetBuffer(arrayBuffer) {
     return rows;
 }
 
+// Resolve a raw.githubusercontent.com URL, handling Git LFS pointers transparently.
+// If the response is an LFS pointer stub, fetches the real content from
+// media.githubusercontent.com (GitHub's LFS CDN for public repos).
+async function fetchWithLfsResolve(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status} fetching ${url}`);
+    let arrayBuffer = await response.arrayBuffer();
+
+    // Detect LFS pointer: small file starting with "version https://git-lfs"
+    if (arrayBuffer.byteLength < 250) {
+        const text = new TextDecoder().decode(new Uint8Array(arrayBuffer).slice(0, 50));
+        if (text.startsWith('version https://git-lfs')) {
+            console.log('[LFS] Detected LFS pointer for:', url);
+            // Resolve via media.githubusercontent.com (GitHub LFS CDN)
+            const mediaUrl = url.replace(
+                'raw.githubusercontent.com',
+                'media.githubusercontent.com/media'
+            );
+            console.log('[LFS] Resolving via:', mediaUrl);
+            const lfsResponse = await fetch(mediaUrl);
+            if (!lfsResponse.ok) {
+                // Parse pointer for diagnostics
+                const fullText = new TextDecoder().decode(arrayBuffer);
+                const sizeMatch = fullText.match(/size (\d+)/);
+                const declaredSize = sizeMatch ? sizeMatch[1] : 'unknown';
+                throw new Error(
+                    `LFS_RESOLVE_FAILED: Could not resolve LFS object (declared size: ${declaredSize} bytes). ` +
+                    `The LFS data may not be available on the public repository yet.`
+                );
+            }
+            arrayBuffer = await lfsResponse.arrayBuffer();
+            console.log('[LFS] Resolved successfully, size:', arrayBuffer.byteLength);
+        }
+    }
+    return arrayBuffer;
+}
+
 // Fetch and parse parquet file from GitHub repo using hyparquet
 async function fetchParquetData(repoNameOrUrl, filePathOrSize = null) {
     console.log('[Analysis] fetchParquetData called:', { repoNameOrUrl, filePathOrSize });
@@ -58,18 +95,8 @@ async function fetchParquetData(repoNameOrUrl, filePathOrSize = null) {
         
         console.log('[Analysis] Fetching:', url);
         
-        // Fetch full file (raw.githubusercontent.com doesn't support HTTP range requests)
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status} fetching ${url}`);
-        const arrayBuffer = await response.arrayBuffer();
-        
-        // Detect Git LFS pointer stubs (small text files starting with "version https://git-lfs")
-        if (arrayBuffer.byteLength < 200) {
-            const preview = new TextDecoder().decode(arrayBuffer.slice(0, 40));
-            if (preview.startsWith('version https://git-lfs')) {
-                throw new Error('LFS_POINTER: This file is a Git LFS pointer, not actual data. The source repository needs to be redeployed with LFS disabled for the public copy.');
-            }
-        }
+        // Fetch file, resolving LFS pointers transparently
+        const arrayBuffer = await fetchWithLfsResolve(url);
         
         console.log('[Analysis] Parsing parquet file with hyparquet...');
         const parseStart = Date.now();
@@ -2216,9 +2243,9 @@ async function loadPlotFile(url, displayName, participant) {
         let errorDetails = error.message;
         let recommendations = '';
         
-        if (error.message.includes('LFS_POINTER')) {
+        if (error.message.includes('LFS_RESOLVE_FAILED')) {
             errorDetails = 'Data not yet available';
-            recommendations = 'The source repository contains placeholder files instead of actual data. This is resolved automatically when the research pipeline redeploys. Please check back shortly.';
+            recommendations = 'This file uses Git LFS but the data has not been synced to the public repository yet. It will be available after the next pipeline deployment.';
         } else if (error.message.includes('Parquet library failed')) {
             errorDetails = 'Parquet library could not load';
             recommendations = 'Please check your internet connection and try refreshing the page.';
@@ -2955,9 +2982,8 @@ async function loadLogFile(url, displayName, participant) {
 
     try {
         await waitForHyparquet();
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status} fetching log ${url}`);
-        const arrayBuffer = await response.arrayBuffer();
+        // Fetch file, resolving LFS pointers transparently
+        const arrayBuffer = await fetchWithLfsResolve(url);
         
         const rows = await window.hyparquetReadObjects({ file: arrayBuffer });
         // Extract text: join all string values from all rows
