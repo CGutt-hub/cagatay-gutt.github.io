@@ -51,11 +51,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-analysistoolbox/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;AnalysisToolbox&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;64133a4&lt;&#x2F;code&gt; fix: remove extra closing brace causing Nextflow compilation error in finalizeL2&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;4fae601&lt;&#x2F;code&gt; fix: meta.json location, log accumulation, LFS fallback&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;a7a455a&lt;&#x2F;code&gt; fix: correct relative URL resolution for HTML archive in .bin&#x2F; subfolder&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;bfdc542&lt;&#x2F;code&gt; feat: enhance git sync process with LFS support for large files and improved com&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;4cb93ca&lt;&#x2F;code&gt; feat: enhance git sync process with improved handling for trace files and push r&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;ece4676&lt;&#x2F;code&gt; refactor: move scaffold creation before bootstrap push&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
