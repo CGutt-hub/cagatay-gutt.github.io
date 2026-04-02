@@ -2886,27 +2886,134 @@ function showRepoInfo(owner, repoName) {
 
     // Generate pipeline tree HTML if available — resolve correct repo
     var repoPath = owner + '/' + repoName;
-    var pipelineForRepo = (window.pipelineDataMap && window.pipelineDataMap[repoPath]) || window.pipelineData;
-    var pipelineHTML = pipelineForRepo
-        ? generatePipelineTreeHTML(repoName, pipelineForRepo)
-        : '';
-    var divider = '<hr style="border: none; border-top: 1px solid var(--border-primary, #2a2a2a); margin: 25px 0;">';
 
-    plotDisplays.innerHTML = `
-        <div class="plot-display active" id="current-plot">
-            <div style="margin-bottom: 20px;">
-                <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 4px;">${repoName}</div>
-                ${description ? '<div style="font-size: 0.9rem; color: var(--text-secondary, #aaa); margin-bottom: 16px;">' + description.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>' : ''}
-            </div>
-            <div id="repo-readme" style="padding: 20px; background: var(--bg-secondary, #161616); border: 1px solid var(--border-primary, #2a2a2a); border-radius: 8px; min-height: 200px; max-height: calc(100vh - 280px); overflow-y: auto; line-height: 1.6; font-size: 0.9rem; color: var(--text-primary, #e8e8e8);">
-                <div style="display: flex; align-items: center; justify-content: center; height: 120px; flex-direction: column; gap: 10px;">
-                    <div class="spinner" style="width: 30px; height: 30px; border: 3px solid var(--bg-tertiary, #ddd); border-top: 3px solid var(--accent-primary, #c9a227); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                    <p style="color: var(--text-muted, #999); font-size: 0.85rem;">Loading README...</p>
-                </div>
-            </div>
-            ${pipelineHTML ? divider + pipelineHTML : ''}
-        </div>
-    `;
+    // --- Pipeline/Results Tree Section ---
+    function buildResultsTreeBox() {
+        const files = (window.analysisData && window.analysisData.allFiles) || [];
+        // Build tree: level (l1/l2/root) > participant > files
+        const tree = {};
+        files.forEach(f => {
+            const pathParts = f.path ? f.path.split('/') : [];
+            let lvl = null, participant = null;
+            if (pathParts.length >= 4 && /^l[12]$/.test(pathParts[1])) {
+                lvl = pathParts[1];
+                participant = pathParts[2];
+            } else {
+                participant = pathParts[1];
+            }
+            const lvlKey = lvl || 'root';
+            if (!tree[lvlKey]) tree[lvlKey] = {};
+            if (!tree[lvlKey][participant]) tree[lvlKey][participant] = [];
+            tree[lvlKey][participant].push(f.filename || f.path);
+        });
+        // Render as collapsible HTML
+        function renderTree(obj, depth = 0) {
+            const container = document.createElement('div');
+            for (const key in obj) {
+                const value = obj[key];
+                const node = document.createElement('div');
+                node.style.marginLeft = (depth * 18) + 'px';
+                node.style.cursor = 'pointer';
+                node.style.fontWeight = depth === 0 ? 'bold' : 'normal';
+                if (Array.isArray(value)) {
+                    node.textContent = key + '/';
+                    const filesList = document.createElement('ul');
+                    filesList.style.margin = '4px 0 8px ' + ((depth + 1) * 18) + 'px';
+                    value.forEach(f => {
+                        const li = document.createElement('li');
+                        li.textContent = f;
+                        filesList.appendChild(li);
+                    });
+                    node.appendChild(filesList);
+                } else if (typeof value === 'object') {
+                    node.textContent = key + '/';
+                    node.style.fontWeight = 'bold';
+                    node.style.marginTop = '6px';
+                    node.appendChild(renderTree(value, depth + 1));
+                }
+                container.appendChild(node);
+            }
+            return container;
+        }
+        const box = document.createElement('div');
+        box.style.margin = '25px 0';
+        box.style.background = 'var(--bg-primary, #222)';
+        box.style.color = 'var(--text-primary, #e8e8e8)';
+        box.style.padding = '16px';
+        box.style.borderRadius = '8px';
+        box.style.overflowX = 'auto';
+        box.style.fontFamily = 'var(--font-mono, monospace)';
+        box.style.fontSize = '1em';
+        const title = document.createElement('div');
+        title.textContent = 'Pipeline/Results Tree';
+        title.style.fontWeight = 'bold';
+        title.style.fontSize = '1.1em';
+        title.style.marginBottom = '10px';
+        box.appendChild(title);
+        // Download button
+        const dlBtn = document.createElement('button');
+        dlBtn.textContent = 'Download Tree JSON';
+        dlBtn.style.marginBottom = '10px';
+        dlBtn.style.marginLeft = '10px';
+        dlBtn.style.padding = '4px 10px';
+        dlBtn.style.fontSize = '0.95em';
+        dlBtn.style.borderRadius = '4px';
+        dlBtn.style.border = '1px solid var(--border-primary, #444)';
+        dlBtn.style.background = 'var(--bg-tertiary, #333)';
+        dlBtn.style.color = 'var(--text-primary, #e8e8e8)';
+        dlBtn.onclick = () => {
+            const blob = new Blob([JSON.stringify(tree, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'pipeline_tree.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+        box.appendChild(dlBtn);
+        box.appendChild(renderTree(tree));
+        return box;
+    }
+
+    plotDisplays.innerHTML = '';
+    const mainDiv = document.createElement('div');
+    mainDiv.className = 'plot-display active';
+    mainDiv.id = 'current-plot';
+    // Header
+    const headerDiv = document.createElement('div');
+    headerDiv.style.marginBottom = '20px';
+    headerDiv.innerHTML = `<div style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 4px;">${repoName}</div>${description ? '<div style="font-size: 0.9rem; color: var(--text-secondary, #aaa); margin-bottom: 16px;">' + description.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>' : ''}`;
+    mainDiv.appendChild(headerDiv);
+    // README
+    const readmeDiv = document.createElement('div');
+    readmeDiv.id = 'repo-readme';
+    readmeDiv.style.padding = '20px';
+    readmeDiv.style.background = 'var(--bg-secondary, #161616)';
+    readmeDiv.style.border = '1px solid var(--border-primary, #2a2a2a)';
+    readmeDiv.style.borderRadius = '8px';
+    readmeDiv.style.minHeight = '200px';
+    readmeDiv.style.maxHeight = 'calc(100vh - 280px)';
+    readmeDiv.style.overflowY = 'auto';
+    readmeDiv.style.lineHeight = '1.6';
+    readmeDiv.style.fontSize = '0.9rem';
+    readmeDiv.style.color = 'var(--text-primary, #e8e8e8)';
+    readmeDiv.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 120px; flex-direction: column; gap: 10px;"><div class="spinner" style="width: 30px; height: 30px; border: 3px solid var(--bg-tertiary, #ddd); border-top: 3px solid var(--accent-primary, #c9a227); border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="color: var(--text-muted, #999); font-size: 0.85rem;">Loading README...</p></div>`;
+    mainDiv.appendChild(readmeDiv);
+    // Pipeline/Results Tree
+    mainDiv.appendChild(buildResultsTreeBox());
+    plotDisplays.appendChild(mainDiv);
+
+    // Load README
+    var readmeEl = document.getElementById('repo-readme');
+    fetch('https://raw.githubusercontent.com/' + owner + '/' + repoName + '/main/README.md')
+        .then(function(r) { return r.ok ? r.text() : null; })
+        .then(function(text) {
+            if (!text) { readmeEl.innerHTML = '<p style="color: var(--text-muted, #999);">No README available.</p>'; return; }
+            readmeEl.innerHTML = '<div class="rendered-markdown">' + marked.parse(text) + '</div>';
+        })
+        .catch(function() { readmeEl.innerHTML = '<p style="color: var(--text-muted, #999);">Could not load README.</p>'; });
 
     var readmeEl = document.getElementById('repo-readme');
     fetch('https://raw.githubusercontent.com/' + owner + '/' + repoName + '/main/README.md')
