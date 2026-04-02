@@ -1018,6 +1018,23 @@ function renderPlots() {
         plotContainer.className = 'plot-container';
         plotContainer.id = `plot-container-${index}`;
         plotDisplay.appendChild(plotContainer);
+
+        // --- Always show pipeline tree under the plot ---
+        // Try to get pipeline data for this repo/resultsDir
+        let repoPath = plotItem.repo_name && plotItem.repo_name.includes('/') ? plotItem.repo_name : (plotItem.repo_owner ? plotItem.repo_owner + '/' + plotItem.repo_name : null);
+        if (!repoPath && window.analysisData && window.analysisData.repoPath) repoPath = window.analysisData.repoPath;
+        let pipelineData = (window.pipelineDataMap && window.pipelineDataMap[repoPath]) || window.pipelineData;
+        if (pipelineData && pipelineData.processes && pipelineData.processes.length > 0) {
+            const divider = document.createElement('hr');
+            divider.style.border = 'none';
+            divider.style.borderTop = '1px solid var(--border-primary, #2a2a2a)';
+            divider.style.margin = '25px 0';
+            plotDisplay.appendChild(divider);
+            const pipelineHTML = generatePipelineTreeHTML(plotItem.file_path, pipelineData);
+            const pipelineDiv = document.createElement('div');
+            pipelineDiv.innerHTML = pipelineHTML;
+            plotDisplay.appendChild(pipelineDiv);
+        }
         
         plotDisplays.appendChild(plotDisplay);
         
