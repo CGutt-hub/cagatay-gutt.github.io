@@ -26,11 +26,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-analysistoolbox/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;AnalysisToolbox&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;2b223b5&lt;&#x2F;code&gt; fix: relative URL paths for GitHub Pages viewer, snappy compression, sentinel wi&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;a774319&lt;&#x2F;code&gt; feat: add zscore criterion for sample rejection; update parquet compression to g&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;c8febc1&lt;&#x2F;code&gt; fix: update configuration file references in pipelineBuilder documentation&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;a871b11&lt;&#x2F;code&gt; fix: update l2_folder parameter initialization to avoid undefined warnings&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;29d98ef&lt;&#x2F;code&gt; fix: remove duplicate pipeline_log def in finalizeParticipant; add pipeline buil&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;6b64038&lt;&#x2F;code&gt; Enhance .gitignore handling: untrack Nextflow trace and local runtime files&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -56,7 +56,7 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-emotiview/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;EmotiView&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;code&gt;8836359&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@c6d&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;cdad80f&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@5ce&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
