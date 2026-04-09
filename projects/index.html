@@ -66,6 +66,97 @@
     <div class="content">
         <p><em>Active development projects tracked via <a rel="external" href="https://github.com/CGutt-hub">GitHub</a>. My open backoffice for collaborative science.</em></p>
 <hr />
+<h3 id="analysistoolbox">AnalysisToolbox</h3>
+<p><strong>Language:</strong> Python<br />
+<strong>Last updated:</strong> 2026-04-09</p>
+<details>
+<summary>View README</summary>
+<h1 id="analysistoolbox-1">AnalysisToolbox</h1>
+<p>A modular framework for automated data processing and statistical analysis pipelines. Built on <strong>Nextflow</strong> for scalable, reproducible workflows with automatic result synchronization.</p>
+<h2 id="overview">Overview</h2>
+<p>The AnalysisToolbox provides infrastructure for building data processing pipelines that:</p>
+<ul>
+<li><strong>Process multiple datasets</strong> in parallel with automatic discovery of new data</li>
+<li><strong>Handle diverse data types</strong> through a generic reader/processor/analyzer architecture</li>
+<li><strong>Track progress</strong> via per-dataset logging and automatic git synchronization of results</li>
+<li><strong>Recover gracefully</strong> from failures without losing completed work</li>
+</ul>
+<p>The framework is domain-agnostic—modules follow simple input/output conventions (Parquet files) and can implement any processing logic. Some specialized modules exist for specific data types (e.g., fNIRS preprocessing) where domain knowledge is required.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="1-wsl-windows-subsystem-for-linux">1. WSL (Windows Subsystem for Linux)</h3>
+<p>The pipeline runs in Linux. On Windows, install WSL:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="powershell"><span class="giallo-l"><span>wsl </span><span style="color: #94E2D5;">--</span><span>install </span><span style="color: #94E2D5;">-</span><span>d Ubuntu</span></span></code></pre><h3 id="2-java-runtime-required-by-nextflow">2. Java Runtime (required by Nextflow)</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt update</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt install default-jre</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">java</span><span style="color: #A6E3A1;"> -version</span><span style="color: #9399B2;font-style: italic;">  # Verify installation</span></span></code></pre><h3 id="3-nextflow">3. Nextflow</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">curl</span><span style="color: #A6E3A1;"> -s https://get.nextflow.io</span><span style="color: #94E2D5;"> |</span><span style="color: #89B4FA;font-style: italic;"> bash</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> mv nextflow /usr/local/bin/</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> -version</span><span style="color: #9399B2;font-style: italic;">  # Verify installation</span></span></code></pre><h3 id="4-python-environment">4. Python Environment</h3>
+<p>Create a virtual environment with required packages:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python3</span><span style="color: #A6E3A1;"> -m venv ~/analysis_venv</span></span>
+<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">source</span><span style="color: #A6E3A1;"> ~/analysis_venv/bin/activate</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install numpy pandas polars scipy matplotlib</span></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Add domain-specific packages as needed (e.g., mne for neuroimaging)</span></span></code></pre><h3 id="5-git-ssh-setup-for-automatic-result-sync">5. Git SSH Setup (for automatic result sync)</h3>
+<p>Generate an SSH key (press Enter for no passphrase):</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">ssh-keygen</span><span style="color: #A6E3A1;"> -t ed25519 -C &quot;your_email@example.com&quot;</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">cat</span><span style="color: #A6E3A1;"> ~/.ssh/id_ed25519.pub</span></span></code></pre>
+<p>Add the public key to GitHub: https://github.com/settings/keys → "New SSH key"</p>
+<p>Test the connection:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">ssh</span><span style="color: #A6E3A1;"> -T git@github.com</span></span></code></pre><h2 id="project-structure">Project Structure</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>AnalysisToolbox/</span></span>
+<span class="giallo-l"><span>├── Python/</span></span>
+<span class="giallo-l"><span>│   ├── analyzers/       # Analysis modules (statistics, feature extraction)</span></span>
+<span class="giallo-l"><span>│   ├── processors/      # Data transformation modules (filtering, epoching)</span></span>
+<span class="giallo-l"><span>│   ├── readers/         # File format readers (XDF, TXT, etc.)</span></span>
+<span class="giallo-l"><span>│   └── utils/           # Infrastructure (Nextflow wrapper, plotting)</span></span></code></pre><h2 id="usage">Usage</h2>
+<h3 id="creating-a-pipeline">Creating a Pipeline</h3>
+<p>Pipelines are defined in Nextflow DSL2. A typical pipeline:</p>
+<ol>
+<li><strong>Discovers participants</strong> via <code>workflow_wrapper</code> (supports continuous monitoring)</li>
+<li><strong>Chains processing steps</strong> using <code>IOInterface</code> (generic Python script runner)</li>
+<li><strong>Tracks completion</strong> via watchdog threads that monitor terminal processes</li>
+<li><strong>Syncs results</strong> to git when each participant completes</li>
+</ol>
+<h3 id="configuration">Configuration</h3>
+<p>Pipelines use a <code>parameters.config</code> file to define:</p>
+<ul>
+<li>Input/output directories</li>
+<li>Python environment path</li>
+<li>Script paths</li>
+<li>Processing parameters</li>
+</ul>
+<h3 id="running">Running</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> /path/to/your/pipeline</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> run pipeline.nf -c parameters.config -with-trace</span></span></code></pre>
+<p>The <code>-with-trace</code> flag is required for the watchdog to monitor completion.</p>
+<h2 id="key-components">Key Components</h2>
+<h3 id="workflow-wrapper"><code>workflow_wrapper</code></h3>
+<p>Discovers participant directories, creates output folders, and starts per-participant watchdog threads.</p>
+<h3 id="iointerface"><code>IOInterface</code></h3>
+<p>Generic process that runs any Python script with automatic logging to <code>{id}_pipeline.log</code>.</p>
+<h3 id="watchdog">Watchdog</h3>
+<p>Background thread per participant that:</p>
+<ul>
+<li>Monitors the trace file for terminal process completion</li>
+<li>Appends completion summary to the log</li>
+<li>Triggers git commit/push with results</li>
+</ul>
+<h2 id="built-with">Built With</h2>
+<ul>
+<li><strong>Nextflow</strong> - Workflow orchestration</li>
+<li><strong>Python</strong> - Processing and analysis modules</li>
+<li><strong>Polars/Pandas</strong> - Data manipulation</li>
+<li><strong>NumPy/SciPy</strong> - Numerical computing</li>
+<li><strong>Matplotlib</strong> - Visualization</li>
+</ul>
+<h2 id="authors">Authors</h2>
+<ul>
+<li><strong>Cagatay Özcan Jagiello Gutt</strong> - <em>Lead Developer</em>
+<em>ORCID: https://orcid.org/0000-0002-1774-532X</em></li>
+</ul>
+</details>
+<p><a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">View on GitHub →</a></p>
+<hr />
 <h3 id="emotiview">EmotiView</h3>
 <p><strong>Language:</strong> Nextflow<br />
 <strong>Last updated:</strong> 2026-04-09</p>
@@ -276,97 +367,6 @@
 </ul>
 </details>
 <p><a rel="external" href="https://github.com/CGutt-hub/5ha99y">View on GitHub →</a></p>
-<hr />
-<h3 id="analysistoolbox">AnalysisToolbox</h3>
-<p><strong>Language:</strong> Python<br />
-<strong>Last updated:</strong> 2026-04-08</p>
-<details>
-<summary>View README</summary>
-<h1 id="analysistoolbox-1">AnalysisToolbox</h1>
-<p>A modular framework for automated data processing and statistical analysis pipelines. Built on <strong>Nextflow</strong> for scalable, reproducible workflows with automatic result synchronization.</p>
-<h2 id="overview">Overview</h2>
-<p>The AnalysisToolbox provides infrastructure for building data processing pipelines that:</p>
-<ul>
-<li><strong>Process multiple datasets</strong> in parallel with automatic discovery of new data</li>
-<li><strong>Handle diverse data types</strong> through a generic reader/processor/analyzer architecture</li>
-<li><strong>Track progress</strong> via per-dataset logging and automatic git synchronization of results</li>
-<li><strong>Recover gracefully</strong> from failures without losing completed work</li>
-</ul>
-<p>The framework is domain-agnostic—modules follow simple input/output conventions (Parquet files) and can implement any processing logic. Some specialized modules exist for specific data types (e.g., fNIRS preprocessing) where domain knowledge is required.</p>
-<h2 id="prerequisites">Prerequisites</h2>
-<h3 id="1-wsl-windows-subsystem-for-linux">1. WSL (Windows Subsystem for Linux)</h3>
-<p>The pipeline runs in Linux. On Windows, install WSL:</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="powershell"><span class="giallo-l"><span>wsl </span><span style="color: #94E2D5;">--</span><span>install </span><span style="color: #94E2D5;">-</span><span>d Ubuntu</span></span></code></pre><h3 id="2-java-runtime-required-by-nextflow">2. Java Runtime (required by Nextflow)</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt update</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt install default-jre</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">java</span><span style="color: #A6E3A1;"> -version</span><span style="color: #9399B2;font-style: italic;">  # Verify installation</span></span></code></pre><h3 id="3-nextflow">3. Nextflow</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">curl</span><span style="color: #A6E3A1;"> -s https://get.nextflow.io</span><span style="color: #94E2D5;"> |</span><span style="color: #89B4FA;font-style: italic;"> bash</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> mv nextflow /usr/local/bin/</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> -version</span><span style="color: #9399B2;font-style: italic;">  # Verify installation</span></span></code></pre><h3 id="4-python-environment">4. Python Environment</h3>
-<p>Create a virtual environment with required packages:</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python3</span><span style="color: #A6E3A1;"> -m venv ~/analysis_venv</span></span>
-<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">source</span><span style="color: #A6E3A1;"> ~/analysis_venv/bin/activate</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install numpy pandas polars scipy matplotlib</span></span>
-<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Add domain-specific packages as needed (e.g., mne for neuroimaging)</span></span></code></pre><h3 id="5-git-ssh-setup-for-automatic-result-sync">5. Git SSH Setup (for automatic result sync)</h3>
-<p>Generate an SSH key (press Enter for no passphrase):</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">ssh-keygen</span><span style="color: #A6E3A1;"> -t ed25519 -C &quot;your_email@example.com&quot;</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">cat</span><span style="color: #A6E3A1;"> ~/.ssh/id_ed25519.pub</span></span></code></pre>
-<p>Add the public key to GitHub: https://github.com/settings/keys → "New SSH key"</p>
-<p>Test the connection:</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">ssh</span><span style="color: #A6E3A1;"> -T git@github.com</span></span></code></pre><h2 id="project-structure">Project Structure</h2>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>AnalysisToolbox/</span></span>
-<span class="giallo-l"><span>├── Python/</span></span>
-<span class="giallo-l"><span>│   ├── analyzers/       # Analysis modules (statistics, feature extraction)</span></span>
-<span class="giallo-l"><span>│   ├── processors/      # Data transformation modules (filtering, epoching)</span></span>
-<span class="giallo-l"><span>│   ├── readers/         # File format readers (XDF, TXT, etc.)</span></span>
-<span class="giallo-l"><span>│   └── utils/           # Infrastructure (Nextflow wrapper, plotting)</span></span></code></pre><h2 id="usage">Usage</h2>
-<h3 id="creating-a-pipeline">Creating a Pipeline</h3>
-<p>Pipelines are defined in Nextflow DSL2. A typical pipeline:</p>
-<ol>
-<li><strong>Discovers participants</strong> via <code>workflow_wrapper</code> (supports continuous monitoring)</li>
-<li><strong>Chains processing steps</strong> using <code>IOInterface</code> (generic Python script runner)</li>
-<li><strong>Tracks completion</strong> via watchdog threads that monitor terminal processes</li>
-<li><strong>Syncs results</strong> to git when each participant completes</li>
-</ol>
-<h3 id="configuration">Configuration</h3>
-<p>Pipelines use a <code>parameters.config</code> file to define:</p>
-<ul>
-<li>Input/output directories</li>
-<li>Python environment path</li>
-<li>Script paths</li>
-<li>Processing parameters</li>
-</ul>
-<h3 id="running">Running</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> /path/to/your/pipeline</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> run pipeline.nf -c parameters.config -with-trace</span></span></code></pre>
-<p>The <code>-with-trace</code> flag is required for the watchdog to monitor completion.</p>
-<h2 id="key-components">Key Components</h2>
-<h3 id="workflow-wrapper"><code>workflow_wrapper</code></h3>
-<p>Discovers participant directories, creates output folders, and starts per-participant watchdog threads.</p>
-<h3 id="iointerface"><code>IOInterface</code></h3>
-<p>Generic process that runs any Python script with automatic logging to <code>{id}_pipeline.log</code>.</p>
-<h3 id="watchdog">Watchdog</h3>
-<p>Background thread per participant that:</p>
-<ul>
-<li>Monitors the trace file for terminal process completion</li>
-<li>Appends completion summary to the log</li>
-<li>Triggers git commit/push with results</li>
-</ul>
-<h2 id="built-with">Built With</h2>
-<ul>
-<li><strong>Nextflow</strong> - Workflow orchestration</li>
-<li><strong>Python</strong> - Processing and analysis modules</li>
-<li><strong>Polars/Pandas</strong> - Data manipulation</li>
-<li><strong>NumPy/SciPy</strong> - Numerical computing</li>
-<li><strong>Matplotlib</strong> - Visualization</li>
-</ul>
-<h2 id="authors">Authors</h2>
-<ul>
-<li><strong>Cagatay Özcan Jagiello Gutt</strong> - <em>Lead Developer</em>
-<em>ORCID: https://orcid.org/0000-0002-1774-532X</em></li>
-</ul>
-</details>
-<p><a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">View on GitHub →</a></p>
 <hr />
 <h3 id="labouraivolt">labourAIVolt</h3>
 <p><strong>Language:</strong> Python<br />

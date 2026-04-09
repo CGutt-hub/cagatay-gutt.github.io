@@ -1976,33 +1976,42 @@ function generatePipelineTreeHTML(filename, pipelineData) {
     const displayL1 = l1Processes.length > 0 ? l1Processes : processes;
     const l2Processes = l2Names.size > 0 ? processes.filter(p => l2Names.has(p.name)) : [];
 
-    // --- L1 Pipeline ---
-    const resultL1 = buildPipelineSVG(displayL1, edges, producerModule, 'pipeline-dag-svg');
-    let html = '<div style="margin-bottom: 15px;">'
-        + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Processing Pipeline' + (l2Processes.length > 0 ? ' (Participant Level)' : '') + '</div>'
-        + '<div class="export-bar">'
-        + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
-        + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
-        + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&#8659; PDF</button>'
-        + '<button class="export-btn" onclick="pipelineZoom(1)" style="margin-left: 12px;" title="Zoom in">&#43;</button>'
-        + '<button class="export-btn" onclick="pipelineZoom(-1)" title="Zoom out">&#8722;</button>'
-        + '<button class="export-btn" onclick="pipelineZoom(0)" title="Reset zoom">&#8634;</button>'
-        + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + resultL1.processCount + ' modules, ' + resultL1.edgeCount + ' connections</span>'
-        + '</div>'
-        + '<div id="pipeline-zoom-container" style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd); overflow: hidden; max-height: 700px; cursor: grab; position: relative;">'
-        + '<div id="pipeline-zoom-inner" style="transform-origin: 0 0; transition: transform 0.1s ease; user-select: none;">' + resultL1.svg + '</div>';
-    if (producerModule && !l2Names.has(producerModule)) {
-        html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
-            + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
-            + 'Highlighted: module that produced this file'
-            + '</div>';
-    }
-    html += '</div></div>';
+    // Detect whether the current file is L1 or L2 from its path (e.g. EV_results/EV_l2/plots/...)
+    const isL2File = /_l2[\/\\]/.test(lowerFilename) || /[\/\\]l2[\/\\]/.test(lowerFilename);
+    const showL1 = !isL2File;
+    const showL2 = isL2File || l2Processes.length === 0; // fallback: show all if no L2 detected
 
-    // --- L2 Pipeline (only if L2 processes exist) ---
-    if (l2Processes.length > 0) {
+    let html = '';
+
+    // --- L1 Pipeline ---
+    if (showL1) {
+        const resultL1 = buildPipelineSVG(displayL1, edges, producerModule, 'pipeline-dag-svg');
+        html += '<div style="margin-bottom: 15px;">'
+            + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Processing Pipeline (Participant Level)</div>'
+            + '<div class="export-bar">'
+            + '<button class="export-btn png" onclick="downloadPipelinePNG()">&#8659; PNG</button>'
+            + '<button class="export-btn svg" onclick="downloadPipelineSVG()">&#8659; SVG</button>'
+            + '<button class="export-btn pdf" onclick="downloadPipelinePDF()">&#8659; PDF</button>'
+            + '<button class="export-btn" onclick="pipelineZoom(1)" style="margin-left: 12px;" title="Zoom in">&#43;</button>'
+            + '<button class="export-btn" onclick="pipelineZoom(-1)" title="Zoom out">&#8722;</button>'
+            + '<button class="export-btn" onclick="pipelineZoom(0)" title="Reset zoom">&#8634;</button>'
+            + '<span style="font-size: 0.75rem; color: var(--text-muted, #999); margin-left: auto;">' + resultL1.processCount + ' modules, ' + resultL1.edgeCount + ' connections</span>'
+            + '</div>'
+            + '<div id="pipeline-zoom-container" style="padding: 15px; background: var(--bg-tertiary, #f5f5f5); border-radius: 8px; border: 1px solid var(--border-primary, #ddd); overflow: hidden; max-height: 700px; cursor: grab; position: relative;">'
+            + '<div id="pipeline-zoom-inner" style="transform-origin: 0 0; transition: transform 0.1s ease; user-select: none;">' + resultL1.svg + '</div>';
+        if (producerModule && !l2Names.has(producerModule)) {
+            html += '<div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted, #999);">'
+                + '<span style="display: inline-block; width: 14px; height: 10px; background: var(--bg-secondary, #161616); border: 1.8px solid var(--accent-primary, #c9a227); border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>'
+                + 'Highlighted: module that produced this file'
+                + '</div>';
+        }
+        html += '</div></div>';
+    }
+
+    // --- L2 Pipeline (only when viewing L2 files, or when no L2/L1 split exists) ---
+    if (showL2 && l2Processes.length > 0) {
         const resultL2 = buildPipelineSVG(l2Processes, edges, producerModule, 'pipeline-dag-svg-l2');
-        html += '<hr style="border: none; border-top: 1px solid var(--border-primary, #2a2a2a); margin: 20px 0;">';
+        if (html) html += '<hr style="border: none; border-top: 1px solid var(--border-primary, #2a2a2a); margin: 20px 0;">';
         html += '<div style="margin-bottom: 15px;">'
             + '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary, #e8e8e8); margin-bottom: 8px;">Processing Pipeline (Group Level)</div>'
             + '<div class="export-bar">'
