@@ -51,11 +51,11 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/website-update/">&lt;p&gt;This website has been updated with the following changes:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-changes&quot;&gt;Recent Changes&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;9df2d03&lt;&#x2F;code&gt; Revert &quot;fix: multi-condition bar chart rendering with proper CI error bars&quot;&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;ea95a09&lt;&#x2F;code&gt; fix: multi-condition bar chart rendering with proper CI error bars&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;541cb02&lt;&#x2F;code&gt; fix: use fetchRawArrayBuffer for log parquet loading&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;9fd4085&lt;&#x2F;code&gt; feat: add pipeline tree display under plots in analysis page&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;47996f4&lt;&#x2F;code&gt; feat: implement collapsible pipeline&#x2F;results tree with download option&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;a3ac0f0&lt;&#x2F;code&gt; feat: add GitHub Actions workflow for publishing analysis results without LFS po&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The site continues to sync automatically with GitHub (projects) and ORCID (publications).&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;5ha99y&quot;&gt;View source on GitHub →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;

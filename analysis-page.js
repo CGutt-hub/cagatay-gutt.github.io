@@ -155,8 +155,8 @@ function plotSpecToPlotly(rows, title, COLORS) {
     const xData = Array.isArray(row0.x_data) ? row0.x_data : [row0.x_data];
     const yDataNested = Array.isArray(row0.y_data) ? row0.y_data : [[row0.y_data]];
     const yVarNested = row0.y_var ? (Array.isArray(row0.y_var) ? row0.y_var : [[row0.y_var]]) : null;
-    let ciLower = row0.ci_lower ? (Array.isArray(row0.ci_lower) ? row0.ci_lower : null) : null;
-    let ciUpper = row0.ci_upper ? (Array.isArray(row0.ci_upper) ? row0.ci_upper : null) : null;
+    const ciLower = row0.ci_lower ? (Array.isArray(row0.ci_lower) ? row0.ci_lower : null) : null;
+    const ciUpper = row0.ci_upper ? (Array.isArray(row0.ci_upper) ? row0.ci_upper : null) : null;
 
     // Get series labels
     let seriesLabels = null;
@@ -168,24 +168,17 @@ function plotSpecToPlotly(rows, title, COLORS) {
         seriesLabels = rows.map(r => r.condition);
     }
 
-    let xLabels = xData;
+    const xLabels = xData;
     const xAxisTitle = row0.x_label || '';
     const yAxisTitle = row0.y_label || '';
 
-    // Detect multi-condition concatenated data (labels array matches nested y_data count)
-    const isMultiCondition = seriesLabels && seriesLabels.length > 1
-        && yDataNested.length === seriesLabels.length
-        && Array.isArray(yDataNested[0]);
-
-    // Determine series structure
+    // Determine if y_data is nested (array of series arrays) or flat
     let seriesData;
-    if (isMultiCondition) {
-        // Concatenated multi-condition: y_data = [[cond1_vals], [cond2_vals], ...]
-        seriesData = yDataNested;
-    } else if (yDataNested.length > 0 && Array.isArray(yDataNested[0]) && Array.isArray(yDataNested[0][0])) {
-        // Double nested wrapper
+    if (yDataNested.length > 0 && Array.isArray(yDataNested[0]) && Array.isArray(yDataNested[0][0])) {
+        // Double nested: y_data = [[series1_vals], [series2_vals], [series3_vals]]
         seriesData = yDataNested[0];
     } else if (yDataNested.length > 0 && Array.isArray(yDataNested[0])) {
+        // Single series
         seriesData = [yDataNested[0]];
     } else {
         seriesData = [yDataNested];
@@ -193,26 +186,11 @@ function plotSpecToPlotly(rows, title, COLORS) {
 
     let varData = null;
     if (yVarNested) {
-        if (isMultiCondition) {
-            varData = yVarNested;
-        } else if (yVarNested.length > 0 && Array.isArray(yVarNested[0]) && Array.isArray(yVarNested[0][0])) {
+        if (yVarNested.length > 0 && Array.isArray(yVarNested[0]) && Array.isArray(yVarNested[0][0])) {
             varData = yVarNested[0];
         } else if (yVarNested.length > 0 && Array.isArray(yVarNested[0])) {
             varData = [yVarNested[0]];
         }
-    }
-
-    // Bar chart: collapse multi-condition single-value series into one trace
-    // e.g. NEG=[5.2], NEU=[4.8], POS=[5.0] → x=[NEG,NEU,POS], y=[5.2,4.8,5.0]
-    let barColorsOverride = null;
-    if (plotType === 'bar' && isMultiCondition && seriesData.every(s => Array.isArray(s) && s.length === 1)) {
-        barColorsOverride = seriesLabels.map((_, i) => COLORS[i % COLORS.length]);
-        xLabels = seriesLabels;
-        seriesData = [seriesData.map(s => s[0])];
-        if (varData) varData = [varData.map(s => Array.isArray(s) ? s[0] : s)];
-        if (ciLower) ciLower = [ciLower.map(s => Array.isArray(s) ? s[0] : s)];
-        if (ciUpper) ciUpper = [ciUpper.map(s => Array.isArray(s) ? s[0] : s)];
-        seriesLabels = null;
     }
 
     const traces = [];
@@ -227,8 +205,8 @@ function plotSpecToPlotly(rows, title, COLORS) {
             name: label,
             type: 'bar',
             marker: {
-                color: barColorsOverride || color,
-                line: { color: barColorsOverride || color, width: 1 },
+                color: color,
+                line: { color: color, width: 1 },
                 opacity: 0.85,
             },
         };
