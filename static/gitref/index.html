@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitRef | 5ha99y</title>
+    <meta name="description" content="Git-based reference manager — like Zotero, but your library is a plain git repo.">
+    <link rel="stylesheet" href="../style.css">
+    <script>
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+            } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main>
+        <div class="content">
+
+            <h1>GitRef</h1>
+            <p>A git-based reference manager — like Zotero, but your library is a plain git repo.</p>
+
+            <h2>What is GitRef?</h2>
+
+            <p>GitRef manages your academic references using <strong>standard BibTeX</strong> and <strong>git</strong> instead of a proprietary database. Every paper you add — by DOI, arXiv ID, or ISBN — is stored in a <code>.bib</code> file with PDFs packed into a compressed archive. Your entire library lives in a git repo you control, syncs across machines with <code>git push/pull</code>, and is browsable on GitHub.</p>
+
+            <p>It's designed to be <strong>DAU-friendly</strong>: run <code>gitref watch</code> and all PDFs are extracted for reading. Drop a PDF into the folder and it's auto-added. Close your viewer and files are auto-repacked. No manual open/close commands needed.</p>
+
+            <h2>Key Features</h2>
+
+            <ul>
+                <li><strong>DOI / arXiv / ISBN Lookup</strong> — Paste an identifier, metadata is fetched automatically via Crossref, arXiv, and Open Library APIs</li>
+                <li><strong>PDF Management</strong> — Auto-download, rename, and compress PDFs into a git-efficient zip archive</li>
+                <li><strong>File Watcher</strong> — Extracts all PDFs on start, auto-adds dropped files, auto-repacks on close</li>
+                <li><strong>BibTeX Native</strong> — Standard <code>.bib</code> format, no lock-in, works with LaTeX toolchains</li>
+                <li><strong>Terminal UI</strong> — Interactive browser with search, detail view, tagging, and collections</li>
+                <li><strong>Browser Extension</strong> — One-click save from any paper page (like Zotero Connector)</li>
+                <li><strong>Git Sync</strong> — Auto-commit, pull, push across machines</li>
+                <li><strong>RIS Export</strong> — Compatible with other reference managers</li>
+                <li><strong>Cross-Platform</strong> — Windows, Linux, and macOS</li>
+            </ul>
+
+            <h2>Download & Installation</h2>
+
+            <div class="card">
+                <p>Install via pip (recommended):</p>
+                <pre><code>pip install gitref</code></pre>
+
+                <p style="margin-top: 1rem;">Or download a standalone binary from the <a href="https://github.com/CGutt-hub/gitref/releases/latest" target="_blank" rel="noopener">latest release</a>.</p>
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="https://github.com/CGutt-hub/gitref/releases/latest" style="display: inline-block;">
+                        <button type="button">Releases</button>
+                    </a>
+                    <a href="https://github.com/CGutt-hub/gitref" target="_blank" rel="noopener" style="display: inline-block;">
+                        <button type="button" style="background: var(--bg-tertiary); color: var(--text-primary);">View on GitHub</button>
+                    </a>
+                </div>
+
+                <p style="margin-top: 1rem; font-size: var(--font-size-sm); color: var(--text-muted);">
+                    <strong>Requirements:</strong> Python 3.10+ or standalone binary, Git (for sync)<br>
+                    <strong>License:</strong> MIT<br>
+                    <strong>Status:</strong> Active development
+                </p>
+            </div>
+
+            <h2>Quick Start</h2>
+
+            <div class="card">
+                <pre><code># Initialise a new library
+gitref init
+
+# Add a paper by DOI
+gitref add "10.1038/s41586-024-07487-w"
+
+# Add by arXiv ID
+gitref add "2401.12345"
+
+# Start watcher (extracts PDFs, auto-adds/repacks)
+gitref watch
+
+# Open interactive TUI
+gitref browse
+
+# Sync with remote
+gitref sync
+
+# Full help
+gitref --help</code></pre>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+        fetch('../header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+            });
+        fetch('../footer.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('footer-placeholder').innerHTML = html;
+            });
+    </script>
+</body>
+</html>
