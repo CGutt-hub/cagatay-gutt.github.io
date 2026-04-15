@@ -51,11 +51,11 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/website-update/">&lt;p&gt;This website has been updated with the following changes:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-changes&quot;&gt;Recent Changes&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;b05efda&lt;&#x2F;code&gt; feat: add GitRef tool page and nav dropdown entry&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;c2b17b1&lt;&#x2F;code&gt; feat: improve file tree rendering with interactive collapsible folders&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;69dc385&lt;&#x2F;code&gt; feat: enhance pipeline tree display with L1&#x2F;L2 file detection and conditional re&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;9df2d03&lt;&#x2F;code&gt; Revert &quot;fix: multi-condition bar chart rendering with proper CI error bars&quot;&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;ea95a09&lt;&#x2F;code&gt; fix: multi-condition bar chart rendering with proper CI error bars&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;541cb02&lt;&#x2F;code&gt; fix: use fetchRawArrayBuffer for log parquet loading&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The site continues to sync automatically with GitHub (projects) and ORCID (publications).&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;5ha99y&quot;&gt;View source on GitHub →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
