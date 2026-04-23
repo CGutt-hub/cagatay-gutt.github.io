@@ -68,7 +68,7 @@
 <hr />
 <h3 id="analysistoolbox">AnalysisToolbox</h3>
 <p><strong>Language:</strong> Python<br />
-<strong>Last updated:</strong> 2026-04-20</p>
+<strong>Last updated:</strong> 2026-04-23</p>
 <details>
 <summary>View README</summary>
 <h1 id="analysistoolbox-1">AnalysisToolbox</h1>
@@ -108,7 +108,35 @@
 <span class="giallo-l"><span>│   ├── analyzers/       # Analysis modules (statistics, feature extraction)</span></span>
 <span class="giallo-l"><span>│   ├── processors/      # Data transformation modules (filtering, epoching)</span></span>
 <span class="giallo-l"><span>│   ├── readers/         # File format readers (XDF, TXT, etc.)</span></span>
-<span class="giallo-l"><span>│   └── utils/           # Infrastructure (Nextflow wrapper, plotting)</span></span></code></pre><h2 id="usage">Usage</h2>
+<span class="giallo-l"><span>│   └── utils/           # Infrastructure (Nextflow wrapper, plotting)</span></span></code></pre><h2 id="core-functionality">Core Functionality</h2>
+<p>This repository provides one integrated toolbox with these core functions:</p>
+<ul>
+<li>Environment generation for pipeline projects, including folder and workflow setup
+(for example project structures such as <code>EV_analysis</code> and <code>EV_results</code>)</li>
+<li>Participant-level correction and replay via reinjection ("cherry-picking" one
+participant or one corrected output without restarting everything)</li>
+<li>Web GUI/bootstrap helpers for local result inspection and sharing</li>
+<li>Python processing, analysis, and statistical math scripts (reader/processor/analyzer modules)</li>
+</ul>
+<h2 id="usage">Usage</h2>
+<h3 id="install">Install</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install atbx</span></span></code></pre>
+<p>Installs all Python dependencies and the <code>atbx</code> command. Nextflow must be installed separately (see Prerequisites). On first run, <code>atbx</code> asks where to mirror the modules folder.</p>
+<p>To uninstall: <code>pip uninstall atbx</code></p>
+<h3 id="commands">Commands</h3>
+<table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
+<tr><td><code>atbx init &lt;dir&gt;</code></td><td>Scaffold a new analysis project</td></tr>
+<tr><td><code>atbx serve [--dir DIR] [--port PORT]</code></td><td>Start web UI to browse results and plots</td></tr>
+<tr><td><code>atbx reinject &lt;PID&gt; --corrected-file &lt;file&gt; --script-name &lt;name&gt; [--pipeline-dir DIR]</code></td><td>Reinject a corrected parquet for one participant</td></tr>
+</tbody></table>
+<p><code>atbx init &lt;dir&gt;</code> prompts for project name, raw data path, Python executable, and toolbox location, then creates:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>&lt;dir&gt;/</span></span>
+<span class="giallo-l"><span>├── {name}_analysis/</span></span>
+<span class="giallo-l"><span>│   ├── {name}_pipeline.nf          ← workflow definition</span></span>
+<span class="giallo-l"><span>│   ├── {name}_modules.nf           ← add your process includes here</span></span>
+<span class="giallo-l"><span>│   └── {name}_parameters.config    ← pre-filled with your answers</span></span>
+<span class="giallo-l"><span>└── {name}_results/</span></span></code></pre>
+<p><code>atbx reinject</code> places a corrected parquet into <code>corrections/&lt;script_name&gt;/</code>, marks the participant for replay, invalidates relevant cache entries, and resumes only that participant.</p>
 <h3 id="creating-a-pipeline">Creating a Pipeline</h3>
 <p>Pipelines are defined in Nextflow DSL2. A typical pipeline:</p>
 <ol>
@@ -236,7 +264,7 @@
 <summary>View README</summary>
 <h1 id="gitref-1">GitRef</h1>
 <p>A git-based reference manager — like Zotero, but your library is a plain git repo.</p>
-<h2 id="install">Install</h2>
+<h2 id="install-1">Install</h2>
 <h3 id="pip-recommended">pip (recommended)</h3>
 <pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install gitref</span></span></code></pre><h3 id="standalone-binary">Standalone binary</h3>
 <p>Download from the <a rel="external" href="https://github.com/CGutt-hub/gitref/releases/latest"><strong>Releases page</strong></a>:</p>
@@ -305,7 +333,7 @@
 <span class="giallo-l"><span>└── resources/</span></span>
 <span class="giallo-l"><span>    ├── .resources.bib       # BibTeX metadata (source of truth)</span></span>
 <span class="giallo-l"><span>    ├── .resources.zip       # all PDFs, compressed</span></span>
-<span class="giallo-l"><span>    └── resources.md         # browsable table with clickable PDF links</span></span></code></pre><h2 id="commands">Commands</h2>
+<span class="giallo-l"><span>    └── resources.md         # browsable table with clickable PDF links</span></span></code></pre><h2 id="commands-1">Commands</h2>
 <p>Run <code>gitref --help</code> for full usage. Key commands:</p>
 <table><thead><tr><th>Command</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>gitref init</code></td><td>Create a new library (git repo + bib)</td></tr>
@@ -957,7 +985,7 @@ Jobs to Computerisation?</em> Oxford Martin School Working Paper.</li>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 Çağatay Özcan Jagiello Gutt</p>
-                <p class="footer-tech">Built with <a href="https://www.getzola.org/" target="_blank" rel="noopener">Zola</a> · Last build: 2026-04-20</p>
+                <p class="footer-tech">Built with <a href="https://www.getzola.org/" target="_blank" rel="noopener">Zola</a> · Last build: 2026-04-23</p>
             </div>
         </div>
     </footer>
