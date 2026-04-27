@@ -76,112 +76,79 @@
 <h2 id="overview">Overview</h2>
 <p>The AnalysisToolbox provides infrastructure for building data processing pipelines that:</p>
 <ul>
-<li><strong>Process multiple datasets</strong> in parallel with automatic discovery of new data</li>
+<li><strong>Process multiple datasets</strong> in parallel with automatic participant discovery</li>
 <li><strong>Handle diverse data types</strong> through a generic reader/processor/analyzer architecture</li>
-<li><strong>Track progress</strong> via per-dataset logging and automatic git synchronization of results</li>
+<li><strong>Track progress</strong> via per-participant logging visible live in the web UI</li>
 <li><strong>Recover gracefully</strong> from failures without losing completed work</li>
 </ul>
-<p>The framework is domain-agnostic—modules follow simple input/output conventions (Parquet files) and can implement any processing logic. Some specialized modules exist for specific data types (e.g., fNIRS preprocessing) where domain knowledge is required.</p>
-<h2 id="prerequisites">Prerequisites</h2>
+<p>The framework is domain-agnostic — modules follow simple input/output conventions (Parquet/FIF files) and can implement any processing logic.</p>
+<h2 id="repository-structure">Repository Structure</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>AnalysisToolbox/</span></span>
+<span class="giallo-l"><span>├── bin/           # Auto-infrastructure used by every pipeline</span></span>
+<span class="giallo-l"><span>│   ├── workflow_wrapper.nf      # Participant discovery, IOInterface, watchdog</span></span>
+<span class="giallo-l"><span>│   ├── log_to_parquet.py        # Live log writer (called by workflow_wrapper)</span></span>
+<span class="giallo-l"><span>│   ├── interactive_plotter.py   # Per-step plot generator</span></span>
+<span class="giallo-l"><span>│   ├── template.nf              # Pipeline scaffold</span></span>
+<span class="giallo-l"><span>│   ├── nextflow.config          # Default Nextflow configuration</span></span>
+<span class="giallo-l"><span>│   ├── result_collector.py      # Result aggregation helper</span></span>
+<span class="giallo-l"><span>│   ├── reinject.sh              # Shell helper for reinjection</span></span>
+<span class="giallo-l"><span>│   └── serve_html.ps1           # PowerShell result viewer</span></span>
+<span class="giallo-l"><span>├── modules/       # User-included pipeline modules</span></span>
+<span class="giallo-l"><span>│   ├── analyzers/   # Statistical analysis scripts</span></span>
+<span class="giallo-l"><span>│   ├── processors/  # Data transformation scripts</span></span>
+<span class="giallo-l"><span>│   ├── readers/     # File format readers (XDF, TXT, CSV, …)</span></span>
+<span class="giallo-l"><span>│   ├── utils/       # Utility modules (file_finder, xdf_inspector)</span></span>
+<span class="giallo-l"><span>│   ├── matlab/      # MATLAB preprocessing scripts</span></span>
+<span class="giallo-l"><span>│   └── msc/         # Miscellaneous domain-specific scripts</span></span>
+<span class="giallo-l"><span>└── cli/           # pip-installable atbx package</span></span></code></pre><h2 id="prerequisites">Prerequisites</h2>
 <h3 id="1-wsl-windows-subsystem-for-linux">1. WSL (Windows Subsystem for Linux)</h3>
 <p>The pipeline runs in Linux. On Windows, install WSL:</p>
 <pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="powershell"><span class="giallo-l"><span>wsl </span><span style="color: #94E2D5;">--</span><span>install </span><span style="color: #94E2D5;">-</span><span>d Ubuntu</span></span></code></pre><h3 id="2-java-runtime-required-by-nextflow">2. Java Runtime (required by Nextflow)</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt update</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt install default-jre</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">java</span><span style="color: #A6E3A1;"> -version</span><span style="color: #9399B2;font-style: italic;">  # Verify installation</span></span></code></pre><h3 id="3-nextflow">3. Nextflow</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt update</span><span style="color: #9399B2;"> &amp;&amp;</span><span style="color: #89B4FA;font-style: italic;"> sudo</span><span style="color: #A6E3A1;"> apt install default-jre</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">java</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h3 id="3-nextflow">3. Nextflow</h3>
 <pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">curl</span><span style="color: #A6E3A1;"> -s https://get.nextflow.io</span><span style="color: #94E2D5;"> |</span><span style="color: #89B4FA;font-style: italic;"> bash</span></span>
 <span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> mv nextflow /usr/local/bin/</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> -version</span><span style="color: #9399B2;font-style: italic;">  # Verify installation</span></span></code></pre><h3 id="4-python-environment">4. Python Environment</h3>
-<p>Create a virtual environment with required packages:</p>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h3 id="4-python-environment">4. Python Environment</h3>
 <pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python3</span><span style="color: #A6E3A1;"> -m venv ~/analysis_venv</span></span>
 <span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">source</span><span style="color: #A6E3A1;"> ~/analysis_venv/bin/activate</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install numpy pandas polars scipy matplotlib</span></span>
-<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Add domain-specific packages as needed (e.g., mne for neuroimaging)</span></span></code></pre><h3 id="5-git-ssh-setup-for-automatic-result-sync">5. Git SSH Setup (for automatic result sync)</h3>
-<p>Generate an SSH key (press Enter for no passphrase):</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">ssh-keygen</span><span style="color: #A6E3A1;"> -t ed25519 -C &quot;your_email@example.com&quot;</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">cat</span><span style="color: #A6E3A1;"> ~/.ssh/id_ed25519.pub</span></span></code></pre>
-<p>Add the public key to GitHub: https://github.com/settings/keys → "New SSH key"</p>
-<p>Test the connection:</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">ssh</span><span style="color: #A6E3A1;"> -T git@github.com</span></span></code></pre><h2 id="project-structure">Project Structure</h2>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>AnalysisToolbox/</span></span>
-<span class="giallo-l"><span>├── Python/</span></span>
-<span class="giallo-l"><span>│   ├── analyzers/       # Analysis modules (statistics, feature extraction)</span></span>
-<span class="giallo-l"><span>│   ├── processors/      # Data transformation modules (filtering, epoching)</span></span>
-<span class="giallo-l"><span>│   ├── readers/         # File format readers (XDF, TXT, etc.)</span></span>
-<span class="giallo-l"><span>│   └── utils/           # Infrastructure (Nextflow wrapper, plotting)</span></span></code></pre><h2 id="core-functionality">Core Functionality</h2>
-<p>This repository provides one integrated toolbox with these core functions:</p>
-<ul>
-<li>Environment generation for pipeline projects, including folder and workflow setup
-(for example project structures such as <code>EV_analysis</code> and <code>EV_results</code>)</li>
-<li>Participant-level correction and replay via reinjection ("cherry-picking" one
-participant or one corrected output without restarting everything)</li>
-<li>Web GUI/bootstrap helpers for local result inspection and sharing</li>
-<li>Python processing, analysis, and statistical math scripts (reader/processor/analyzer modules)</li>
-</ul>
-<h2 id="usage">Usage</h2>
-<h3 id="install">Install</h3>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install atbx</span></span></code></pre><h2 id="install">Install</h2>
 <pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install atbx</span></span></code></pre>
-<p>Installs all Python dependencies and the <code>atbx</code> command. Nextflow must be installed separately (see Prerequisites). On first run, <code>atbx</code> asks where to mirror the modules folder.</p>
+<p>Installs all Python dependencies (<code>numpy</code>, <code>scipy</code>, <code>polars</code>, <code>mne</code>, <code>neurokit2</code>, …) and the <code>atbx</code> command.</p>
 <p>To uninstall: <code>pip uninstall atbx</code></p>
+<h2 id="usage">Usage</h2>
 <h3 id="commands">Commands</h3>
 <table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
 <tr><td><code>atbx init &lt;dir&gt;</code></td><td>Scaffold a new analysis project</td></tr>
-<tr><td><code>atbx serve [--dir DIR] [--port PORT]</code></td><td>Start web UI to browse results and plots</td></tr>
-<tr><td><code>atbx reinject &lt;PID&gt; --corrected-file &lt;file&gt; --script-name &lt;name&gt; [--pipeline-dir DIR]</code></td><td>Reinject a corrected parquet for one participant</td></tr>
+<tr><td><code>atbx serve [--dir DIR] [--port PORT]</code></td><td>Serve results HTML locally in browser</td></tr>
+<tr><td><code>atbx reinject &lt;PID&gt; [options]</code></td><td>Reinject a corrected output for one participant</td></tr>
 </tbody></table>
-<p><code>atbx init &lt;dir&gt;</code> prompts for project name, raw data path, Python executable, and toolbox location, then creates:</p>
+<h3 id="atbx-init"><code>atbx init</code></h3>
+<p>Prompts for project name, raw data directory, Python executable, and toolbox path, then creates:</p>
 <pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>&lt;dir&gt;/</span></span>
 <span class="giallo-l"><span>├── {name}_analysis/</span></span>
-<span class="giallo-l"><span>│   ├── {name}_pipeline.nf          ← workflow definition</span></span>
-<span class="giallo-l"><span>│   ├── {name}_modules.nf           ← add your process includes here</span></span>
-<span class="giallo-l"><span>│   └── {name}_parameters.config    ← pre-filled with your answers</span></span>
+<span class="giallo-l"><span>│   ├── {name}_pipeline.nf       ← edit your workflow here</span></span>
+<span class="giallo-l"><span>│   ├── {name}_modules.nf        ← add IOInterface includes here</span></span>
+<span class="giallo-l"><span>│   └── {name}_parameters.config ← pre-filled paths and params</span></span>
 <span class="giallo-l"><span>└── {name}_results/</span></span></code></pre>
-<p><code>atbx reinject</code> places a corrected parquet into <code>corrections/&lt;script_name&gt;/</code>, marks the participant for replay, invalidates relevant cache entries, and resumes only that participant.</p>
-<h3 id="creating-a-pipeline">Creating a Pipeline</h3>
-<p>Pipelines are defined in Nextflow DSL2. A typical pipeline:</p>
-<ol>
-<li><strong>Discovers participants</strong> via <code>workflow_wrapper</code> (supports continuous monitoring)</li>
-<li><strong>Chains processing steps</strong> using <code>IOInterface</code> (generic Python script runner)</li>
-<li><strong>Tracks completion</strong> via watchdog threads that monitor terminal processes</li>
-<li><strong>Syncs results</strong> to git when each participant completes</li>
-</ol>
-<h3 id="configuration">Configuration</h3>
-<p>Pipelines use a <code>parameters.config</code> file to define:</p>
-<ul>
-<li>Input/output directories</li>
-<li>Python environment path</li>
-<li>Script paths</li>
-<li>Processing parameters</li>
-</ul>
-<h3 id="running">Running</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> /path/to/your/pipeline</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> run pipeline.nf -c parameters.config -with-trace</span></span></code></pre>
-<p>The <code>-with-trace</code> flag is required for the watchdog to monitor completion.</p>
+<p><code>{name}_modules.nf</code> includes <code>participant_discovery</code>, <code>finalize_participant</code>, and <code>finalize_l2</code> from <code>bin/workflow_wrapper.nf</code> automatically. Add your readers, processors, and analyzers there.</p>
+<h3 id="atbx-reinject"><code>atbx reinject</code></h3>
+<p>Places a corrected parquet into <code>corrections/&lt;script_name&gt;/</code>, marks the participant for replay, invalidates relevant Nextflow cache entries, and resumes the pipeline for that participant only.</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">atbx</span><span style="color: #A6E3A1;"> reinject EV_002 --corrected-file fixed.parquet --script-name filtering_processor</span></span></code></pre><h3 id="atbx-serve"><code>atbx serve</code></h3>
+<p>Starts a local HTTP server to browse results HTML generated by the pipeline.</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">atbx</span><span style="color: #A6E3A1;"> serve --dir ../EV_results --port</span><span style="color: #FAB387;"> 8080</span></span></code></pre><h2 id="running-a-pipeline">Running a Pipeline</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> EV_analysis</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> run EV_pipeline.nf -c EV_parameters.config -with-trace</span></span></code></pre>
+<p><code>-with-trace</code> is required for the watchdog to monitor per-participant completion.</p>
 <h2 id="key-components">Key Components</h2>
-<h3 id="workflow-wrapper"><code>workflow_wrapper</code></h3>
-<p>Discovers participant directories, creates output folders, and starts per-participant watchdog threads.</p>
+<h3 id="bin-workflow-wrapper-nf"><code>bin/workflow_wrapper.nf</code></h3>
+<p>Discovers participant directories, manages per-participant output folders, runs <code>log_to_parquet.py</code> and <code>interactive_plotter.py</code> automatically, and starts per-participant watchdog threads that trigger git sync on completion.</p>
 <h3 id="iointerface"><code>IOInterface</code></h3>
-<p>Generic process that runs any Python script with automatic logging to <code>{id}_pipeline.log</code>.</p>
-<h3 id="watchdog">Watchdog</h3>
-<p>Background thread per participant that:</p>
-<ul>
-<li>Monitors the trace file for terminal process completion</li>
-<li>Appends completion summary to the log</li>
-<li>Triggers git commit/push with results</li>
-</ul>
-<h2 id="built-with">Built With</h2>
-<ul>
-<li><strong>Nextflow</strong> - Workflow orchestration</li>
-<li><strong>Python</strong> - Processing and analysis modules</li>
-<li><strong>Polars/Pandas</strong> - Data manipulation</li>
-<li><strong>NumPy/SciPy</strong> - Numerical computing</li>
-<li><strong>Matplotlib</strong> - Visualization</li>
-</ul>
+<p>Generic Nextflow process that runs any script (reader/processor/analyzer) with automatic logging. Every module in <code>modules/</code> is called through <code>IOInterface</code>.</p>
+<h3 id="modules">Modules</h3>
+<p>The <code>modules/</code> folder is a curated but non-exhaustive starting collection of commonly useful scripts. The first time <code>atbx</code> is run it mirrors the full collection to <code>~/Documents/atbxModules</code> (Windows) or <code>~/atbxModules</code> (Linux/macOS) automatically. You can move that folder anywhere — just update the path in <code>~/.atbx_config</code>. The local copy is yours to extend: add domain-specific scripts, modify existing ones, or organise them into subfolders. Any script there can be called via <code>IOInterface</code> identically to the built-in modules, as long as it follows the same convention: positional CLI arguments in, Parquet or FIF outputs, non-zero exit on failure.</p>
 <h2 id="authors">Authors</h2>
-<ul>
-<li><strong>Cagatay Özcan Jagiello Gutt</strong> - <em>Lead Developer</em>
-<em>ORCID: https://orcid.org/0000-0002-1774-532X</em></li>
-</ul>
+<p><strong>Cagatay Özcan Jagiello Gutt</strong> — Lead Developer
+ORCID: https://orcid.org/0000-0002-1774-532X</p>
 </details>
 <p><a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">Auf GitHub ansehen →</a></p>
 <hr />
@@ -381,7 +348,7 @@ participant or one corrected output without restarting everything)</li>
 <span class="giallo-l"><span>   ↓</span></span>
 <span class="giallo-l"><span>5. Deploys to gh-pages branch</span></span>
 <span class="giallo-l"><span>   ↓</span></span>
-<span class="giallo-l"><span>6. Website updates automatically!</span></span></code></pre><h2 id="repository-structure">Repository Structure</h2>
+<span class="giallo-l"><span>6. Website updates automatically!</span></span></code></pre><h2 id="repository-structure-1">Repository Structure</h2>
 <h3 id="source-files-edit-these">Source Files (Edit These)</h3>
 <ul>
 <li><code>config.toml</code> - Site configuration</li>
@@ -619,7 +586,7 @@ for framework details.</p>
 <tr><td><code>labor_force_total</code></td><td>SL.TLF.TOTL.IN</td><td>Total labour force</td></tr>
 </tbody></table>
 <hr />
-<h2 id="repository-structure-1">Repository Structure</h2>
+<h2 id="repository-structure-2">Repository Structure</h2>
 <pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>labourAIVolt/</span></span>
 <span class="giallo-l"><span>│</span></span>
 <span class="giallo-l"><span>├── LAV_analysis/                    Nextflow pipeline (mirrors EV_analysis/)</span></span>
