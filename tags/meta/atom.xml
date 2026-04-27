@@ -26,11 +26,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/website-update/">&lt;p&gt;This website has been updated with the following changes:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-changes&quot;&gt;Recent Changes&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;446f275&lt;&#x2F;code&gt; fix: add GitRef to nav, rename Analysis Toolbox -&amp;gt; GitAtbx in base.html, remove&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;dd818b5&lt;&#x2F;code&gt; feat: add German versions of GitRef and GitAtbx tool pages&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;e7cd85c&lt;&#x2F;code&gt; feat: rebrand analysis-toolbox page to GitAtbx&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;bf4587c&lt;&#x2F;code&gt; fix: remove standalone binary references from GitRef pages&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;446e37c&lt;&#x2F;code&gt; feat: rename AnalysisToolbox -&amp;gt; GitAtbx, add GitRef project page&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;b05efda&lt;&#x2F;code&gt; feat: add GitRef tool page and nav dropdown entry&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The site continues to sync automatically with GitHub (projects) and ORCID (publications).&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;5ha99y&quot;&gt;View source on GitHub →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
