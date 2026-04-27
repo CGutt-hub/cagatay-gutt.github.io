@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitAtbx | 5ha99y</title>
+    <meta name="description" content="Modulares Nextflow-Pipeline-Framework mit automatischer Git-Synchronisierung der Ergebnisse.">
+    <link rel="stylesheet" href="../../style.css">
+    <script>
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+            } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main>
+        <div class="content">
+
+            <div style="margin-bottom: 1rem; font-size: var(--font-size-sm);">
+                <a href="../">EN</a> <span style="color: var(--text-muted);">|</span> <strong>DE</strong>
+            </div>
+
+            <h1>GitAtbx</h1>
+            <p>Ein modulares Nextflow-Pipeline-Framework für automatisierte Datenanalyse — mit eingebetteter Git-Synchronisierung der Ergebnisse.</p>
+
+            <h2>Was ist GitAtbx?</h2>
+
+            <p>GitAtbx bietet Infrastruktur für Datenpipelines, die mehrere Datensätze parallel verarbeiten, Ergebnisse automatisch via Git versionieren und den Fortschritt pro Teilnehmer verfolgen. Aufgebaut auf <strong>Nextflow</strong> für skalierbare, reproduzierbare Workflows.</p>
+
+            <p>Das Framework ist domänenagnostisch — Module folgen einfachen Ein-/Ausgabe-Konventionen (Parquet / FIF) und können beliebige Verarbeitungslogik implementieren. <code>gitatbx init</code> richtet ein neues Analyseprojekt ein: Verzeichnisstruktur, Konfigurationsdatei und optional ein GitHub-Remote für den Ergebnisordner.</p>
+
+            <h2>Kernbefehle</h2>
+
+            <table>
+                <thead><tr><th>Befehl</th><th>Funktion</th></tr></thead>
+                <tbody>
+                    <tr><td><code>gitatbx init &lt;dir&gt;</code></td><td>Neues Analyseprojekt anlegen</td></tr>
+                    <tr><td><code>gitatbx run [pattern]</code></td><td>Pipeline per Projektname-Suche starten</td></tr>
+                    <tr><td><code>gitatbx serve</code></td><td>Ergebnis-HTML lokal im Browser anzeigen</td></tr>
+                    <tr><td><code>gitatbx reinject &lt;id&gt;</code></td><td>Korrigierten Output für einen Teilnehmer neu einspielen</td></tr>
+                    <tr><td><code>gitatbx move &lt;ziel&gt;</code></td><td>Module-Symlink verschieben</td></tr>
+                    <tr><td><code>gitatbx config show</code></td><td>Aktuelle Konfiguration anzeigen</td></tr>
+                </tbody>
+            </table>
+
+            <h2>Installation</h2>
+
+            <div class="card">
+                <p>Installation per pip:</p>
+                <pre><code>pip install GitAtbx</code></pre>
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="https://github.com/CGutt-hub/AnalysisToolbox" target="_blank" rel="noopener" style="display: inline-block;">
+                        <button type="button">Auf GitHub ansehen</button>
+                    </a>
+                </div>
+
+                <p style="margin-top: 1rem; font-size: var(--font-size-sm); color: var(--text-muted);">
+                    <strong>Voraussetzungen:</strong> Python 3.10+, Java Runtime + Nextflow, Git<br>
+                    <strong>Lizenz:</strong> MIT<br>
+                    <strong>Status:</strong> Aktive Entwicklung
+                </p>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+        fetch('../../header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+            });
+        fetch('../../footer.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('footer-placeholder').innerHTML = html;
+            });
+    </script>
+</body>
+</html>
