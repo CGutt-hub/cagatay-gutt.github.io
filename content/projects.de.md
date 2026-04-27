@@ -399,8 +399,6 @@ Ein Git-basierter Literaturmanager — wie Zotero, aber die Bibliothek ist ein p
 pip install gitref
 ```
 
-Oder als Standalone-Binary von der [Releases-Seite](https://github.com/CGutt-hub/gitref/releases/latest).
-
 ## Funktionen
 
 - **DOI / arXiv / ISBN-Lookup** — Metadaten werden automatisch abgerufen
