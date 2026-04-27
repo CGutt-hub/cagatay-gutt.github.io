@@ -76,11 +76,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-analysistoolbox/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;AnalysisToolbox&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;9aa7c7c&lt;&#x2F;code&gt; feat: rename to GitAtbx — flatten to gitatbx&#x2F; root layout, symlink modules, add&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;0ecdd64&lt;&#x2F;code&gt; Updated&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;8eed337&lt;&#x2F;code&gt; chore: untrack build artifacts, add cli&#x2F;.gitignore&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;b6675e3&lt;&#x2F;code&gt; feat: restructure repo to bin&#x2F;modules&#x2F;cli layout, add atbx v0.2.0 CLI, add PyPI&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;7b70b5f&lt;&#x2F;code&gt; feat: Add tree processing module for hierarchical data structure&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;7271d14&lt;&#x2F;code&gt; Add XDF Inspector utility and HTTP server functionality&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -132,11 +132,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/website-update/">&lt;p&gt;This website has been updated with the following changes:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-changes&quot;&gt;Recent Changes&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;bf4587c&lt;&#x2F;code&gt; fix: remove standalone binary references from GitRef pages&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;446e37c&lt;&#x2F;code&gt; feat: rename AnalysisToolbox -&amp;gt; GitAtbx, add GitRef project page&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;b05efda&lt;&#x2F;code&gt; feat: add GitRef tool page and nav dropdown entry&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;c2b17b1&lt;&#x2F;code&gt; feat: improve file tree rendering with interactive collapsible folders&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;69dc385&lt;&#x2F;code&gt; feat: enhance pipeline tree display with L1&#x2F;L2 file detection and conditional re&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;9df2d03&lt;&#x2F;code&gt; Revert &quot;fix: multi-condition bar chart rendering with proper CI error bars&quot;&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The site continues to sync automatically with GitHub (projects) and ORCID (publications).&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;5ha99y&quot;&gt;View source on GitHub →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;

@@ -66,6 +66,89 @@
     <div class="content">
         <p><em>Active development projects tracked via <a rel="external" href="https://github.com/CGutt-hub">GitHub</a>. My open backoffice for collaborative science.</em></p>
 <hr />
+<h3 id="analysistoolbox">AnalysisToolbox</h3>
+<p><strong>Language:</strong> Python<br />
+<strong>Last updated:</strong> 2026-04-27</p>
+<details>
+<summary>View README</summary>
+<h1 id="analysistoolbox-1">AnalysisToolbox</h1>
+<p>A modular framework for automated data processing and statistical analysis pipelines. Built on <strong>Nextflow</strong> for scalable, reproducible workflows with automatic result synchronization.</p>
+<h2 id="overview">Overview</h2>
+<p>The AnalysisToolbox provides infrastructure for building data processing pipelines that:</p>
+<ul>
+<li><strong>Process multiple datasets</strong> in parallel with automatic participant discovery</li>
+<li><strong>Handle diverse data types</strong> through a generic reader/processor/analyzer architecture</li>
+<li><strong>Track progress</strong> via per-participant logging visible live in the web UI</li>
+<li><strong>Recover gracefully</strong> from failures without losing completed work</li>
+</ul>
+<p>The framework is domain-agnostic — modules follow simple input/output conventions (Parquet/FIF files) and can implement any processing logic.</p>
+<h2 id="repository-structure">Repository Structure</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>AnalysisToolbox/</span></span>
+<span class="giallo-l"><span>├── gitatbx/               # pip-installable package (installed via pip install GitAtbx)</span></span>
+<span class="giallo-l"><span>│   ├── bin/               # workflow_wrapper.nf, log_to_parquet.py, nextflow.config, ...</span></span>
+<span class="giallo-l"><span>│   ├── modules/           # analyzers/, processors/, readers/, utils/</span></span>
+<span class="giallo-l"><span>│   ├── templates/         # workflow_template.nf, modules_template.nf, parameters_template.config</span></span>
+<span class="giallo-l"><span>│   └── utils/             # serve_html.ps1, reinject.sh, result_collector.py</span></span>
+<span class="giallo-l"><span>├── pyproject.toml</span></span>
+<span class="giallo-l"><span>└── README.md</span></span></code></pre>
+<p>On first run <code>gitatbx</code> creates a <strong>symlink</strong> <code>~/Documents/GitAtbxModules</code> → <code>&lt;site-packages&gt;/gitatbx/modules/</code>. The symlink always reflects the live installed version — upgrading via <code>pip install --upgrade GitAtbx</code> automatically shows updated modules through the same symlink path.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="java-runtime-required-by-nextflow">Java Runtime (required by Nextflow)</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt update</span><span style="color: #9399B2;"> &amp;&amp;</span><span style="color: #89B4FA;font-style: italic;"> sudo</span><span style="color: #A6E3A1;"> apt install default-jre</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">java</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h3 id="nextflow">Nextflow</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">curl</span><span style="color: #A6E3A1;"> -s https://get.nextflow.io</span><span style="color: #94E2D5;"> |</span><span style="color: #89B4FA;font-style: italic;"> bash</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> mv nextflow /usr/local/bin/</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h2 id="install">Install</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install GitAtbx</span></span></code></pre>
+<p>Python dependencies (<code>numpy</code>, <code>scipy</code>, <code>polars</code>, <code>mne</code>, <code>neurokit2</code>, …) are installed automatically.</p>
+<p>On first run <code>gitatbx</code> creates a symlink <code>~/Documents/GitAtbxModules</code> → <code>&lt;site-packages&gt;/gitatbx/modules/</code> and saves the path to <code>~/.gitatbx_config</code>.</p>
+<h2 id="usage">Usage</h2>
+<h3 id="commands">Commands</h3>
+<table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
+<tr><td><code>gitatbx init &lt;dir&gt;</code></td><td>Scaffold a new analysis project</td></tr>
+<tr><td><code>gitatbx run [pattern]</code></td><td>Find and run a pipeline by project name pattern</td></tr>
+<tr><td><code>gitatbx serve [--dir DIR] [--port PORT]</code></td><td>Serve results HTML locally in browser</td></tr>
+<tr><td><code>gitatbx reinject &lt;PID&gt; [options]</code></td><td>Reinject a corrected output for one participant</td></tr>
+<tr><td><code>gitatbx move &lt;dest&gt;</code></td><td>Move the deployed modules folder to a new location</td></tr>
+<tr><td><code>gitatbx config show</code></td><td>Print current configuration (<code>~/.gitatbx_config</code>)</td></tr>
+</tbody></table>
+<h3 id="gitatbx-init"><code>gitatbx init</code></h3>
+<p>Prompts for project name, raw data directory, Python executable, toolbox path, git author identity, and an optional GitHub remote URL for the results repo. Then creates:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>&lt;dir&gt;/</span></span>
+<span class="giallo-l"><span>├── {name}_analysis/</span></span>
+<span class="giallo-l"><span>│   ├── {name}_pipeline.nf       ← edit your workflow here</span></span>
+<span class="giallo-l"><span>│   ├── {name}_modules.nf        ← add IOInterface includes here</span></span>
+<span class="giallo-l"><span>│   └── {name}_parameters.config ← pre-filled paths, params, and git identity</span></span>
+<span class="giallo-l"><span>└── {name}_results/</span></span>
+<span class="giallo-l"><span>    └── .git/                    ← initialised + remote added (if URL provided)</span></span></code></pre>
+<p>Git author name and email default to your global <code>git config</code> values if already set. The remote URL is validated immediately with <code>git ls-remote</code> — if authentication fails (e.g. SSH key not yet added to GitHub), a warning is printed with a link to the GitHub SSH setup guide.</p>
+<p>The pipeline uses the stamped <code>params.git_user_name</code> / <code>params.git_user_email</code> as the commit author for all automatic result syncs.</p>
+<h3 id="gitatbx-run"><code>gitatbx run</code></h3>
+<p>GitAtbx searches the entire accessible filesystem (home directory and all drives on Windows) for a directory named <code>(name)_analysis</code> containing a <code>*_pipeline.nf</code>, then runs it automatically. No need to <code>cd</code> anywhere.</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> run</span><span> (name) --resume</span><span style="color: #9399B2;font-style: italic;">   # continue a previous run</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> run</span><span style="color: #9399B2;font-style: italic;">               # no pattern: use current directory</span></span></code></pre>
+<p>Found paths are cached in <code>~/.gitatbx_config</code> so subsequent calls are instant.</p>
+<h3 id="gitatbx-serve"><code>gitatbx serve</code></h3>
+<p>Starts a local HTTP server to browse results HTML generated by the pipeline.</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> serve --dir ../EV_results --port</span><span style="color: #FAB387;"> 8080</span></span></code></pre><h3 id="gitatbx-reinject"><code>gitatbx reinject</code></h3>
+<p>Places a corrected parquet into <code>corrections/&lt;script_name&gt;/</code>, marks the participant for replay, invalidates relevant Nextflow cache entries, and resumes the pipeline for that participant only.</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> reinject EV_002 --corrected-file fixed.parquet --script-name filtering_processor</span></span></code></pre><h3 id="gitatbx-move"><code>gitatbx move</code></h3>
+<p>To move the symlink to a custom location:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> move /mnt/d/repoShaggy/GitAtbxModules</span></span></code></pre>
+<p><code>gitatbx</code> moves the folder and updates <code>~/.gitatbx_config</code> automatically. <code>gitatbx init</code> will then default <code>toolbox_dir</code> to that path when scaffolding new projects.</p>
+<h2 id="key-components">Key Components</h2>
+<h3 id="bin-workflow-wrapper-nf"><code>bin/workflow_wrapper.nf</code></h3>
+<p>Discovers participant directories, manages per-participant output folders, runs <code>log_to_parquet.py</code> and <code>interactive_plotter.py</code> automatically, and handles per-participant git sync on completion.</p>
+<h3 id="iointerface"><code>IOInterface</code></h3>
+<p>Generic Nextflow process that runs any script (reader/processor/analyzer) with automatic logging. Every module in <code>modules/</code> is called through <code>IOInterface</code>.</p>
+<h3 id="modules">Modules</h3>
+<p>The <code>modules/</code> folder is a curated but non-exhaustive starting collection of commonly useful scripts. The first time <code>gitatbx</code> is run it mirrors the full collection to <code>~/Documents/GitAtbxModules</code> (Windows) or <code>~/GitAtbxModules</code> (Linux/macOS) automatically. You can move that folder anywhere with <code>gitatbx move</code>. The local copy is yours to extend: add domain-specific scripts, modify existing ones, or organise them into subfolders. Any script there can be called via <code>IOInterface</code> identically to the built-in modules, as long as it follows the same convention: positional CLI arguments in, Parquet or FIF outputs, non-zero exit on failure.</p>
+<h2 id="authors">Authors</h2>
+<p><strong>Cagatay Özcan Jagiello Gutt</strong> — Lead Developer
+ORCID: https://orcid.org/0000-0002-1774-532X</p>
+</details>
+<p><a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">View on GitHub →</a></p>
+<hr />
 <h3 id="5ha99y">5ha99y</h3>
 <p><strong>Language:</strong> JavaScript<br />
 <strong>Last updated:</strong> 2026-04-27</p>
@@ -94,7 +177,7 @@
 <span class="giallo-l"><span>   ↓</span></span>
 <span class="giallo-l"><span>5. Deploys to gh-pages branch</span></span>
 <span class="giallo-l"><span>   ↓</span></span>
-<span class="giallo-l"><span>6. Website updates automatically!</span></span></code></pre><h2 id="repository-structure">Repository Structure</h2>
+<span class="giallo-l"><span>6. Website updates automatically!</span></span></code></pre><h2 id="repository-structure-1">Repository Structure</h2>
 <h3 id="source-files-edit-these">Source Files (Edit These)</h3>
 <ul>
 <li><code>config.toml</code> - Site configuration</li>
@@ -204,92 +287,6 @@
 </ul>
 </details>
 <p><a rel="external" href="https://github.com/CGutt-hub/5ha99y">View on GitHub →</a></p>
-<hr />
-<h3 id="analysistoolbox">AnalysisToolbox</h3>
-<p><strong>Language:</strong> Python<br />
-<strong>Last updated:</strong> 2026-04-27</p>
-<details>
-<summary>View README</summary>
-<h1 id="analysistoolbox-1">AnalysisToolbox</h1>
-<p>A modular framework for automated data processing and statistical analysis pipelines. Built on <strong>Nextflow</strong> for scalable, reproducible workflows with automatic result synchronization.</p>
-<h2 id="overview">Overview</h2>
-<p>The AnalysisToolbox provides infrastructure for building data processing pipelines that:</p>
-<ul>
-<li><strong>Process multiple datasets</strong> in parallel with automatic participant discovery</li>
-<li><strong>Handle diverse data types</strong> through a generic reader/processor/analyzer architecture</li>
-<li><strong>Track progress</strong> via per-participant logging visible live in the web UI</li>
-<li><strong>Recover gracefully</strong> from failures without losing completed work</li>
-</ul>
-<p>The framework is domain-agnostic — modules follow simple input/output conventions (Parquet/FIF files) and can implement any processing logic.</p>
-<h2 id="repository-structure-1">Repository Structure</h2>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>AnalysisToolbox/</span></span>
-<span class="giallo-l"><span>├── bin/           # Auto-infrastructure used by every pipeline</span></span>
-<span class="giallo-l"><span>│   ├── workflow_wrapper.nf      # Participant discovery, IOInterface, watchdog</span></span>
-<span class="giallo-l"><span>│   ├── log_to_parquet.py        # Live log writer (called by workflow_wrapper)</span></span>
-<span class="giallo-l"><span>│   ├── interactive_plotter.py   # Per-step plot generator</span></span>
-<span class="giallo-l"><span>│   ├── template.nf              # Pipeline scaffold</span></span>
-<span class="giallo-l"><span>│   ├── nextflow.config          # Default Nextflow configuration</span></span>
-<span class="giallo-l"><span>│   ├── result_collector.py      # Result aggregation helper</span></span>
-<span class="giallo-l"><span>│   ├── reinject.sh              # Shell helper for reinjection</span></span>
-<span class="giallo-l"><span>│   └── serve_html.ps1           # PowerShell result viewer</span></span>
-<span class="giallo-l"><span>├── modules/       # User-included pipeline modules</span></span>
-<span class="giallo-l"><span>│   ├── analyzers/   # Statistical analysis scripts</span></span>
-<span class="giallo-l"><span>│   ├── processors/  # Data transformation scripts</span></span>
-<span class="giallo-l"><span>│   ├── readers/     # File format readers (XDF, TXT, CSV, …)</span></span>
-<span class="giallo-l"><span>│   ├── utils/       # Utility modules (file_finder, xdf_inspector)</span></span>
-<span class="giallo-l"><span>│   ├── matlab/      # MATLAB preprocessing scripts</span></span>
-<span class="giallo-l"><span>│   └── msc/         # Miscellaneous domain-specific scripts</span></span>
-<span class="giallo-l"><span>└── cli/           # pip-installable atbx package</span></span></code></pre><h2 id="prerequisites">Prerequisites</h2>
-<h3 id="1-wsl-windows-subsystem-for-linux">1. WSL (Windows Subsystem for Linux)</h3>
-<p>The pipeline runs in Linux. On Windows, install WSL:</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="powershell"><span class="giallo-l"><span>wsl </span><span style="color: #94E2D5;">--</span><span>install </span><span style="color: #94E2D5;">-</span><span>d Ubuntu</span></span></code></pre><h3 id="2-java-runtime-required-by-nextflow">2. Java Runtime (required by Nextflow)</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt update</span><span style="color: #9399B2;"> &amp;&amp;</span><span style="color: #89B4FA;font-style: italic;"> sudo</span><span style="color: #A6E3A1;"> apt install default-jre</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">java</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h3 id="3-nextflow">3. Nextflow</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">curl</span><span style="color: #A6E3A1;"> -s https://get.nextflow.io</span><span style="color: #94E2D5;"> |</span><span style="color: #89B4FA;font-style: italic;"> bash</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> mv nextflow /usr/local/bin/</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h3 id="4-python-environment">4. Python Environment</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python3</span><span style="color: #A6E3A1;"> -m venv ~/analysis_venv</span></span>
-<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">source</span><span style="color: #A6E3A1;"> ~/analysis_venv/bin/activate</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install atbx</span></span></code></pre><h2 id="install">Install</h2>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install atbx</span></span></code></pre>
-<p>Installs all Python dependencies (<code>numpy</code>, <code>scipy</code>, <code>polars</code>, <code>mne</code>, <code>neurokit2</code>, …) and the <code>atbx</code> command.</p>
-<p>To uninstall: <code>pip uninstall atbx</code></p>
-<h2 id="usage">Usage</h2>
-<h3 id="commands">Commands</h3>
-<table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
-<tr><td><code>atbx init &lt;dir&gt;</code></td><td>Scaffold a new analysis project</td></tr>
-<tr><td><code>atbx serve [--dir DIR] [--port PORT]</code></td><td>Serve results HTML locally in browser</td></tr>
-<tr><td><code>atbx reinject &lt;PID&gt; [options]</code></td><td>Reinject a corrected output for one participant</td></tr>
-</tbody></table>
-<h3 id="atbx-init"><code>atbx init</code></h3>
-<p>Prompts for project name, raw data directory, Python executable, and toolbox path, then creates:</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>&lt;dir&gt;/</span></span>
-<span class="giallo-l"><span>├── {name}_analysis/</span></span>
-<span class="giallo-l"><span>│   ├── {name}_pipeline.nf       ← edit your workflow here</span></span>
-<span class="giallo-l"><span>│   ├── {name}_modules.nf        ← add IOInterface includes here</span></span>
-<span class="giallo-l"><span>│   └── {name}_parameters.config ← pre-filled paths and params</span></span>
-<span class="giallo-l"><span>└── {name}_results/</span></span></code></pre>
-<p><code>{name}_modules.nf</code> includes <code>participant_discovery</code>, <code>finalize_participant</code>, and <code>finalize_l2</code> from <code>bin/workflow_wrapper.nf</code> automatically. Add your readers, processors, and analyzers there.</p>
-<h3 id="atbx-reinject"><code>atbx reinject</code></h3>
-<p>Places a corrected parquet into <code>corrections/&lt;script_name&gt;/</code>, marks the participant for replay, invalidates relevant Nextflow cache entries, and resumes the pipeline for that participant only.</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">atbx</span><span style="color: #A6E3A1;"> reinject EV_002 --corrected-file fixed.parquet --script-name filtering_processor</span></span></code></pre><h3 id="atbx-serve"><code>atbx serve</code></h3>
-<p>Starts a local HTTP server to browse results HTML generated by the pipeline.</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">atbx</span><span style="color: #A6E3A1;"> serve --dir ../EV_results --port</span><span style="color: #FAB387;"> 8080</span></span></code></pre><h2 id="running-a-pipeline">Running a Pipeline</h2>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> EV_analysis</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> run EV_pipeline.nf -c EV_parameters.config -with-trace</span></span></code></pre>
-<p><code>-with-trace</code> is required for the watchdog to monitor per-participant completion.</p>
-<h2 id="key-components">Key Components</h2>
-<h3 id="bin-workflow-wrapper-nf"><code>bin/workflow_wrapper.nf</code></h3>
-<p>Discovers participant directories, manages per-participant output folders, runs <code>log_to_parquet.py</code> and <code>interactive_plotter.py</code> automatically, and starts per-participant watchdog threads that trigger git sync on completion.</p>
-<h3 id="iointerface"><code>IOInterface</code></h3>
-<p>Generic Nextflow process that runs any script (reader/processor/analyzer) with automatic logging. Every module in <code>modules/</code> is called through <code>IOInterface</code>.</p>
-<h3 id="modules">Modules</h3>
-<p>The <code>modules/</code> folder is a curated but non-exhaustive starting collection of commonly useful scripts. The first time <code>atbx</code> is run it mirrors the full collection to <code>~/Documents/atbxModules</code> (Windows) or <code>~/atbxModules</code> (Linux/macOS) automatically. You can move that folder anywhere — just update the path in <code>~/.atbx_config</code>. The local copy is yours to extend: add domain-specific scripts, modify existing ones, or organise them into subfolders. Any script there can be called via <code>IOInterface</code> identically to the built-in modules, as long as it follows the same convention: positional CLI arguments in, Parquet or FIF outputs, non-zero exit on failure.</p>
-<h2 id="authors">Authors</h2>
-<p><strong>Cagatay Özcan Jagiello Gutt</strong> — Lead Developer
-ORCID: https://orcid.org/0000-0002-1774-532X</p>
-</details>
-<p><a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">View on GitHub →</a></p>
 <hr />
 <h3 id="emotiview">EmotiView</h3>
 <p><strong>Language:</strong> Nextflow<br />
