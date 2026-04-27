@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Toolbox | 5ha99y</title>
-    <meta name="description" content="Python toolbox for multimodal physiological data processing and analysis.">
+    <title>GitAtbx | 5ha99y</title>
+    <meta name="description" content="Modular Nextflow pipeline framework with automatic Git result synchronization.">
     <link rel="stylesheet" href="../style.css">
     <script>
         // System theme detection - runs before render to prevent flash
@@ -20,6 +20,78 @@
         })();
     </script>
 </head>
+<body>
+    <!-- Header loaded from 5ha99y -->
+    <div id="header-placeholder"></div>
+
+    <main>
+        <div class="content">
+
+            <h1>GitAtbx</h1>
+            <p>A modular Nextflow pipeline framework for automated data analysis — with built-in Git synchronization of results.</p>
+
+            <h2>What is GitAtbx?</h2>
+
+            <p>GitAtbx provides infrastructure for data pipelines that process multiple datasets in parallel, automatically version their results via Git, and track progress per participant. It is built on <strong>Nextflow</strong> for scalable, reproducible workflows.</p>
+
+            <p>The framework is domain-agnostic — modules follow simple input/output conventions (Parquet / FIF) and can implement any processing logic. <code>gitatbx init</code> sets up a new analysis project: directory layout, a parameters config file, and an optional GitHub remote for the results folder.</p>
+
+            <h2>Core Commands</h2>
+
+            <table>
+                <thead><tr><th>Command</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td><code>gitatbx init &lt;dir&gt;</code></td><td>Create a new analysis project</td></tr>
+                    <tr><td><code>gitatbx run [pattern]</code></td><td>Find and launch a pipeline by project name</td></tr>
+                    <tr><td><code>gitatbx serve</code></td><td>View result HTML locally in the browser</td></tr>
+                    <tr><td><code>gitatbx reinject &lt;id&gt;</code></td><td>Re-inject corrected output for a participant</td></tr>
+                    <tr><td><code>gitatbx move &lt;dest&gt;</code></td><td>Move the modules symlink</td></tr>
+                    <tr><td><code>gitatbx config show</code></td><td>Show current configuration</td></tr>
+                </tbody>
+            </table>
+
+            <h2>Download & Installation</h2>
+
+            <div class="card">
+                <p>Install via pip:</p>
+                <pre><code>pip install GitAtbx</code></pre>
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="https://github.com/CGutt-hub/AnalysisToolbox" target="_blank" rel="noopener" style="display: inline-block;">
+                        <button type="button">View on GitHub</button>
+                    </a>
+                </div>
+
+                <p style="margin-top: 1rem; font-size: var(--font-size-sm); color: var(--text-muted);">
+                    <strong>Requirements:</strong> Python 3.10+, Java Runtime + Nextflow, Git<br>
+                    <strong>License:</strong> MIT<br>
+                    <strong>Status:</strong> Active development
+                </p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer loaded from 5ha99y -->
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Load header
+        fetch('../header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+            });
+
+        // Load footer
+        fetch('../footer.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('footer-placeholder').innerHTML = html;
+            });
+    </script>
+</body>
+</html>
 <body>
     <!-- Header loaded from 5ha99y -->
     <div id="header-placeholder"></div>
