@@ -22,6 +22,17 @@ function downloadPlotData(plotItem) {
     downloadJSON(plotItem, filename);
 }
 
+function downloadParquetFile(plotItem) {
+    const url = `https://raw.githubusercontent.com/CGutt-hub/${plotItem.repo_name}/main/${plotItem.file_path}`;
+    const filename = plotItem.file_path.split('/').pop() || 'data.parquet';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
 // Wait for hyparquet to be available (loaded as ES module in analysis.html)
 async function waitForHyparquet() {
     if (window.hyparquetReadObjects) return;
@@ -648,6 +659,22 @@ function buildFileTree() {
                 e.stopPropagation();
                 downloadPlotData(plotsData[plot.index]);
             };
+
+            // Parquet download button
+            const parquetBtn = document.createElement('button');
+            parquetBtn.innerHTML = 'PQ';
+            parquetBtn.title = 'Download Parquet';
+            parquetBtn.className = 'sidebar-download-btn';
+            parquetBtn.style.padding = '2px 6px';
+            parquetBtn.style.fontSize = '0.75em';
+            parquetBtn.style.border = '1px solid var(--border-primary)';
+            parquetBtn.style.borderRadius = '3px';
+            parquetBtn.style.background = 'var(--bg-tertiary)';
+            parquetBtn.style.cursor = 'pointer';
+            parquetBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadParquetFile(plotsData[plot.index]);
+            };
             
             // PDF/A download button
             const pdfBtn = document.createElement('button');
@@ -666,6 +693,7 @@ function buildFileTree() {
             };
             
             downloadBtns.appendChild(jsonBtn);
+            downloadBtns.appendChild(parquetBtn);
             downloadBtns.appendChild(pdfBtn);
             
             fileItem.appendChild(fileName);
