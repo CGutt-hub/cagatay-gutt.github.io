@@ -17,11 +17,11 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-analysistoolbox/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;AnalysisToolbox&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;0d8cd2e&lt;&#x2F;code&gt; chore: bump version to 0.1.1&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;51416a0&lt;&#x2F;code&gt; fix: skip existing files on PyPI re-upload&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;f2815aa&lt;&#x2F;code&gt; feat: create GitHub Release on tag push&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;4abbc2e&lt;&#x2F;code&gt; fix: install setuptools for build&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;4e7efac&lt;&#x2F;code&gt; release: v0.1.0&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;ceb9603&lt;&#x2F;code&gt; refactor: streamline publish workflow by consolidating permissions and simplifyi&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;23d00f8&lt;&#x2F;code&gt; feat: remove quality parameter from IOInterface and enhance short-channel regres&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;aec7cb9&lt;&#x2F;code&gt; feat: enhance asymmetry computation with SEM from epoch data and improve short-c&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -36,7 +36,7 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-emotiview/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;EmotiView&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;code&gt;d0820e9&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@50a&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;3f712ee&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@c40&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
