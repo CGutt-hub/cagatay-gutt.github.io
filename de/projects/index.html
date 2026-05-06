@@ -67,6 +67,168 @@
     <div class="content">
         <p><em>Aktive Entwicklungsprojekte via <a rel="external" href="https://github.com/CGutt-hub">GitHub</a>. Mein offenes Backoffice für kollaborative Wissenschaft.</em></p>
 <hr />
+<h3 id="surveyworkbench">surveyWorkbench</h3>
+<p><strong>Sprache:</strong> Python<br />
+<strong>Zuletzt aktualisiert:</strong> 2026-05-06</p>
+<details>
+<summary>README anzeigen</summary>
+<h1 id="survey-workbench-v2-0">Survey Workbench v2.0</h1>
+<blockquote>
+<p>A comprehensive participant data management system for survey research with dynamic questionnaire configuration and batch processing capabilities.</p>
+</blockquote>
+<p><a rel="external" href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8+-blue.svg" alt="Python" /></a>
+<a rel="external" href="https://www.riverbankcomputing.com/software/pyqt/"><img src="https://img.shields.io/badge/GUI-PyQt5-green.svg" alt="PyQt5" /></a>
+<img src="https://img.shields.io/badge/License-Internal_Use-red.svg" alt="License" /></p>
+<h2 id="overview">Overview</h2>
+<p>Survey Workbench is a desktop application designed to streamline the management of participant folders and extraction of survey data from questionnaires. Built with PyQt5, it provides an intuitive graphical interface for researchers and data managers to efficiently organize and process survey data.</p>
+<h3 id="key-features">Key Features</h3>
+<ul>
+<li><strong>🔧 Dynamic Questionnaire Configuration</strong>: Support for unlimited questionnaire types per participant with flexible template management</li>
+<li><strong>📦 Batch Processing</strong>: Generate and extract data for multiple participants simultaneously</li>
+<li><strong>📥 Participant Import</strong>: Import participant lists from .txt or .csv files</li>
+<li><strong>📋 Template Bundles</strong>: Create and reuse questionnaire configuration bundles across projects</li>
+<li><strong>🔍 Duplicate Detection</strong>: Automatic masterfile checking (supports CSV and Excel formats) to prevent duplicate entries</li>
+<li><strong>✅ Data Completeness Verification</strong>: Validate all required data before extraction</li>
+<li><strong>👁️ Preview Dialog</strong>: Review extracted data before finalizing</li>
+<li><strong>📊 Missing Data Report</strong>: Generate quality control reports for incomplete data</li>
+<li><strong>💾 Configuration Management</strong>: Save, load, and manage multiple configurations with an intuitive submenu interface</li>
+<li><strong>❓ Interactive Help System</strong>: Built-in tooltips and "What's This?" mode for user assistance</li>
+<li><strong>📑 Auto-Format Detection</strong>: Automatically detect masterfile format (CSV, XLS, XLSX)</li>
+</ul>
+<h2 id="system-requirements">System Requirements</h2>
+<ul>
+<li><strong>Operating System</strong>: Windows 10/11, macOS 10.14+, or Linux</li>
+<li><strong>Python</strong>: 3.8 or higher</li>
+<li><strong>Microsoft Excel</strong>: Required for Excel file operations (via xlwings)</li>
+<li><strong>Memory</strong>: 4GB RAM minimum (8GB recommended for large datasets)</li>
+<li><strong>Storage</strong>: 100MB free space minimum</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Ensure you have Python 3.8+ installed on your system. You can download it from <a rel="external" href="https://www.python.org/downloads/">python.org</a>.</p>
+<h3 id="install-dependencies">Install Dependencies</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Clone the repository</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">git</span><span style="color: #A6E3A1;"> clone https://github.com/CGutt-hub/surveyWorkbench.git</span></span>
+<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> surveyWorkbench</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Install required Python packages</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install PyQt5 xlwings configparser</span></span></code></pre><h3 id="additional-setup">Additional Setup</h3>
+<p>For Excel integration (xlwings), you may need to install the Excel add-in:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">xlwings</span><span style="color: #A6E3A1;"> addin install</span></span></code></pre><h2 id="quick-start">Quick Start</h2>
+<h3 id="running-the-application">Running the Application</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> survey_workbench.py</span></span></code></pre>
+<p>Or run the compiled executable (if available):</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">./survey_workbench_v2.0</span><span style="color: #9399B2;font-style: italic;">  # On Linux/macOS</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">survey_workbench_v2.0.exe</span><span style="color: #9399B2;font-style: italic;">  # On Windows</span></span></code></pre><h3 id="basic-workflow">Basic Workflow</h3>
+<ol>
+<li><strong>Configure Questionnaires</strong>: Set up your questionnaire templates and target folders</li>
+<li><strong>Generate Participant Folders</strong>: Create participant-specific folders with questionnaire templates</li>
+<li><strong>Fill Out Questionnaires</strong>: Have participants complete their questionnaires</li>
+<li><strong>Extract Data</strong>: Collect and consolidate data from completed questionnaires into a masterfile</li>
+</ol>
+<h2 id="usage">Usage</h2>
+<h3 id="generate-participant-folders">Generate Participant Folders</h3>
+<ol>
+<li>Select template files for each questionnaire type</li>
+<li>Specify the target folder where participant folders will be created</li>
+<li>Enter participant IDs (manual entry or import from file)</li>
+<li>Click "Generate Participant Folder" to create the folder structure</li>
+</ol>
+<p><strong>Batch Mode</strong>: Enable batch mode to process multiple participants at once by importing a list from .txt or .csv files.</p>
+<h3 id="extract-data">Extract Data</h3>
+<ol>
+<li>Select the source folder containing participant folders</li>
+<li>Choose the masterfile (CSV or Excel) where data will be extracted</li>
+<li>Configure questionnaire-specific extraction settings:
+<ul>
+<li>Excel sheet names</li>
+<li>Column filters</li>
+<li>Multiple questionnaire copies</li>
+</ul>
+</li>
+<li>Click "Extract Data" to consolidate participant data</li>
+</ol>
+<p><strong>Features</strong>:</p>
+<ul>
+<li><strong>Duplicate Detection</strong>: Automatically checks if participant data already exists in the masterfile</li>
+<li><strong>Data Completeness Check</strong>: Verifies all required questionnaires are present before extraction</li>
+<li><strong>Preview Dialog</strong>: Review data before final extraction</li>
+<li><strong>Missing Data Report</strong>: Generate reports for participants with incomplete data</li>
+</ul>
+<h3 id="configuration-management">Configuration Management</h3>
+<p>Save and load configurations to quickly switch between different project setups:</p>
+<ul>
+<li><strong>Save Configuration</strong>: Store your current questionnaire setup and settings</li>
+<li><strong>Load Configuration</strong>: Quickly restore a previously saved configuration</li>
+<li><strong>Delete Configuration</strong>: Remove outdated configurations</li>
+<li><strong>Recent Configurations</strong>: Access recently used configurations from the menu</li>
+</ul>
+<h3 id="template-bundles">Template Bundles</h3>
+<p>Create reusable template bundles for standardized project setups:</p>
+<ol>
+<li>Configure all questionnaires and settings</li>
+<li>Select "Save Template Bundle" from the menu</li>
+<li>Load the bundle in future projects to instantly apply the same configuration</li>
+</ol>
+<h2 id="file-structure">File Structure</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>surveyWorkbench/</span></span>
+<span class="giallo-l"><span>├── survey_workbench.py      # Main application source code</span></span>
+<span class="giallo-l"><span>├── survey_workbench.spec    # PyInstaller build specification</span></span>
+<span class="giallo-l"><span>├── config.ini               # Configuration storage file</span></span>
+<span class="giallo-l"><span>├── USER_MANUAL.pdf          # Comprehensive user manual</span></span>
+<span class="giallo-l"><span>├── USER_MANUAL.tex          # LaTeX source for user manual</span></span>
+<span class="giallo-l"><span>└── README.md                # This file</span></span></code></pre><h2 id="technology-stack">Technology Stack</h2>
+<ul>
+<li><strong>GUI Framework</strong>: PyQt5 - Cross-platform graphical user interface</li>
+<li><strong>Excel Integration</strong>: xlwings - Python library for Excel automation</li>
+<li><strong>Configuration</strong>: ConfigParser - INI file handling for settings persistence</li>
+<li><strong>Build Tool</strong>: PyInstaller - Executable packaging (see survey_workbench.spec)</li>
+<li><strong>Type Hints</strong>: Full type annotation support for better code maintainability</li>
+</ul>
+<h2 id="documentation">Documentation</h2>
+<p>For detailed documentation, including screenshots and step-by-step guides, please refer to the <a href="https://cgutt-hub.github.io/5ha99y/de/projects/USER_MANUAL.pdf">USER_MANUAL.pdf</a> included in this repository.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<ul>
+<li><strong>Excel not found</strong>: Ensure Microsoft Excel is installed and xlwings is properly configured</li>
+<li><strong>Configuration not saving</strong>: Check write permissions for config.ini file</li>
+<li><strong>Import errors</strong>: Verify all dependencies are installed with <code>pip list</code></li>
+<li><strong>Template files not copying</strong>: Ensure source template files exist and have read permissions</li>
+</ul>
+<p>For more troubleshooting tips, consult the USER_MANUAL.pdf.</p>
+<h2 id="version-history">Version History</h2>
+<h3 id="version-2-0-february-2026">Version 2.0 (February 2026)</h3>
+<ul>
+<li>Dynamic questionnaire support with unlimited types</li>
+<li>Enhanced batch processing capabilities</li>
+<li>Template bundle system</li>
+<li>Improved duplicate detection</li>
+<li>Data completeness verification</li>
+<li>Preview dialog for data extraction</li>
+<li>Missing data reporting</li>
+<li>Interactive help system</li>
+</ul>
+<h3 id="version-1-0-april-2024">Version 1.0 (April 2024)</h3>
+<ul>
+<li>Initial release</li>
+<li>Basic participant folder generation</li>
+<li>Simple data extraction</li>
+</ul>
+<h2 id="author">Author</h2>
+<p><strong>Cagatay Gutt</strong></p>
+<ul>
+<li>Created: April 15, 2024</li>
+<li>Last Updated: February 4, 2026</li>
+</ul>
+<h2 id="license">License</h2>
+<p>This software is for internal use only. All rights reserved.</p>
+<h2 id="support">Support</h2>
+<p>For questions, issues, or feature requests, please contact the project maintainer or refer to the comprehensive USER_MANUAL.pdf for detailed guidance.</p>
+<hr />
+<p><em>Survey Workbench - Streamlining survey data management for research excellence.</em></p>
+</details>
+<p><a rel="external" href="https://github.com/CGutt-hub/surveyWorkbench">Auf GitHub ansehen →</a></p>
+<hr />
 <h3 id="emotiview">EmotiView</h3>
 <p><strong>Sprache:</strong> Jupyter Notebook<br />
 <strong>Zuletzt aktualisiert:</strong> 2026-05-06</p>
@@ -146,7 +308,7 @@
 <summary>README anzeigen</summary>
 <h1 id="analysistoolbox-1">AnalysisToolbox</h1>
 <p>A modular framework for automated data processing and statistical analysis pipelines. Built on <strong>Nextflow</strong> for scalable, reproducible workflows with automatic result synchronization.</p>
-<h2 id="overview">Overview</h2>
+<h2 id="overview-1">Overview</h2>
 <p>The AnalysisToolbox provides infrastructure for building data processing pipelines that:</p>
 <ul>
 <li><strong>Process multiple datasets</strong> in parallel with automatic participant discovery</li>
@@ -165,7 +327,7 @@
 <span class="giallo-l"><span>├── pyproject.toml</span></span>
 <span class="giallo-l"><span>└── README.md</span></span></code></pre>
 <p>On first run <code>gitatbx</code> creates a <strong>symlink</strong> <code>~/Documents/GitAtbxModules</code> → <code>&lt;site-packages&gt;/gitatbx/modules/</code>. The symlink always reflects the live installed version — upgrading via <code>pip install --upgrade GitAtbx</code> automatically shows updated modules through the same symlink path.</p>
-<h2 id="prerequisites">Prerequisites</h2>
+<h2 id="prerequisites-1">Prerequisites</h2>
 <h3 id="java-runtime-required-by-nextflow">Java Runtime (required by Nextflow)</h3>
 <pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt update</span><span style="color: #9399B2;"> &amp;&amp;</span><span style="color: #89B4FA;font-style: italic;"> sudo</span><span style="color: #A6E3A1;"> apt install default-jre</span></span>
 <span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">java</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h3 id="nextflow">Nextflow</h3>
@@ -175,7 +337,7 @@
 <pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install GitAtbx</span></span></code></pre>
 <p>Python dependencies (<code>numpy</code>, <code>scipy</code>, <code>polars</code>, <code>mne</code>, <code>neurokit2</code>, …) are installed automatically.</p>
 <p>On first run <code>gitatbx</code> creates a symlink <code>~/Documents/GitAtbxModules</code> → <code>&lt;site-packages&gt;/gitatbx/modules/</code> and saves the path to <code>~/.gitatbx_config</code>.</p>
-<h2 id="usage">Usage</h2>
+<h2 id="usage-1">Usage</h2>
 <h3 id="commands">Commands</h3>
 <table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
 <tr><td><code>gitatbx init &lt;dir&gt;</code></td><td>Scaffold a new analysis project</td></tr>
@@ -323,7 +485,7 @@ ORCID: https://orcid.org/0000-0002-1774-532X</p>
 <li><code>static/style.css</code> - Main stylesheet</li>
 <li><code>templates/</code> - HTML templates</li>
 </ul>
-<h2 id="troubleshooting">Troubleshooting</h2>
+<h2 id="troubleshooting-1">Troubleshooting</h2>
 <h3 id="website-not-updating">Website Not Updating?</h3>
 <ol>
 <li>Check <a rel="external" href="https://github.com/CGutt-hub/5ha99y/actions">Actions tab</a> - look for green checkmark ✓</li>
@@ -389,7 +551,7 @@ ORCID: https://orcid.org/0000-0002-1774-532X</p>
 <li><strong>Terminal UI</strong> – interactive browser with search, detail view, tagging</li>
 <li><strong>Browser extension</strong> – one-click save from any paper page (like Zotero Connector)</li>
 </ul>
-<h2 id="quick-start">Quick start</h2>
+<h2 id="quick-start-1">Quick start</h2>
 <pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Initialise a new library</span></span>
 <span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitref</span><span style="color: #A6E3A1;"> init</span></span>
 <span class="giallo-l"></span>
@@ -755,168 +917,6 @@ Jobs to Computerisation?</em> Oxford Martin School Working Paper.</li>
 </tbody></table>
 </details>
 <p><a rel="external" href="https://github.com/CGutt-hub/labourAIVolt">Auf GitHub ansehen →</a></p>
-<hr />
-<h3 id="surveyworkbench">surveyWorkbench</h3>
-<p><strong>Sprache:</strong> Python<br />
-<strong>Zuletzt aktualisiert:</strong> 2026-02-18</p>
-<details>
-<summary>README anzeigen</summary>
-<h1 id="survey-workbench-v2-0">Survey Workbench v2.0</h1>
-<blockquote>
-<p>A comprehensive participant data management system for survey research with dynamic questionnaire configuration and batch processing capabilities.</p>
-</blockquote>
-<p><a rel="external" href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8+-blue.svg" alt="Python" /></a>
-<a rel="external" href="https://www.riverbankcomputing.com/software/pyqt/"><img src="https://img.shields.io/badge/GUI-PyQt5-green.svg" alt="PyQt5" /></a>
-<img src="https://img.shields.io/badge/License-Internal_Use-red.svg" alt="License" /></p>
-<h2 id="overview-1">Overview</h2>
-<p>Survey Workbench is a desktop application designed to streamline the management of participant folders and extraction of survey data from questionnaires. Built with PyQt5, it provides an intuitive graphical interface for researchers and data managers to efficiently organize and process survey data.</p>
-<h3 id="key-features">Key Features</h3>
-<ul>
-<li><strong>🔧 Dynamic Questionnaire Configuration</strong>: Support for unlimited questionnaire types per participant with flexible template management</li>
-<li><strong>📦 Batch Processing</strong>: Generate and extract data for multiple participants simultaneously</li>
-<li><strong>📥 Participant Import</strong>: Import participant lists from .txt or .csv files</li>
-<li><strong>📋 Template Bundles</strong>: Create and reuse questionnaire configuration bundles across projects</li>
-<li><strong>🔍 Duplicate Detection</strong>: Automatic masterfile checking (supports CSV and Excel formats) to prevent duplicate entries</li>
-<li><strong>✅ Data Completeness Verification</strong>: Validate all required data before extraction</li>
-<li><strong>👁️ Preview Dialog</strong>: Review extracted data before finalizing</li>
-<li><strong>📊 Missing Data Report</strong>: Generate quality control reports for incomplete data</li>
-<li><strong>💾 Configuration Management</strong>: Save, load, and manage multiple configurations with an intuitive submenu interface</li>
-<li><strong>❓ Interactive Help System</strong>: Built-in tooltips and "What's This?" mode for user assistance</li>
-<li><strong>📑 Auto-Format Detection</strong>: Automatically detect masterfile format (CSV, XLS, XLSX)</li>
-</ul>
-<h2 id="system-requirements">System Requirements</h2>
-<ul>
-<li><strong>Operating System</strong>: Windows 10/11, macOS 10.14+, or Linux</li>
-<li><strong>Python</strong>: 3.8 or higher</li>
-<li><strong>Microsoft Excel</strong>: Required for Excel file operations (via xlwings)</li>
-<li><strong>Memory</strong>: 4GB RAM minimum (8GB recommended for large datasets)</li>
-<li><strong>Storage</strong>: 100MB free space minimum</li>
-</ul>
-<h2 id="installation">Installation</h2>
-<h3 id="prerequisites-1">Prerequisites</h3>
-<p>Ensure you have Python 3.8+ installed on your system. You can download it from <a rel="external" href="https://www.python.org/downloads/">python.org</a>.</p>
-<h3 id="install-dependencies">Install Dependencies</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Clone the repository</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">git</span><span style="color: #A6E3A1;"> clone https://github.com/CGutt-hub/surveyWorkbench.git</span></span>
-<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> surveyWorkbench</span></span>
-<span class="giallo-l"></span>
-<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Install required Python packages</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install PyQt5 xlwings configparser</span></span></code></pre><h3 id="additional-setup">Additional Setup</h3>
-<p>For Excel integration (xlwings), you may need to install the Excel add-in:</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">xlwings</span><span style="color: #A6E3A1;"> addin install</span></span></code></pre><h2 id="quick-start-1">Quick Start</h2>
-<h3 id="running-the-application">Running the Application</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> survey_workbench.py</span></span></code></pre>
-<p>Or run the compiled executable (if available):</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">./survey_workbench_v2.0</span><span style="color: #9399B2;font-style: italic;">  # On Linux/macOS</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">survey_workbench_v2.0.exe</span><span style="color: #9399B2;font-style: italic;">  # On Windows</span></span></code></pre><h3 id="basic-workflow">Basic Workflow</h3>
-<ol>
-<li><strong>Configure Questionnaires</strong>: Set up your questionnaire templates and target folders</li>
-<li><strong>Generate Participant Folders</strong>: Create participant-specific folders with questionnaire templates</li>
-<li><strong>Fill Out Questionnaires</strong>: Have participants complete their questionnaires</li>
-<li><strong>Extract Data</strong>: Collect and consolidate data from completed questionnaires into a masterfile</li>
-</ol>
-<h2 id="usage-1">Usage</h2>
-<h3 id="generate-participant-folders">Generate Participant Folders</h3>
-<ol>
-<li>Select template files for each questionnaire type</li>
-<li>Specify the target folder where participant folders will be created</li>
-<li>Enter participant IDs (manual entry or import from file)</li>
-<li>Click "Generate Participant Folder" to create the folder structure</li>
-</ol>
-<p><strong>Batch Mode</strong>: Enable batch mode to process multiple participants at once by importing a list from .txt or .csv files.</p>
-<h3 id="extract-data">Extract Data</h3>
-<ol>
-<li>Select the source folder containing participant folders</li>
-<li>Choose the masterfile (CSV or Excel) where data will be extracted</li>
-<li>Configure questionnaire-specific extraction settings:
-<ul>
-<li>Excel sheet names</li>
-<li>Column filters</li>
-<li>Multiple questionnaire copies</li>
-</ul>
-</li>
-<li>Click "Extract Data" to consolidate participant data</li>
-</ol>
-<p><strong>Features</strong>:</p>
-<ul>
-<li><strong>Duplicate Detection</strong>: Automatically checks if participant data already exists in the masterfile</li>
-<li><strong>Data Completeness Check</strong>: Verifies all required questionnaires are present before extraction</li>
-<li><strong>Preview Dialog</strong>: Review data before final extraction</li>
-<li><strong>Missing Data Report</strong>: Generate reports for participants with incomplete data</li>
-</ul>
-<h3 id="configuration-management">Configuration Management</h3>
-<p>Save and load configurations to quickly switch between different project setups:</p>
-<ul>
-<li><strong>Save Configuration</strong>: Store your current questionnaire setup and settings</li>
-<li><strong>Load Configuration</strong>: Quickly restore a previously saved configuration</li>
-<li><strong>Delete Configuration</strong>: Remove outdated configurations</li>
-<li><strong>Recent Configurations</strong>: Access recently used configurations from the menu</li>
-</ul>
-<h3 id="template-bundles">Template Bundles</h3>
-<p>Create reusable template bundles for standardized project setups:</p>
-<ol>
-<li>Configure all questionnaires and settings</li>
-<li>Select "Save Template Bundle" from the menu</li>
-<li>Load the bundle in future projects to instantly apply the same configuration</li>
-</ol>
-<h2 id="file-structure">File Structure</h2>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>surveyWorkbench/</span></span>
-<span class="giallo-l"><span>├── survey_workbench.py      # Main application source code</span></span>
-<span class="giallo-l"><span>├── survey_workbench.spec    # PyInstaller build specification</span></span>
-<span class="giallo-l"><span>├── config.ini               # Configuration storage file</span></span>
-<span class="giallo-l"><span>├── USER_MANUAL.pdf          # Comprehensive user manual</span></span>
-<span class="giallo-l"><span>├── USER_MANUAL.tex          # LaTeX source for user manual</span></span>
-<span class="giallo-l"><span>└── README.md                # This file</span></span></code></pre><h2 id="technology-stack">Technology Stack</h2>
-<ul>
-<li><strong>GUI Framework</strong>: PyQt5 - Cross-platform graphical user interface</li>
-<li><strong>Excel Integration</strong>: xlwings - Python library for Excel automation</li>
-<li><strong>Configuration</strong>: ConfigParser - INI file handling for settings persistence</li>
-<li><strong>Build Tool</strong>: PyInstaller - Executable packaging (see survey_workbench.spec)</li>
-<li><strong>Type Hints</strong>: Full type annotation support for better code maintainability</li>
-</ul>
-<h2 id="documentation">Documentation</h2>
-<p>For detailed documentation, including screenshots and step-by-step guides, please refer to the <a href="https://cgutt-hub.github.io/5ha99y/de/projects/USER_MANUAL.pdf">USER_MANUAL.pdf</a> included in this repository.</p>
-<h2 id="troubleshooting-1">Troubleshooting</h2>
-<h3 id="common-issues">Common Issues</h3>
-<ul>
-<li><strong>Excel not found</strong>: Ensure Microsoft Excel is installed and xlwings is properly configured</li>
-<li><strong>Configuration not saving</strong>: Check write permissions for config.ini file</li>
-<li><strong>Import errors</strong>: Verify all dependencies are installed with <code>pip list</code></li>
-<li><strong>Template files not copying</strong>: Ensure source template files exist and have read permissions</li>
-</ul>
-<p>For more troubleshooting tips, consult the USER_MANUAL.pdf.</p>
-<h2 id="version-history">Version History</h2>
-<h3 id="version-2-0-february-2026">Version 2.0 (February 2026)</h3>
-<ul>
-<li>Dynamic questionnaire support with unlimited types</li>
-<li>Enhanced batch processing capabilities</li>
-<li>Template bundle system</li>
-<li>Improved duplicate detection</li>
-<li>Data completeness verification</li>
-<li>Preview dialog for data extraction</li>
-<li>Missing data reporting</li>
-<li>Interactive help system</li>
-</ul>
-<h3 id="version-1-0-april-2024">Version 1.0 (April 2024)</h3>
-<ul>
-<li>Initial release</li>
-<li>Basic participant folder generation</li>
-<li>Simple data extraction</li>
-</ul>
-<h2 id="author">Author</h2>
-<p><strong>Cagatay Gutt</strong></p>
-<ul>
-<li>Created: April 15, 2024</li>
-<li>Last Updated: February 4, 2026</li>
-</ul>
-<h2 id="license">License</h2>
-<p>This software is for internal use only. All rights reserved.</p>
-<h2 id="support">Support</h2>
-<p>For questions, issues, or feature requests, please contact the project maintainer or refer to the comprehensive USER_MANUAL.pdf for detailed guidance.</p>
-<hr />
-<p><em>Survey Workbench - Streamlining survey data management for research excellence.</em></p>
-</details>
-<p><a rel="external" href="https://github.com/CGutt-hub/surveyWorkbench">Auf GitHub ansehen →</a></p>
 <hr />
 <h3 id="paperfinder">paperFinder</h3>
 <p><strong>Sprache:</strong> Python<br />

@@ -45,11 +45,11 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-analysistoolbox/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;AnalysisToolbox&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;77f2d9e&lt;&#x2F;code&gt; feat: update ANOVA and correlation analyzers for improved functionality and outp&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;dbf8e5c&lt;&#x2F;code&gt; feat: add phase analyzer and row filter processor modules&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;df35072&lt;&#x2F;code&gt; feat: enhance channel handling in ICA analysis and epoching processors&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;0d8cd2e&lt;&#x2F;code&gt; chore: bump version to 0.1.1&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;51416a0&lt;&#x2F;code&gt; fix: skip existing files on PyPI re-upload&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;f2815aa&lt;&#x2F;code&gt; feat: create GitHub Release on tag push&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -64,7 +64,7 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-emotiview/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;EmotiView&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;code&gt;02c5dee&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@2b4&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;733b442&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@969&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -72,18 +72,18 @@
       </item>
       <item>
           <title>Project Update: surveyWorkbench</title>
-          <pubDate>Mon, 09 Mar 2026 00:00:00 +0000</pubDate>
+          <pubDate>Wed, 06 May 2026 00:00:00 +0000</pubDate>
           <author>Unknown</author>
           <link>https://cgutt-hub.github.io/5ha99y/blog/update-surveyworkbench/</link>
           <guid>https://cgutt-hub.github.io/5ha99y/blog/update-surveyworkbench/</guid>
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-surveyworkbench/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;surveyWorkbench&quot;&gt;surveyWorkbench&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;da47a54&lt;&#x2F;code&gt; Each questionnaire type gets its own sheet; create sheet if absent&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;4a05765&lt;&#x2F;code&gt; Fix extraction: ordered multi-copy grouping, correct sheet targeting, xlsx forma&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;a9c2c92&lt;&#x2F;code&gt; Merge pull request #1 from CGutt-hub&#x2F;copilot&#x2F;create-readme-file&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;fa64129&lt;&#x2F;code&gt; Create comprehensive README with project overview, features, installation, and u&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;fd66bc3&lt;&#x2F;code&gt; Initial plan&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;dd70225&lt;&#x2F;code&gt; Add files via upload&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;ea0e119&lt;&#x2F;code&gt; Initial commit&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;surveyWorkbench&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
