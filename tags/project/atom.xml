@@ -76,11 +76,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-analysistoolbox/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;AnalysisToolbox&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;63a7c8e&lt;&#x2F;code&gt; fix: phase_analyzer computes mean PSD (dB) not circular phase; anova_analyzer ou&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;77f2d9e&lt;&#x2F;code&gt; feat: update ANOVA and correlation analyzers for improved functionality and outp&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;dbf8e5c&lt;&#x2F;code&gt; feat: add phase analyzer and row filter processor modules&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;df35072&lt;&#x2F;code&gt; feat: enhance channel handling in ICA analysis and epoching processors&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;0d8cd2e&lt;&#x2F;code&gt; chore: bump version to 0.1.1&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;51416a0&lt;&#x2F;code&gt; fix: skip existing files on PyPI re-upload&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -106,7 +106,7 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-emotiview/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;EmotiView&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;code&gt;8457b24&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@bfd&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;a4af38f&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@0e0&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -132,11 +132,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-surveyworkbench/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;surveyWorkbench&quot;&gt;surveyWorkbench&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;5e0be45&lt;&#x2F;code&gt; Remove underscore not-extracted prefix feature from code and manual&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;531b3c3&lt;&#x2F;code&gt; Fix Excel 97 format: always SaveAs FileFormat=51 (xlsx) with display_alerts supp&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;7ebe917&lt;&#x2F;code&gt; Add survey_workbench_v2.0 executable and spec file for packaging&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;23bbcf7&lt;&#x2F;code&gt; Update USER_MANUAL to match actual code behaviour&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;6df83a0&lt;&#x2F;code&gt; Unify CheckX_N extraction: always output N of selected option; data always start&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;cdc9477&lt;&#x2F;code&gt; Flatten copies into one row per participant per sheet; prefix cols with copy num&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;surveyWorkbench&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;

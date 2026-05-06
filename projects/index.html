@@ -67,167 +67,227 @@
     <div class="content">
         <p><em>Active development projects tracked via <a rel="external" href="https://github.com/CGutt-hub">GitHub</a>. My open backoffice for collaborative science.</em></p>
 <hr />
-<h3 id="surveyworkbench">surveyWorkbench</h3>
-<p><strong>Language:</strong> HTML<br />
+<h3 id="5ha99y">5ha99y</h3>
+<p><strong>Language:</strong> JavaScript<br />
 <strong>Last updated:</strong> 2026-05-06</p>
 <details>
 <summary>View README</summary>
-<h1 id="survey-workbench-v2-0">Survey Workbench v2.0</h1>
-<blockquote>
-<p>A comprehensive participant data management system for survey research with dynamic questionnaire configuration and batch processing capabilities.</p>
-</blockquote>
-<p><a rel="external" href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8+-blue.svg" alt="Python" /></a>
-<a rel="external" href="https://www.riverbankcomputing.com/software/pyqt/"><img src="https://img.shields.io/badge/GUI-PyQt5-green.svg" alt="PyQt5" /></a>
-<img src="https://img.shields.io/badge/License-Internal_Use-red.svg" alt="License" /></p>
-<h2 id="overview">Overview</h2>
-<p>Survey Workbench is a desktop application designed to streamline the management of participant folders and extraction of survey data from questionnaires. Built with PyQt5, it provides an intuitive graphical interface for researchers and data managers to efficiently organize and process survey data.</p>
-<h3 id="key-features">Key Features</h3>
+<h1 id="zola-github-pages-site-scientific-hub">Zola GitHub Pages Site - Scientific Hub</h1>
+<p>A static website built with <a rel="external" href="https://www.getzola.org/">Zola</a> that automatically syncs content from your scientific profiles.</p>
+<h2 id="website-url">Website URL</h2>
+<p><strong>https://cgutt-hub.github.io/5ha99y</strong></p>
+<h2 id="how-it-works">How It Works</h2>
+<h3 id="automatic-updates">Automatic Updates</h3>
+<p>The site <strong>automatically</strong> pulls data from:</p>
 <ul>
-<li><strong>🔧 Dynamic Questionnaire Configuration</strong>: Support for unlimited questionnaire types per participant with flexible template management</li>
-<li><strong>📦 Batch Processing</strong>: Generate and extract data for multiple participants simultaneously</li>
-<li><strong>📥 Participant Import</strong>: Import participant lists from .txt or .csv files</li>
-<li><strong>📋 Template Bundles</strong>: Create and reuse questionnaire configuration bundles across projects</li>
-<li><strong>🔍 Duplicate Detection</strong>: Automatic masterfile checking (supports CSV and Excel formats) to prevent duplicate entries</li>
-<li><strong>✅ Data Completeness Verification</strong>: Validate all required data before extraction</li>
-<li><strong>👁️ Preview Dialog</strong>: Review extracted data before finalizing</li>
-<li><strong>📊 Missing Data Report</strong>: Generate quality control reports for incomplete data</li>
-<li><strong>💾 Configuration Management</strong>: Save, load, and manage multiple configurations with an intuitive submenu interface</li>
-<li><strong>❓ Interactive Help System</strong>: Built-in tooltips and "What's This?" mode for user assistance</li>
-<li><strong>📑 Auto-Format Detection</strong>: Automatically detect masterfile format (CSV, XLS, XLSX)</li>
+<li><strong>GitHub</strong> — Your repositories and code projects</li>
+<li><strong>ORCID</strong> — Publications and works</li>
+<li><strong>OSF</strong> — Research projects and data (if configured)</li>
 </ul>
-<h2 id="system-requirements">System Requirements</h2>
+<h3 id="deployment-flow">Deployment Flow</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>1. Push to main branch</span></span>
+<span class="giallo-l"><span>   ↓</span></span>
+<span class="giallo-l"><span>2. GitHub Actions runs</span></span>
+<span class="giallo-l"><span>   ↓</span></span>
+<span class="giallo-l"><span>3. Fetches data from APIs</span></span>
+<span class="giallo-l"><span>   ↓</span></span>
+<span class="giallo-l"><span>4. Builds site with Zola</span></span>
+<span class="giallo-l"><span>   ↓</span></span>
+<span class="giallo-l"><span>5. Deploys to gh-pages branch</span></span>
+<span class="giallo-l"><span>   ↓</span></span>
+<span class="giallo-l"><span>6. Website updates automatically!</span></span></code></pre><h2 id="repository-structure">Repository Structure</h2>
+<h3 id="source-files-edit-these">Source Files (Edit These)</h3>
 <ul>
-<li><strong>Operating System</strong>: Windows 10/11, macOS 10.14+, or Linux</li>
-<li><strong>Python</strong>: 3.8 or higher</li>
-<li><strong>Microsoft Excel</strong>: Required for Excel file operations (via xlwings)</li>
-<li><strong>Memory</strong>: 4GB RAM minimum (8GB recommended for large datasets)</li>
-<li><strong>Storage</strong>: 100MB free space minimum</li>
+<li><code>config.toml</code> - Site configuration</li>
+<li><code>content/</code> - Your content (CV, contact, welcome post, etc.)</li>
+<li><code>templates/</code> - HTML templates</li>
+<li><code>static/</code> - Static assets (CSS, images)</li>
+<li><code>scripts/fetch_data.py</code> - Fetches data from APIs</li>
 </ul>
-<h2 id="installation">Installation</h2>
-<h3 id="prerequisites">Prerequisites</h3>
-<p>Ensure you have Python 3.8+ installed on your system. You can download it from <a rel="external" href="https://www.python.org/downloads/">python.org</a>.</p>
-<h3 id="install-dependencies">Install Dependencies</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Clone the repository</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">git</span><span style="color: #A6E3A1;"> clone https://github.com/CGutt-hub/surveyWorkbench.git</span></span>
-<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> surveyWorkbench</span></span>
+<h3 id="auto-generated-don-t-edit">Auto-Generated (Don't Edit)</h3>
+<ul>
+<li><code>public/</code> - Built website (generated by Zola)</li>
+<li><code>data/</code> - API data cache (generated by fetch_data.py)</li>
+<li><code>content/projects.md</code> - Generated from GitHub repos</li>
+<li><code>content/publications.md</code> - Generated from ORCID</li>
+<li><code>content/blog/????-??-??-new-project-*.md</code> - Auto-generated blog posts</li>
+</ul>
+<p>These files are created automatically during deployment and are ignored by git.</p>
+<h2 id="local-development">Local Development</h2>
+<h3 id="preview-locally">Preview Locally</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Install Zola first: https://www.getzola.org/documentation/getting-started/installation/</span></span>
 <span class="giallo-l"></span>
-<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Install required Python packages</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install PyQt5 xlwings configparser</span></span></code></pre><h3 id="additional-setup">Additional Setup</h3>
-<p>For Excel integration (xlwings), you may need to install the Excel add-in:</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">xlwings</span><span style="color: #A6E3A1;"> addin install</span></span></code></pre><h2 id="quick-start">Quick Start</h2>
-<h3 id="running-the-application">Running the Application</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> survey_workbench.py</span></span></code></pre>
-<p>Or run the compiled executable (if available):</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">./survey_workbench_v2.0</span><span style="color: #9399B2;font-style: italic;">  # On Linux/macOS</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">survey_workbench_v2.0.exe</span><span style="color: #9399B2;font-style: italic;">  # On Windows</span></span></code></pre><h3 id="basic-workflow">Basic Workflow</h3>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Fetch latest data</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install -r scripts/requirements.txt</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> scripts/fetch_data.py</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Build and serve</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">zola</span><span style="color: #A6E3A1;"> serve</span></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Visit http://127.0.0.1:1111</span></span></code></pre><h3 id="making-changes">Making Changes</h3>
 <ol>
-<li><strong>Configure Questionnaires</strong>: Set up your questionnaire templates and target folders</li>
-<li><strong>Generate Participant Folders</strong>: Create participant-specific folders with questionnaire templates</li>
-<li><strong>Fill Out Questionnaires</strong>: Have participants complete their questionnaires</li>
-<li><strong>Extract Data</strong>: Collect and consolidate data from completed questionnaires into a masterfile</li>
+<li>Edit content in <code>content/</code> folder</li>
+<li>Modify templates in <code>templates/</code></li>
+<li>Update styles in <code>static/style.css</code></li>
+<li>Test with <code>zola serve</code></li>
+<li>Commit and push to <code>main</code> branch</li>
+<li>GitHub Actions deploys automatically!</li>
 </ol>
-<h2 id="usage">Usage</h2>
-<h3 id="generate-participant-folders">Generate Participant Folders</h3>
+<h2 id="github-pages-setup">GitHub Pages Setup</h2>
+<h3 id="first-time-setup">First Time Setup</h3>
 <ol>
-<li>Select template files for each questionnaire type</li>
-<li>Specify the target folder where participant folders will be created</li>
-<li>Enter participant IDs (manual entry or import from file)</li>
-<li>Click "Generate Participant Folder" to create the folder structure</li>
+<li>Go to: <strong>Settings → Pages</strong></li>
+<li>Source: <strong>Deploy from a branch</strong></li>
+<li>Branch: <strong>gh-pages</strong></li>
+<li>Folder: <strong>/ (root)</strong></li>
+<li>Click <strong>Save</strong></li>
 </ol>
-<p><strong>Batch Mode</strong>: Enable batch mode to process multiple participants at once by importing a list from .txt or .csv files.</p>
-<h3 id="extract-data">Extract Data</h3>
-<ol>
-<li>Select the source folder containing participant folders</li>
-<li>Choose the masterfile (CSV or Excel) where data will be extracted</li>
-<li>Configure questionnaire-specific extraction settings:
+<h3 id="requirements">Requirements</h3>
 <ul>
-<li>Excel sheet names</li>
-<li>Column filters</li>
-<li>Multiple questionnaire copies</li>
+<li>Repository must be <strong>public</strong> (for free GitHub accounts)</li>
+<li>GitHub Pages must be enabled in Settings</li>
+<li>Workflow runs successfully (check Actions tab)</li>
 </ul>
-</li>
-<li>Click "Extract Data" to consolidate participant data</li>
-</ol>
-<p><strong>Features</strong>:</p>
+<h2 id="customization">Customization</h2>
+<h3 id="site-settings">Site Settings</h3>
+<p>Edit <code>config.toml</code>:</p>
 <ul>
-<li><strong>Duplicate Detection</strong>: Automatically checks if participant data already exists in the masterfile</li>
-<li><strong>Data Completeness Check</strong>: Verifies all required questionnaires are present before extraction</li>
-<li><strong>Preview Dialog</strong>: Review data before final extraction</li>
-<li><strong>Missing Data Report</strong>: Generate reports for participants with incomplete data</li>
+<li>Site title and description</li>
+<li>Base URL</li>
+<li>Author information</li>
 </ul>
-<h3 id="configuration-management">Configuration Management</h3>
-<p>Save and load configurations to quickly switch between different project setups:</p>
+<h3 id="content">Content</h3>
+<p>Edit files in <code>content/</code>:</p>
 <ul>
-<li><strong>Save Configuration</strong>: Store your current questionnaire setup and settings</li>
-<li><strong>Load Configuration</strong>: Quickly restore a previously saved configuration</li>
-<li><strong>Delete Configuration</strong>: Remove outdated configurations</li>
-<li><strong>Recent Configurations</strong>: Access recently used configurations from the menu</li>
+<li><code>_index.md</code> - Home page</li>
+<li><code>cv.md</code> - CV page</li>
+<li><code>contact.md</code> - Contact page</li>
+<li><code>blog/2026-02-11-welcome.md</code> - Welcome blog post</li>
 </ul>
-<h3 id="template-bundles">Template Bundles</h3>
-<p>Create reusable template bundles for standardized project setups:</p>
-<ol>
-<li>Configure all questionnaires and settings</li>
-<li>Select "Save Template Bundle" from the menu</li>
-<li>Load the bundle in future projects to instantly apply the same configuration</li>
-</ol>
-<h2 id="file-structure">File Structure</h2>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>surveyWorkbench/</span></span>
-<span class="giallo-l"><span>├── survey_workbench.py      # Main application source code</span></span>
-<span class="giallo-l"><span>├── survey_workbench.spec    # PyInstaller build specification</span></span>
-<span class="giallo-l"><span>├── config.ini               # Configuration storage file</span></span>
-<span class="giallo-l"><span>├── USER_MANUAL.pdf          # Comprehensive user manual</span></span>
-<span class="giallo-l"><span>├── USER_MANUAL.tex          # LaTeX source for user manual</span></span>
-<span class="giallo-l"><span>└── README.md                # This file</span></span></code></pre><h2 id="technology-stack">Technology Stack</h2>
+<h3 id="styling">Styling</h3>
 <ul>
-<li><strong>GUI Framework</strong>: PyQt5 - Cross-platform graphical user interface</li>
-<li><strong>Excel Integration</strong>: xlwings - Python library for Excel automation</li>
-<li><strong>Configuration</strong>: ConfigParser - INI file handling for settings persistence</li>
-<li><strong>Build Tool</strong>: PyInstaller - Executable packaging (see survey_workbench.spec)</li>
-<li><strong>Type Hints</strong>: Full type annotation support for better code maintainability</li>
+<li><code>static/style.css</code> - Main stylesheet</li>
+<li><code>templates/</code> - HTML templates</li>
 </ul>
-<h2 id="documentation">Documentation</h2>
-<p>For detailed documentation, including screenshots and step-by-step guides, please refer to the <a href="https://cgutt-hub.github.io/5ha99y/projects/USER_MANUAL.pdf">USER_MANUAL.pdf</a> included in this repository.</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
-<h3 id="common-issues">Common Issues</h3>
+<h3 id="website-not-updating">Website Not Updating?</h3>
+<ol>
+<li>Check <a rel="external" href="https://github.com/CGutt-hub/5ha99y/actions">Actions tab</a> - look for green checkmark ✓</li>
+<li>If build failed, check error logs</li>
+<li>Verify GitHub Pages is enabled in Settings</li>
+<li>Clear browser cache (Ctrl+Shift+R)</li>
+</ol>
+<h3 id="build-failing">Build Failing?</h3>
 <ul>
-<li><strong>Excel not found</strong>: Ensure Microsoft Excel is installed and xlwings is properly configured</li>
-<li><strong>Configuration not saving</strong>: Check write permissions for config.ini file</li>
-<li><strong>Import errors</strong>: Verify all dependencies are installed with <code>pip list</code></li>
-<li><strong>Template files not copying</strong>: Ensure source template files exist and have read permissions</li>
+<li>Check Actions tab for error details</li>
+<li>Most common: Zola syntax errors in content files</li>
+<li>Fix the error and push again</li>
 </ul>
-<p>For more troubleshooting tips, consult the USER_MANUAL.pdf.</p>
-<h2 id="version-history">Version History</h2>
-<h3 id="version-2-0-february-2026">Version 2.0 (February 2026)</h3>
+<h2 id="branch-structure">Branch Structure</h2>
 <ul>
-<li>Dynamic questionnaire support with unlimited types</li>
-<li>Enhanced batch processing capabilities</li>
-<li>Template bundle system</li>
-<li>Improved duplicate detection</li>
-<li>Data completeness verification</li>
-<li>Preview dialog for data extraction</li>
-<li>Missing data reporting</li>
-<li>Interactive help system</li>
+<li><strong>main</strong> - Source code (you edit here)</li>
+<li><strong>gh-pages</strong> - Deployed website (auto-generated, don't edit)</li>
+<li><strong>copilot/</strong> - Development branches</li>
 </ul>
-<h3 id="version-1-0-april-2024">Version 1.0 (April 2024)</h3>
+<h2 id="advanced">Advanced</h2>
+<h3 id="custom-domain">Custom Domain</h3>
+<ol>
+<li>Add <code>static/CNAME</code> with your domain</li>
+<li>Update <code>base_url</code> in <code>config.toml</code></li>
+<li>Configure DNS at your domain registrar</li>
+<li>Add custom domain in Settings → Pages</li>
+</ol>
+<h3 id="api-configuration">API Configuration</h3>
+<p>Edit <code>scripts/fetch_data.py</code>:</p>
 <ul>
-<li>Initial release</li>
-<li>Basic participant folder generation</li>
-<li>Simple data extraction</li>
+<li><code>GITHUB_USERNAME</code> - Your GitHub username</li>
+<li><code>ORCID_ID</code> - Your ORCID identifier</li>
+<li>Add other data sources as needed</li>
 </ul>
-<h2 id="author">Author</h2>
-<p><strong>Cagatay Gutt</strong></p>
-<ul>
-<li>Created: April 15, 2024</li>
-<li>Last Updated: February 4, 2026</li>
-</ul>
-<h2 id="license">License</h2>
-<p>This software is for internal use only. All rights reserved.</p>
-<h2 id="support">Support</h2>
-<p>For questions, issues, or feature requests, please contact the project maintainer or refer to the comprehensive USER_MANUAL.pdf for detailed guidance.</p>
-<hr />
-<p><em>Survey Workbench - Streamlining survey data management for research excellence.</em></p>
 </details>
-<p><a rel="external" href="https://github.com/CGutt-hub/surveyWorkbench">View on GitHub →</a></p>
+<p><a rel="external" href="https://github.com/CGutt-hub/5ha99y">View on GitHub →</a></p>
+<hr />
+<h3 id="analysistoolbox">AnalysisToolbox</h3>
+<p><strong>Language:</strong> Python<br />
+<strong>Last updated:</strong> 2026-05-06</p>
+<details>
+<summary>View README</summary>
+<h1 id="analysistoolbox-1">AnalysisToolbox</h1>
+<p>A modular framework for automated data processing and statistical analysis pipelines. Built on <strong>Nextflow</strong> for scalable, reproducible workflows with automatic result synchronization.</p>
+<h2 id="overview">Overview</h2>
+<p>The AnalysisToolbox provides infrastructure for building data processing pipelines that:</p>
+<ul>
+<li><strong>Process multiple datasets</strong> in parallel with automatic participant discovery</li>
+<li><strong>Handle diverse data types</strong> through a generic reader/processor/analyzer architecture</li>
+<li><strong>Track progress</strong> via per-participant logging visible live in the web UI</li>
+<li><strong>Recover gracefully</strong> from failures without losing completed work</li>
+</ul>
+<p>The framework is domain-agnostic — modules follow simple input/output conventions (Parquet/FIF files) and can implement any processing logic.</p>
+<h2 id="repository-structure-1">Repository Structure</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>AnalysisToolbox/</span></span>
+<span class="giallo-l"><span>├── gitatbx/               # pip-installable package (installed via pip install GitAtbx)</span></span>
+<span class="giallo-l"><span>│   ├── bin/               # workflow_wrapper.nf, log_to_parquet.py, nextflow.config, ...</span></span>
+<span class="giallo-l"><span>│   ├── modules/           # analyzers/, processors/, readers/, utils/</span></span>
+<span class="giallo-l"><span>│   ├── templates/         # workflow_template.nf, modules_template.nf, parameters_template.config</span></span>
+<span class="giallo-l"><span>│   └── utils/             # serve_html.ps1, reinject.sh, result_collector.py</span></span>
+<span class="giallo-l"><span>├── pyproject.toml</span></span>
+<span class="giallo-l"><span>└── README.md</span></span></code></pre>
+<p>On first run <code>gitatbx</code> creates a <strong>symlink</strong> <code>~/Documents/GitAtbxModules</code> → <code>&lt;site-packages&gt;/gitatbx/modules/</code>. The symlink always reflects the live installed version — upgrading via <code>pip install --upgrade GitAtbx</code> automatically shows updated modules through the same symlink path.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="java-runtime-required-by-nextflow">Java Runtime (required by Nextflow)</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt update</span><span style="color: #9399B2;"> &amp;&amp;</span><span style="color: #89B4FA;font-style: italic;"> sudo</span><span style="color: #A6E3A1;"> apt install default-jre</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">java</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h3 id="nextflow">Nextflow</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">curl</span><span style="color: #A6E3A1;"> -s https://get.nextflow.io</span><span style="color: #94E2D5;"> |</span><span style="color: #89B4FA;font-style: italic;"> bash</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> mv nextflow /usr/local/bin/</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h2 id="install">Install</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install GitAtbx</span></span></code></pre>
+<p>Python dependencies (<code>numpy</code>, <code>scipy</code>, <code>polars</code>, <code>mne</code>, <code>neurokit2</code>, …) are installed automatically.</p>
+<p>On first run <code>gitatbx</code> creates a symlink <code>~/Documents/GitAtbxModules</code> → <code>&lt;site-packages&gt;/gitatbx/modules/</code> and saves the path to <code>~/.gitatbx_config</code>.</p>
+<h2 id="usage">Usage</h2>
+<h3 id="commands">Commands</h3>
+<table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
+<tr><td><code>gitatbx init &lt;dir&gt;</code></td><td>Scaffold a new analysis project</td></tr>
+<tr><td><code>gitatbx run [pattern]</code></td><td>Find and run a pipeline by project name pattern</td></tr>
+<tr><td><code>gitatbx serve [--dir DIR] [--port PORT]</code></td><td>Serve results HTML locally in browser</td></tr>
+<tr><td><code>gitatbx reinject &lt;PID&gt; [options]</code></td><td>Reinject a corrected output for one participant</td></tr>
+<tr><td><code>gitatbx move &lt;dest&gt;</code></td><td>Move the deployed modules folder to a new location</td></tr>
+<tr><td><code>gitatbx config show</code></td><td>Print current configuration (<code>~/.gitatbx_config</code>)</td></tr>
+</tbody></table>
+<h3 id="gitatbx-init"><code>gitatbx init</code></h3>
+<p>Prompts for project name, raw data directory, Python executable, toolbox path, git author identity, and an optional GitHub remote URL for the results repo. Then creates:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>&lt;dir&gt;/</span></span>
+<span class="giallo-l"><span>├── {name}_analysis/</span></span>
+<span class="giallo-l"><span>│   ├── {name}_pipeline.nf       ← edit your workflow here</span></span>
+<span class="giallo-l"><span>│   ├── {name}_modules.nf        ← add IOInterface includes here</span></span>
+<span class="giallo-l"><span>│   └── {name}_parameters.config ← pre-filled paths, params, and git identity</span></span>
+<span class="giallo-l"><span>└── {name}_results/</span></span>
+<span class="giallo-l"><span>    └── .git/                    ← initialised + remote added (if URL provided)</span></span></code></pre>
+<p>Git author name and email default to your global <code>git config</code> values if already set. The remote URL is validated immediately with <code>git ls-remote</code> — if authentication fails (e.g. SSH key not yet added to GitHub), a warning is printed with a link to the GitHub SSH setup guide.</p>
+<p>The pipeline uses the stamped <code>params.git_user_name</code> / <code>params.git_user_email</code> as the commit author for all automatic result syncs.</p>
+<h3 id="gitatbx-run"><code>gitatbx run</code></h3>
+<p>GitAtbx searches the entire accessible filesystem (home directory and all drives on Windows) for a directory named <code>(name)_analysis</code> containing a <code>*_pipeline.nf</code>, then runs it automatically. No need to <code>cd</code> anywhere.</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> run</span><span> (name) --resume</span><span style="color: #9399B2;font-style: italic;">   # continue a previous run</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> run</span><span style="color: #9399B2;font-style: italic;">               # no pattern: use current directory</span></span></code></pre>
+<p>Found paths are cached in <code>~/.gitatbx_config</code> so subsequent calls are instant.</p>
+<h3 id="gitatbx-serve"><code>gitatbx serve</code></h3>
+<p>Starts a local HTTP server to browse results HTML generated by the pipeline.</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> serve --dir ../EV_results --port</span><span style="color: #FAB387;"> 8080</span></span></code></pre><h3 id="gitatbx-reinject"><code>gitatbx reinject</code></h3>
+<p>Places a corrected parquet into <code>corrections/&lt;script_name&gt;/</code>, marks the participant for replay, invalidates relevant Nextflow cache entries, and resumes the pipeline for that participant only.</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> reinject EV_002 --corrected-file fixed.parquet --script-name filtering_processor</span></span></code></pre><h3 id="gitatbx-move"><code>gitatbx move</code></h3>
+<p>To move the symlink to a custom location:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> move /mnt/d/repoShaggy/GitAtbxModules</span></span></code></pre>
+<p><code>gitatbx</code> moves the folder and updates <code>~/.gitatbx_config</code> automatically. <code>gitatbx init</code> will then default <code>toolbox_dir</code> to that path when scaffolding new projects.</p>
+<h2 id="key-components">Key Components</h2>
+<h3 id="bin-workflow-wrapper-nf"><code>bin/workflow_wrapper.nf</code></h3>
+<p>Discovers participant directories, manages per-participant output folders, runs <code>log_to_parquet.py</code> and <code>interactive_plotter.py</code> automatically, and handles per-participant git sync on completion.</p>
+<h3 id="iointerface"><code>IOInterface</code></h3>
+<p>Generic Nextflow process that runs any script (reader/processor/analyzer) with automatic logging. Every module in <code>modules/</code> is called through <code>IOInterface</code>.</p>
+<h3 id="modules">Modules</h3>
+<p>The <code>modules/</code> folder is a curated but non-exhaustive starting collection of commonly useful scripts. The first time <code>gitatbx</code> is run it mirrors the full collection to <code>~/Documents/GitAtbxModules</code> (Windows) or <code>~/GitAtbxModules</code> (Linux/macOS) automatically. You can move that folder anywhere with <code>gitatbx move</code>. The local copy is yours to extend: add domain-specific scripts, modify existing ones, or organise them into subfolders. Any script there can be called via <code>IOInterface</code> identically to the built-in modules, as long as it follows the same convention: positional CLI arguments in, Parquet or FIF outputs, non-zero exit on failure.</p>
+<h2 id="authors">Authors</h2>
+<p><strong>Cagatay Özcan Jagiello Gutt</strong> — Lead Developer
+ORCID: https://orcid.org/0000-0002-1774-532X</p>
+</details>
+<p><a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">View on GitHub →</a></p>
 <hr />
 <h3 id="emotiview">EmotiView</h3>
 <p><strong>Language:</strong> Jupyter Notebook<br />
@@ -301,227 +361,167 @@
 </details>
 <p><a rel="external" href="https://github.com/CGutt-hub/EmotiView">View on GitHub →</a></p>
 <hr />
-<h3 id="analysistoolbox">AnalysisToolbox</h3>
-<p><strong>Language:</strong> Python<br />
+<h3 id="surveyworkbench">surveyWorkbench</h3>
+<p><strong>Language:</strong> HTML<br />
 <strong>Last updated:</strong> 2026-05-06</p>
 <details>
 <summary>View README</summary>
-<h1 id="analysistoolbox-1">AnalysisToolbox</h1>
-<p>A modular framework for automated data processing and statistical analysis pipelines. Built on <strong>Nextflow</strong> for scalable, reproducible workflows with automatic result synchronization.</p>
+<h1 id="survey-workbench-v2-0">Survey Workbench v2.0</h1>
+<blockquote>
+<p>A comprehensive participant data management system for survey research with dynamic questionnaire configuration and batch processing capabilities.</p>
+</blockquote>
+<p><a rel="external" href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8+-blue.svg" alt="Python" /></a>
+<a rel="external" href="https://www.riverbankcomputing.com/software/pyqt/"><img src="https://img.shields.io/badge/GUI-PyQt5-green.svg" alt="PyQt5" /></a>
+<img src="https://img.shields.io/badge/License-Internal_Use-red.svg" alt="License" /></p>
 <h2 id="overview-1">Overview</h2>
-<p>The AnalysisToolbox provides infrastructure for building data processing pipelines that:</p>
+<p>Survey Workbench is a desktop application designed to streamline the management of participant folders and extraction of survey data from questionnaires. Built with PyQt5, it provides an intuitive graphical interface for researchers and data managers to efficiently organize and process survey data.</p>
+<h3 id="key-features">Key Features</h3>
 <ul>
-<li><strong>Process multiple datasets</strong> in parallel with automatic participant discovery</li>
-<li><strong>Handle diverse data types</strong> through a generic reader/processor/analyzer architecture</li>
-<li><strong>Track progress</strong> via per-participant logging visible live in the web UI</li>
-<li><strong>Recover gracefully</strong> from failures without losing completed work</li>
+<li><strong>🔧 Dynamic Questionnaire Configuration</strong>: Support for unlimited questionnaire types per participant with flexible template management</li>
+<li><strong>📦 Batch Processing</strong>: Generate and extract data for multiple participants simultaneously</li>
+<li><strong>📥 Participant Import</strong>: Import participant lists from .txt or .csv files</li>
+<li><strong>📋 Template Bundles</strong>: Create and reuse questionnaire configuration bundles across projects</li>
+<li><strong>🔍 Duplicate Detection</strong>: Automatic masterfile checking (supports CSV and Excel formats) to prevent duplicate entries</li>
+<li><strong>✅ Data Completeness Verification</strong>: Validate all required data before extraction</li>
+<li><strong>👁️ Preview Dialog</strong>: Review extracted data before finalizing</li>
+<li><strong>📊 Missing Data Report</strong>: Generate quality control reports for incomplete data</li>
+<li><strong>💾 Configuration Management</strong>: Save, load, and manage multiple configurations with an intuitive submenu interface</li>
+<li><strong>❓ Interactive Help System</strong>: Built-in tooltips and "What's This?" mode for user assistance</li>
+<li><strong>📑 Auto-Format Detection</strong>: Automatically detect masterfile format (CSV, XLS, XLSX)</li>
 </ul>
-<p>The framework is domain-agnostic — modules follow simple input/output conventions (Parquet/FIF files) and can implement any processing logic.</p>
-<h2 id="repository-structure">Repository Structure</h2>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>AnalysisToolbox/</span></span>
-<span class="giallo-l"><span>├── gitatbx/               # pip-installable package (installed via pip install GitAtbx)</span></span>
-<span class="giallo-l"><span>│   ├── bin/               # workflow_wrapper.nf, log_to_parquet.py, nextflow.config, ...</span></span>
-<span class="giallo-l"><span>│   ├── modules/           # analyzers/, processors/, readers/, utils/</span></span>
-<span class="giallo-l"><span>│   ├── templates/         # workflow_template.nf, modules_template.nf, parameters_template.config</span></span>
-<span class="giallo-l"><span>│   └── utils/             # serve_html.ps1, reinject.sh, result_collector.py</span></span>
-<span class="giallo-l"><span>├── pyproject.toml</span></span>
-<span class="giallo-l"><span>└── README.md</span></span></code></pre>
-<p>On first run <code>gitatbx</code> creates a <strong>symlink</strong> <code>~/Documents/GitAtbxModules</code> → <code>&lt;site-packages&gt;/gitatbx/modules/</code>. The symlink always reflects the live installed version — upgrading via <code>pip install --upgrade GitAtbx</code> automatically shows updated modules through the same symlink path.</p>
-<h2 id="prerequisites-1">Prerequisites</h2>
-<h3 id="java-runtime-required-by-nextflow">Java Runtime (required by Nextflow)</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> apt update</span><span style="color: #9399B2;"> &amp;&amp;</span><span style="color: #89B4FA;font-style: italic;"> sudo</span><span style="color: #A6E3A1;"> apt install default-jre</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">java</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h3 id="nextflow">Nextflow</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">curl</span><span style="color: #A6E3A1;"> -s https://get.nextflow.io</span><span style="color: #94E2D5;"> |</span><span style="color: #89B4FA;font-style: italic;"> bash</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">sudo</span><span style="color: #A6E3A1;"> mv nextflow /usr/local/bin/</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">nextflow</span><span style="color: #A6E3A1;"> -version</span></span></code></pre><h2 id="install">Install</h2>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install GitAtbx</span></span></code></pre>
-<p>Python dependencies (<code>numpy</code>, <code>scipy</code>, <code>polars</code>, <code>mne</code>, <code>neurokit2</code>, …) are installed automatically.</p>
-<p>On first run <code>gitatbx</code> creates a symlink <code>~/Documents/GitAtbxModules</code> → <code>&lt;site-packages&gt;/gitatbx/modules/</code> and saves the path to <code>~/.gitatbx_config</code>.</p>
+<h2 id="system-requirements">System Requirements</h2>
+<ul>
+<li><strong>Operating System</strong>: Windows 10/11, macOS 10.14+, or Linux</li>
+<li><strong>Python</strong>: 3.8 or higher</li>
+<li><strong>Microsoft Excel</strong>: Required for Excel file operations (via xlwings)</li>
+<li><strong>Memory</strong>: 4GB RAM minimum (8GB recommended for large datasets)</li>
+<li><strong>Storage</strong>: 100MB free space minimum</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<h3 id="prerequisites-1">Prerequisites</h3>
+<p>Ensure you have Python 3.8+ installed on your system. You can download it from <a rel="external" href="https://www.python.org/downloads/">python.org</a>.</p>
+<h3 id="install-dependencies">Install Dependencies</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Clone the repository</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">git</span><span style="color: #A6E3A1;"> clone https://github.com/CGutt-hub/surveyWorkbench.git</span></span>
+<span class="giallo-l"><span style="color: #F38BA8;font-style: italic;">cd</span><span style="color: #A6E3A1;"> surveyWorkbench</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Install required Python packages</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install PyQt5 xlwings configparser</span></span></code></pre><h3 id="additional-setup">Additional Setup</h3>
+<p>For Excel integration (xlwings), you may need to install the Excel add-in:</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">xlwings</span><span style="color: #A6E3A1;"> addin install</span></span></code></pre><h2 id="quick-start">Quick Start</h2>
+<h3 id="running-the-application">Running the Application</h3>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> survey_workbench.py</span></span></code></pre>
+<p>Or run the compiled executable (if available):</p>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">./survey_workbench_v2.0</span><span style="color: #9399B2;font-style: italic;">  # On Linux/macOS</span></span>
+<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">survey_workbench_v2.0.exe</span><span style="color: #9399B2;font-style: italic;">  # On Windows</span></span></code></pre><h3 id="basic-workflow">Basic Workflow</h3>
+<ol>
+<li><strong>Configure Questionnaires</strong>: Set up your questionnaire templates and target folders</li>
+<li><strong>Generate Participant Folders</strong>: Create participant-specific folders with questionnaire templates</li>
+<li><strong>Fill Out Questionnaires</strong>: Have participants complete their questionnaires</li>
+<li><strong>Extract Data</strong>: Collect and consolidate data from completed questionnaires into a masterfile</li>
+</ol>
 <h2 id="usage-1">Usage</h2>
-<h3 id="commands">Commands</h3>
-<table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
-<tr><td><code>gitatbx init &lt;dir&gt;</code></td><td>Scaffold a new analysis project</td></tr>
-<tr><td><code>gitatbx run [pattern]</code></td><td>Find and run a pipeline by project name pattern</td></tr>
-<tr><td><code>gitatbx serve [--dir DIR] [--port PORT]</code></td><td>Serve results HTML locally in browser</td></tr>
-<tr><td><code>gitatbx reinject &lt;PID&gt; [options]</code></td><td>Reinject a corrected output for one participant</td></tr>
-<tr><td><code>gitatbx move &lt;dest&gt;</code></td><td>Move the deployed modules folder to a new location</td></tr>
-<tr><td><code>gitatbx config show</code></td><td>Print current configuration (<code>~/.gitatbx_config</code>)</td></tr>
-</tbody></table>
-<h3 id="gitatbx-init"><code>gitatbx init</code></h3>
-<p>Prompts for project name, raw data directory, Python executable, toolbox path, git author identity, and an optional GitHub remote URL for the results repo. Then creates:</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>&lt;dir&gt;/</span></span>
-<span class="giallo-l"><span>├── {name}_analysis/</span></span>
-<span class="giallo-l"><span>│   ├── {name}_pipeline.nf       ← edit your workflow here</span></span>
-<span class="giallo-l"><span>│   ├── {name}_modules.nf        ← add IOInterface includes here</span></span>
-<span class="giallo-l"><span>│   └── {name}_parameters.config ← pre-filled paths, params, and git identity</span></span>
-<span class="giallo-l"><span>└── {name}_results/</span></span>
-<span class="giallo-l"><span>    └── .git/                    ← initialised + remote added (if URL provided)</span></span></code></pre>
-<p>Git author name and email default to your global <code>git config</code> values if already set. The remote URL is validated immediately with <code>git ls-remote</code> — if authentication fails (e.g. SSH key not yet added to GitHub), a warning is printed with a link to the GitHub SSH setup guide.</p>
-<p>The pipeline uses the stamped <code>params.git_user_name</code> / <code>params.git_user_email</code> as the commit author for all automatic result syncs.</p>
-<h3 id="gitatbx-run"><code>gitatbx run</code></h3>
-<p>GitAtbx searches the entire accessible filesystem (home directory and all drives on Windows) for a directory named <code>(name)_analysis</code> containing a <code>*_pipeline.nf</code>, then runs it automatically. No need to <code>cd</code> anywhere.</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> run</span><span> (name) --resume</span><span style="color: #9399B2;font-style: italic;">   # continue a previous run</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> run</span><span style="color: #9399B2;font-style: italic;">               # no pattern: use current directory</span></span></code></pre>
-<p>Found paths are cached in <code>~/.gitatbx_config</code> so subsequent calls are instant.</p>
-<h3 id="gitatbx-serve"><code>gitatbx serve</code></h3>
-<p>Starts a local HTTP server to browse results HTML generated by the pipeline.</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> serve --dir ../EV_results --port</span><span style="color: #FAB387;"> 8080</span></span></code></pre><h3 id="gitatbx-reinject"><code>gitatbx reinject</code></h3>
-<p>Places a corrected parquet into <code>corrections/&lt;script_name&gt;/</code>, marks the participant for replay, invalidates relevant Nextflow cache entries, and resumes the pipeline for that participant only.</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> reinject EV_002 --corrected-file fixed.parquet --script-name filtering_processor</span></span></code></pre><h3 id="gitatbx-move"><code>gitatbx move</code></h3>
-<p>To move the symlink to a custom location:</p>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">gitatbx</span><span style="color: #A6E3A1;"> move /mnt/d/repoShaggy/GitAtbxModules</span></span></code></pre>
-<p><code>gitatbx</code> moves the folder and updates <code>~/.gitatbx_config</code> automatically. <code>gitatbx init</code> will then default <code>toolbox_dir</code> to that path when scaffolding new projects.</p>
-<h2 id="key-components">Key Components</h2>
-<h3 id="bin-workflow-wrapper-nf"><code>bin/workflow_wrapper.nf</code></h3>
-<p>Discovers participant directories, manages per-participant output folders, runs <code>log_to_parquet.py</code> and <code>interactive_plotter.py</code> automatically, and handles per-participant git sync on completion.</p>
-<h3 id="iointerface"><code>IOInterface</code></h3>
-<p>Generic Nextflow process that runs any script (reader/processor/analyzer) with automatic logging. Every module in <code>modules/</code> is called through <code>IOInterface</code>.</p>
-<h3 id="modules">Modules</h3>
-<p>The <code>modules/</code> folder is a curated but non-exhaustive starting collection of commonly useful scripts. The first time <code>gitatbx</code> is run it mirrors the full collection to <code>~/Documents/GitAtbxModules</code> (Windows) or <code>~/GitAtbxModules</code> (Linux/macOS) automatically. You can move that folder anywhere with <code>gitatbx move</code>. The local copy is yours to extend: add domain-specific scripts, modify existing ones, or organise them into subfolders. Any script there can be called via <code>IOInterface</code> identically to the built-in modules, as long as it follows the same convention: positional CLI arguments in, Parquet or FIF outputs, non-zero exit on failure.</p>
-<h2 id="authors">Authors</h2>
-<p><strong>Cagatay Özcan Jagiello Gutt</strong> — Lead Developer
-ORCID: https://orcid.org/0000-0002-1774-532X</p>
-</details>
-<p><a rel="external" href="https://github.com/CGutt-hub/AnalysisToolbox">View on GitHub →</a></p>
-<hr />
-<h3 id="5ha99y">5ha99y</h3>
-<p><strong>Language:</strong> JavaScript<br />
-<strong>Last updated:</strong> 2026-05-04</p>
-<details>
-<summary>View README</summary>
-<h1 id="zola-github-pages-site-scientific-hub">Zola GitHub Pages Site - Scientific Hub</h1>
-<p>A static website built with <a rel="external" href="https://www.getzola.org/">Zola</a> that automatically syncs content from your scientific profiles.</p>
-<h2 id="website-url">Website URL</h2>
-<p><strong>https://cgutt-hub.github.io/5ha99y</strong></p>
-<h2 id="how-it-works">How It Works</h2>
-<h3 id="automatic-updates">Automatic Updates</h3>
-<p>The site <strong>automatically</strong> pulls data from:</p>
-<ul>
-<li><strong>GitHub</strong> — Your repositories and code projects</li>
-<li><strong>ORCID</strong> — Publications and works</li>
-<li><strong>OSF</strong> — Research projects and data (if configured)</li>
-</ul>
-<h3 id="deployment-flow">Deployment Flow</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>1. Push to main branch</span></span>
-<span class="giallo-l"><span>   ↓</span></span>
-<span class="giallo-l"><span>2. GitHub Actions runs</span></span>
-<span class="giallo-l"><span>   ↓</span></span>
-<span class="giallo-l"><span>3. Fetches data from APIs</span></span>
-<span class="giallo-l"><span>   ↓</span></span>
-<span class="giallo-l"><span>4. Builds site with Zola</span></span>
-<span class="giallo-l"><span>   ↓</span></span>
-<span class="giallo-l"><span>5. Deploys to gh-pages branch</span></span>
-<span class="giallo-l"><span>   ↓</span></span>
-<span class="giallo-l"><span>6. Website updates automatically!</span></span></code></pre><h2 id="repository-structure-1">Repository Structure</h2>
-<h3 id="source-files-edit-these">Source Files (Edit These)</h3>
-<ul>
-<li><code>config.toml</code> - Site configuration</li>
-<li><code>content/</code> - Your content (CV, contact, welcome post, etc.)</li>
-<li><code>templates/</code> - HTML templates</li>
-<li><code>static/</code> - Static assets (CSS, images)</li>
-<li><code>scripts/fetch_data.py</code> - Fetches data from APIs</li>
-</ul>
-<h3 id="auto-generated-don-t-edit">Auto-Generated (Don't Edit)</h3>
-<ul>
-<li><code>public/</code> - Built website (generated by Zola)</li>
-<li><code>data/</code> - API data cache (generated by fetch_data.py)</li>
-<li><code>content/projects.md</code> - Generated from GitHub repos</li>
-<li><code>content/publications.md</code> - Generated from ORCID</li>
-<li><code>content/blog/????-??-??-new-project-*.md</code> - Auto-generated blog posts</li>
-</ul>
-<p>These files are created automatically during deployment and are ignored by git.</p>
-<h2 id="local-development">Local Development</h2>
-<h3 id="preview-locally">Preview Locally</h3>
-<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Install Zola first: https://www.getzola.org/documentation/getting-started/installation/</span></span>
-<span class="giallo-l"></span>
-<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Fetch latest data</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">pip</span><span style="color: #A6E3A1;"> install -r scripts/requirements.txt</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">python</span><span style="color: #A6E3A1;"> scripts/fetch_data.py</span></span>
-<span class="giallo-l"></span>
-<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Build and serve</span></span>
-<span class="giallo-l"><span style="color: #89B4FA;font-style: italic;">zola</span><span style="color: #A6E3A1;"> serve</span></span>
-<span class="giallo-l"><span style="color: #9399B2;font-style: italic;"># Visit http://127.0.0.1:1111</span></span></code></pre><h3 id="making-changes">Making Changes</h3>
+<h3 id="generate-participant-folders">Generate Participant Folders</h3>
 <ol>
-<li>Edit content in <code>content/</code> folder</li>
-<li>Modify templates in <code>templates/</code></li>
-<li>Update styles in <code>static/style.css</code></li>
-<li>Test with <code>zola serve</code></li>
-<li>Commit and push to <code>main</code> branch</li>
-<li>GitHub Actions deploys automatically!</li>
+<li>Select template files for each questionnaire type</li>
+<li>Specify the target folder where participant folders will be created</li>
+<li>Enter participant IDs (manual entry or import from file)</li>
+<li>Click "Generate Participant Folder" to create the folder structure</li>
 </ol>
-<h2 id="github-pages-setup">GitHub Pages Setup</h2>
-<h3 id="first-time-setup">First Time Setup</h3>
+<p><strong>Batch Mode</strong>: Enable batch mode to process multiple participants at once by importing a list from .txt or .csv files.</p>
+<h3 id="extract-data">Extract Data</h3>
 <ol>
-<li>Go to: <strong>Settings → Pages</strong></li>
-<li>Source: <strong>Deploy from a branch</strong></li>
-<li>Branch: <strong>gh-pages</strong></li>
-<li>Folder: <strong>/ (root)</strong></li>
-<li>Click <strong>Save</strong></li>
+<li>Select the source folder containing participant folders</li>
+<li>Choose the masterfile (CSV or Excel) where data will be extracted</li>
+<li>Configure questionnaire-specific extraction settings:
+<ul>
+<li>Excel sheet names</li>
+<li>Column filters</li>
+<li>Multiple questionnaire copies</li>
+</ul>
+</li>
+<li>Click "Extract Data" to consolidate participant data</li>
 </ol>
-<h3 id="requirements">Requirements</h3>
+<p><strong>Features</strong>:</p>
 <ul>
-<li>Repository must be <strong>public</strong> (for free GitHub accounts)</li>
-<li>GitHub Pages must be enabled in Settings</li>
-<li>Workflow runs successfully (check Actions tab)</li>
+<li><strong>Duplicate Detection</strong>: Automatically checks if participant data already exists in the masterfile</li>
+<li><strong>Data Completeness Check</strong>: Verifies all required questionnaires are present before extraction</li>
+<li><strong>Preview Dialog</strong>: Review data before final extraction</li>
+<li><strong>Missing Data Report</strong>: Generate reports for participants with incomplete data</li>
 </ul>
-<h2 id="customization">Customization</h2>
-<h3 id="site-settings">Site Settings</h3>
-<p>Edit <code>config.toml</code>:</p>
+<h3 id="configuration-management">Configuration Management</h3>
+<p>Save and load configurations to quickly switch between different project setups:</p>
 <ul>
-<li>Site title and description</li>
-<li>Base URL</li>
-<li>Author information</li>
+<li><strong>Save Configuration</strong>: Store your current questionnaire setup and settings</li>
+<li><strong>Load Configuration</strong>: Quickly restore a previously saved configuration</li>
+<li><strong>Delete Configuration</strong>: Remove outdated configurations</li>
+<li><strong>Recent Configurations</strong>: Access recently used configurations from the menu</li>
 </ul>
-<h3 id="content">Content</h3>
-<p>Edit files in <code>content/</code>:</p>
+<h3 id="template-bundles">Template Bundles</h3>
+<p>Create reusable template bundles for standardized project setups:</p>
+<ol>
+<li>Configure all questionnaires and settings</li>
+<li>Select "Save Template Bundle" from the menu</li>
+<li>Load the bundle in future projects to instantly apply the same configuration</li>
+</ol>
+<h2 id="file-structure">File Structure</h2>
+<pre class="giallo" style="color: #CDD6F4; background-color: #1E1E2E;"><code data-lang="plain"><span class="giallo-l"><span>surveyWorkbench/</span></span>
+<span class="giallo-l"><span>├── survey_workbench.py      # Main application source code</span></span>
+<span class="giallo-l"><span>├── survey_workbench.spec    # PyInstaller build specification</span></span>
+<span class="giallo-l"><span>├── config.ini               # Configuration storage file</span></span>
+<span class="giallo-l"><span>├── USER_MANUAL.pdf          # Comprehensive user manual</span></span>
+<span class="giallo-l"><span>├── USER_MANUAL.tex          # LaTeX source for user manual</span></span>
+<span class="giallo-l"><span>└── README.md                # This file</span></span></code></pre><h2 id="technology-stack">Technology Stack</h2>
 <ul>
-<li><code>_index.md</code> - Home page</li>
-<li><code>cv.md</code> - CV page</li>
-<li><code>contact.md</code> - Contact page</li>
-<li><code>blog/2026-02-11-welcome.md</code> - Welcome blog post</li>
+<li><strong>GUI Framework</strong>: PyQt5 - Cross-platform graphical user interface</li>
+<li><strong>Excel Integration</strong>: xlwings - Python library for Excel automation</li>
+<li><strong>Configuration</strong>: ConfigParser - INI file handling for settings persistence</li>
+<li><strong>Build Tool</strong>: PyInstaller - Executable packaging (see survey_workbench.spec)</li>
+<li><strong>Type Hints</strong>: Full type annotation support for better code maintainability</li>
 </ul>
-<h3 id="styling">Styling</h3>
-<ul>
-<li><code>static/style.css</code> - Main stylesheet</li>
-<li><code>templates/</code> - HTML templates</li>
-</ul>
+<h2 id="documentation">Documentation</h2>
+<p>For detailed documentation, including screenshots and step-by-step guides, please refer to the <a href="https://cgutt-hub.github.io/5ha99y/projects/USER_MANUAL.pdf">USER_MANUAL.pdf</a> included in this repository.</p>
 <h2 id="troubleshooting-1">Troubleshooting</h2>
-<h3 id="website-not-updating">Website Not Updating?</h3>
-<ol>
-<li>Check <a rel="external" href="https://github.com/CGutt-hub/5ha99y/actions">Actions tab</a> - look for green checkmark ✓</li>
-<li>If build failed, check error logs</li>
-<li>Verify GitHub Pages is enabled in Settings</li>
-<li>Clear browser cache (Ctrl+Shift+R)</li>
-</ol>
-<h3 id="build-failing">Build Failing?</h3>
+<h3 id="common-issues">Common Issues</h3>
 <ul>
-<li>Check Actions tab for error details</li>
-<li>Most common: Zola syntax errors in content files</li>
-<li>Fix the error and push again</li>
+<li><strong>Excel not found</strong>: Ensure Microsoft Excel is installed and xlwings is properly configured</li>
+<li><strong>Configuration not saving</strong>: Check write permissions for config.ini file</li>
+<li><strong>Import errors</strong>: Verify all dependencies are installed with <code>pip list</code></li>
+<li><strong>Template files not copying</strong>: Ensure source template files exist and have read permissions</li>
 </ul>
-<h2 id="branch-structure">Branch Structure</h2>
+<p>For more troubleshooting tips, consult the USER_MANUAL.pdf.</p>
+<h2 id="version-history">Version History</h2>
+<h3 id="version-2-0-february-2026">Version 2.0 (February 2026)</h3>
 <ul>
-<li><strong>main</strong> - Source code (you edit here)</li>
-<li><strong>gh-pages</strong> - Deployed website (auto-generated, don't edit)</li>
-<li><strong>copilot/</strong> - Development branches</li>
+<li>Dynamic questionnaire support with unlimited types</li>
+<li>Enhanced batch processing capabilities</li>
+<li>Template bundle system</li>
+<li>Improved duplicate detection</li>
+<li>Data completeness verification</li>
+<li>Preview dialog for data extraction</li>
+<li>Missing data reporting</li>
+<li>Interactive help system</li>
 </ul>
-<h2 id="advanced">Advanced</h2>
-<h3 id="custom-domain">Custom Domain</h3>
-<ol>
-<li>Add <code>static/CNAME</code> with your domain</li>
-<li>Update <code>base_url</code> in <code>config.toml</code></li>
-<li>Configure DNS at your domain registrar</li>
-<li>Add custom domain in Settings → Pages</li>
-</ol>
-<h3 id="api-configuration">API Configuration</h3>
-<p>Edit <code>scripts/fetch_data.py</code>:</p>
+<h3 id="version-1-0-april-2024">Version 1.0 (April 2024)</h3>
 <ul>
-<li><code>GITHUB_USERNAME</code> - Your GitHub username</li>
-<li><code>ORCID_ID</code> - Your ORCID identifier</li>
-<li>Add other data sources as needed</li>
+<li>Initial release</li>
+<li>Basic participant folder generation</li>
+<li>Simple data extraction</li>
 </ul>
+<h2 id="author">Author</h2>
+<p><strong>Cagatay Gutt</strong></p>
+<ul>
+<li>Created: April 15, 2024</li>
+<li>Last Updated: February 4, 2026</li>
+</ul>
+<h2 id="license">License</h2>
+<p>This software is for internal use only. All rights reserved.</p>
+<h2 id="support">Support</h2>
+<p>For questions, issues, or feature requests, please contact the project maintainer or refer to the comprehensive USER_MANUAL.pdf for detailed guidance.</p>
+<hr />
+<p><em>Survey Workbench - Streamlining survey data management for research excellence.</em></p>
 </details>
-<p><a rel="external" href="https://github.com/CGutt-hub/5ha99y">View on GitHub →</a></p>
+<p><a rel="external" href="https://github.com/CGutt-hub/surveyWorkbench">View on GitHub →</a></p>
 <hr />
 <h3 id="gitref">GitRef</h3>
 <p><strong>Language:</strong> Python<br />

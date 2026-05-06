@@ -207,53 +207,125 @@ function plotSpecToPlotly(rows, title, COLORS) {
         }
     }
 
+    // --- Table: short-circuit before the series loop ---
+    if (plotType === 'table') {
+        // x_data = column headers, y_data = [[col0_vals], [col1_vals], ...] (column-major)
+        const colHeaders = xData;
+        // seriesData is already column-major: each element is one column's values
+        const colData = seriesData;
+        const cs2 = typeof getComputedStyle !== 'undefined' ? getComputedStyle(document.documentElement) : null;
+        const bgColor2   = cs2 ? (cs2.getPropertyValue('--bg-secondary').trim() || '#161616') : '#161616';
+        const textColor2 = cs2 ? (cs2.getPropertyValue('--text-primary').trim() || '#e8e8e8') : '#e8e8e8';
+        const headerBg   = cs2 ? (cs2.getPropertyValue('--bg-tertiary').trim() || '#242424') : '#242424';
+        const borderCol  = cs2 ? (cs2.getPropertyValue('--border-primary').trim() || '#2a2a2a') : '#2a2a2a';
+        return {
+            data: [{
+                type: 'table',
+                header: {
+                    values: colHeaders,
+                    align: 'left',
+                    fill: { color: headerBg },
+                    font: { color: textColor2, size: 12, family: "'JetBrains Mono', monospace" },
+                    line: { color: borderCol, width: 1 },
+                },
+                cells: {
+                    values: colData,
+                    align: 'left',
+                    fill: { color: bgColor2 },
+                    font: { color: textColor2, size: 11, family: "'JetBrains Mono', monospace" },
+                    line: { color: borderCol, width: 1 },
+                },
+            }],
+            layout: {
+                title: { text: title || 'ANOVA Results', font: { color: textColor2, size: 16 } },
+                paper_bgcolor: bgColor2, plot_bgcolor: bgColor2,
+                font: { color: textColor2, family: "'JetBrains Mono', monospace" },
+                margin: { t: 60, b: 30, l: 20, r: 20 },
+            },
+        };
+    }
+
+    // --- Heatmap: short-circuit before the series loop ---
+    if (plotType === 'heatmap') {
+        const varNames = xData;  // x_data = variable names for both axes
+        // y_data is a 2D list stored as a nested array; unwrap one level if needed
+        let zMatrix = seriesData;
+        if (zMatrix.length > 0 && !Array.isArray(zMatrix[0])) zMatrix = [zMatrix];
+
+        const cs2 = typeof getComputedStyle !== 'undefined' ? getComputedStyle(document.documentElement) : null;
+        const bgColor2  = cs2 ? (cs2.getPropertyValue('--bg-secondary').trim() || '#161616') : '#161616';
+        const textColor2 = cs2 ? (cs2.getPropertyValue('--text-primary').trim() || '#e8e8e8') : '#e8e8e8';
+        const gridColor2 = cs2 ? (cs2.getPropertyValue('--border-primary').trim() || '#2a2a2a') : '#2a2a2a';
+
+        return {
+            data: [{
+                type: 'heatmap',
+                x: varNames, y: varNames, z: zMatrix,
+                colorscale: 'RdBu', reversescale: true,
+                zmin: -1, zmax: 1,
+                colorbar: { title: 'r', tickfont: { color: textColor2 }, titlefont: { color: textColor2 } },
+            }],
+            layout: {
+                title: { text: title || 'Correlation Heatmap', font: { color: textColor2, size: 16 } },
+                xaxis: { tickfont: { color: textColor2, size: 11 }, gridcolor: gridColor2, linecolor: gridColor2 },
+                yaxis: { tickfont: { color: textColor2, size: 11 }, gridcolor: gridColor2, linecolor: gridColor2, autorange: 'reversed' },
+                paper_bgcolor: bgColor2, plot_bgcolor: bgColor2,
+                font: { color: textColor2, family: "'JetBrains Mono', monospace" },
+                margin: { t: 60, b: 120, l: 120, r: 30 },
+            },
+        };
+    }
+
     const traces = [];
     for (let s = 0; s < seriesData.length; s++) {
         const yVals = seriesData[s];
         const label = seriesLabels ? (seriesLabels[s] || `Series ${s + 1}`) : `Series ${s + 1}`;
         const color = COLORS[s % COLORS.length];
 
-        const trace = {
-            x: xLabels,
-            y: yVals,
-            name: label,
-            type: 'bar',
-            marker: {
-                color: color,
-                line: { color: color, width: 1 },
-                opacity: 0.85,
-            },
-        };
-
-        // Add error bars from y_var or ci bounds
-        if (varData && varData[s]) {
-            const errVals = varData[s];
-            const hasError = errVals.some(v => v > 0);
-            if (hasError) {
+        if (plotType === 'line') {
+            // Line trace
+            traces.push({
+                x: xLabels, y: yVals, name: label,
+                type: 'scatter', mode: 'lines',
+                line: { color: color, width: 2 },
+            });
+            // Shaded variance band
+            const vVals = varData && varData[s] ? varData[s] : null;
+            if (vVals && vVals.some(v => v > 0)) {
+                const upper = yVals.map((v, i) => v + (vVals[i] || 0));
+                const lower = yVals.map((v, i) => v - (vVals[i] || 0));
+                traces.push({
+                    x: [...xLabels, ...[...xLabels].reverse()],
+                    y: [...upper, ...lower.reverse()],
+                    name: `${label} ±var`,
+                    type: 'scatter', mode: 'lines', fill: 'toself',
+                    fillcolor: color.replace(')', ', 0.15)').replace('rgb', 'rgba'),
+                    line: { color: 'transparent' },
+                    showlegend: false, hoverinfo: 'skip',
+                });
+            }
+        } else {
+            const trace = {
+                x: xLabels, y: yVals, name: label,
+                type: 'bar',
+                marker: { color: color, line: { color: color, width: 1 }, opacity: 0.85 },
+            };
+            // Add error bars from y_var or ci bounds
+            if (varData && varData[s]) {
+                const errVals = varData[s];
+                if (errVals.some(v => v > 0)) {
+                    trace.error_y = { type: 'data', array: errVals, visible: true, color: '#aaa', thickness: 1.5, width: 4 };
+                }
+            } else if (ciLower && ciUpper && ciLower[s] && ciUpper[s]) {
                 trace.error_y = {
                     type: 'data',
-                    array: errVals,
-                    visible: true,
-                    color: '#aaa',
-                    thickness: 1.5,
-                    width: 4,
+                    array: yVals.map((v, i) => (ciUpper[s][i] || 0) - v),
+                    arrayminus: yVals.map((v, i) => v - (ciLower[s][i] || 0)),
+                    visible: true, color: '#aaa', thickness: 1.5, width: 4,
                 };
             }
-        } else if (ciLower && ciUpper && ciLower[s] && ciUpper[s]) {
-            const errPlus = yVals.map((v, i) => (ciUpper[s][i] || 0) - v);
-            const errMinus = yVals.map((v, i) => v - (ciLower[s][i] || 0));
-            trace.error_y = {
-                type: 'data',
-                array: errPlus,
-                arrayminus: errMinus,
-                visible: true,
-                color: '#aaa',
-                thickness: 1.5,
-                width: 4,
-            };
+            traces.push(trace);
         }
-
-        traces.push(trace);
     }
 
     const cs = typeof getComputedStyle !== 'undefined' ? getComputedStyle(document.documentElement) : null;
@@ -272,13 +344,11 @@ function plotSpecToPlotly(rows, title, COLORS) {
         yaxis: {
             title: { text: yAxisTitle, font: { color: textColor } },
             tickfont: { color: textColor, size: 11 },
-            tickangle: -45,
+            ...(plotType !== 'line' ? { tickangle: -45 } : {}),
             gridcolor: gridColor,
             linecolor: gridColor,
         },
-        barmode: 'group',
-        bargap: 0.2,
-        bargroupgap: 0.1,
+        ...(plotType !== 'line' ? { barmode: 'group', bargap: 0.2, bargroupgap: 0.1 } : {}),
         paper_bgcolor: bgColor,
         plot_bgcolor: bgColor,
         font: { color: textColor, family: "'JetBrains Mono', monospace" },
@@ -307,39 +377,59 @@ function computeBottomMargin(xLabels) {
 function conditionRowsToPlotly(rows, title, COLORS) {
     const xAxisTitle = rows[0].x_label || '';
     const yAxisTitle = rows[0].y_label || '';
+    const plotType = rows[0].plot_type || 'bar';
 
-    const traces = rows.map((row, i) => {
+    const traces = [];
+    rows.forEach((row, i) => {
         const xData = Array.isArray(row.x_data) ? row.x_data : [row.x_data];
         const yData = Array.isArray(row.y_data) ? row.y_data : [row.y_data];
         const label = row.condition || `Series ${i + 1}`;
         const color = COLORS[i % COLORS.length];
 
-        const trace = {
-            x: xData,
-            y: yData,
-            name: label,
-            type: 'bar',
-            marker: { color: color, opacity: 0.85 },
-        };
-
-        if (row.y_var) {
-            const errVals = Array.isArray(row.y_var) ? row.y_var : [row.y_var];
-            const hasError = errVals.some(v => v > 0);
-            if (hasError) {
-                trace.error_y = { type: 'data', array: errVals, visible: true, color: '#aaa', thickness: 1.5, width: 4 };
+        if (plotType === 'line') {
+            traces.push({
+                x: xData, y: yData, name: label,
+                type: 'scatter', mode: 'lines',
+                line: { color: color, width: 2 },
+            });
+            const vVals = row.y_var ? (Array.isArray(row.y_var) ? row.y_var : [row.y_var]) : null;
+            if (vVals && vVals.some(v => v > 0)) {
+                const upper = yData.map((v, j) => v + (vVals[j] || 0));
+                const lower = yData.map((v, j) => v - (vVals[j] || 0));
+                traces.push({
+                    x: [...xData, ...[...xData].reverse()],
+                    y: [...upper, ...lower.reverse()],
+                    name: `${label} ±var`,
+                    type: 'scatter', mode: 'lines', fill: 'toself',
+                    fillcolor: color.replace(')', ', 0.15)').replace('rgb', 'rgba'),
+                    line: { color: 'transparent' },
+                    showlegend: false, hoverinfo: 'skip',
+                });
             }
-        }
-        if (row.ci_lower && row.ci_upper) {
-            const cl = Array.isArray(row.ci_lower) ? row.ci_lower : [row.ci_lower];
-            const cu = Array.isArray(row.ci_upper) ? row.ci_upper : [row.ci_upper];
-            trace.error_y = {
-                type: 'data',
-                array: yData.map((v, j) => (cu[j] || 0) - v),
-                arrayminus: yData.map((v, j) => v - (cl[j] || 0)),
-                visible: true, color: '#aaa', thickness: 1.5, width: 4,
+        } else {
+            const trace = {
+                x: xData, y: yData, name: label,
+                type: 'bar',
+                marker: { color: color, opacity: 0.85 },
             };
+            if (row.y_var) {
+                const errVals = Array.isArray(row.y_var) ? row.y_var : [row.y_var];
+                if (errVals.some(v => v > 0)) {
+                    trace.error_y = { type: 'data', array: errVals, visible: true, color: '#aaa', thickness: 1.5, width: 4 };
+                }
+            }
+            if (row.ci_lower && row.ci_upper) {
+                const cl = Array.isArray(row.ci_lower) ? row.ci_lower : [row.ci_lower];
+                const cu = Array.isArray(row.ci_upper) ? row.ci_upper : [row.ci_upper];
+                trace.error_y = {
+                    type: 'data',
+                    array: yData.map((v, j) => (cu[j] || 0) - v),
+                    arrayminus: yData.map((v, j) => v - (cl[j] || 0)),
+                    visible: true, color: '#aaa', thickness: 1.5, width: 4,
+                };
+            }
+            traces.push(trace);
         }
-        return trace;
     });
 
     const cs = typeof getComputedStyle !== 'undefined' ? getComputedStyle(document.documentElement) : null;
@@ -351,9 +441,9 @@ function conditionRowsToPlotly(rows, title, COLORS) {
         data: traces,
         layout: {
             title: { text: title || yAxisTitle || 'Analysis Result', font: { color: textColor, size: 16 } },
-            xaxis: { title: { text: xAxisTitle, font: { color: textColor } }, tickfont: { color: textColor }, tickangle: -45, gridcolor: gridColor, linecolor: gridColor },
+            xaxis: { title: { text: xAxisTitle, font: { color: textColor } }, tickfont: { color: textColor }, ...(plotType !== 'line' ? { tickangle: -45 } : {}), gridcolor: gridColor, linecolor: gridColor },
             yaxis: { title: { text: yAxisTitle, font: { color: textColor } }, tickfont: { color: textColor }, gridcolor: gridColor, linecolor: gridColor },
-            barmode: 'group', bargap: 0.2, bargroupgap: 0.1,
+            ...(plotType !== 'line' ? { barmode: 'group', bargap: 0.2, bargroupgap: 0.1 } : {}),
             paper_bgcolor: bgColor, plot_bgcolor: bgColor,
             font: { color: textColor, family: "'JetBrains Mono', monospace" },
             legend: { font: { color: textColor, size: 11 }, bgcolor: 'rgba(0,0,0,0)' },
