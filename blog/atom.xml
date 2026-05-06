@@ -106,7 +106,7 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-emotiview/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;EmotiView&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;code&gt;a4af38f&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@0e0&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;4732c40&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@670&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -132,11 +132,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-surveyworkbench/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;surveyWorkbench&quot;&gt;surveyWorkbench&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;0e23800&lt;&#x2F;code&gt; Fix case-insensitive sheet lookup; keep workbook open after extraction&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;80fd4a1&lt;&#x2F;code&gt; Update binaries and fix warnings in survey_workbench_v2.0&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;15606bd&lt;&#x2F;code&gt; Remove _n stripping; update manual examples&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;4aaf95d&lt;&#x2F;code&gt; Support letter option suffixes and _n annotation; fix Text&#x2F;Check fields being si&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;5e0be45&lt;&#x2F;code&gt; Remove underscore not-extracted prefix feature from code and manual&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;531b3c3&lt;&#x2F;code&gt; Fix Excel 97 format: always SaveAs FileFormat=51 (xlsx) with display_alerts supp&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;7ebe917&lt;&#x2F;code&gt; Add survey_workbench_v2.0 executable and spec file for packaging&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;23bbcf7&lt;&#x2F;code&gt; Update USER_MANUAL to match actual code behaviour&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;6df83a0&lt;&#x2F;code&gt; Unify CheckX_N extraction: always output N of selected option; data always start&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;surveyWorkbench&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
