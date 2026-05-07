@@ -82,11 +82,11 @@
         <content type="html" xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-surveyworkbench/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;surveyWorkbench&quot;&gt;surveyWorkbench&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;790135e&lt;&#x2F;code&gt; Update USER_MANUAL files with latest build timestamps&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;1071529&lt;&#x2F;code&gt; Update survey workbench v2.0 binaries and warning log&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;fda7dc5&lt;&#x2F;code&gt; Derive target row from participant ID number (001-&amp;gt;row2, 023-&amp;gt;row24)&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;0e23800&lt;&#x2F;code&gt; Fix case-insensitive sheet lookup; keep workbook open after extraction&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;80fd4a1&lt;&#x2F;code&gt; Update binaries and fix warnings in survey_workbench_v2.0&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;15606bd&lt;&#x2F;code&gt; Remove _n stripping; update manual examples&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;surveyWorkbench&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
