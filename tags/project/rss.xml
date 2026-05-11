@@ -45,11 +45,11 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-analysistoolbox/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;AnalysisToolbox&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;ff0297c&lt;&#x2F;code&gt; Fix: handle string &#x27;None&#x27; literal in peak detection arg parsing&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;0205701&lt;&#x2F;code&gt; Move ic_analyzer&#x2F;extracting_processor withName overrides out of generic config (&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;030c136&lt;&#x2F;code&gt; Create output .bin dir before writing pipeline log&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;50c8613&lt;&#x2F;code&gt; Fix anova_merger label:path crash; add IOInterface CLI to plv_analyzer&lt;&#x2F;li&gt;
 &lt;li&gt;&lt;code&gt;c0a9cf9&lt;&#x2F;code&gt; Add correlation_analyzer: Spearman&#x2F;Pearson physiology × continuous ratings&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;code&gt;55afa6d&lt;&#x2F;code&gt; Add epoch_output flag to asymmetry_analyzer; delete fai_epoch_processor&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;AnalysisToolbox&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
@@ -64,7 +64,7 @@
           <description xml:base="https://cgutt-hub.github.io/5ha99y/blog/update-emotiview/">&lt;p&gt;Recent activity in &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;EmotiView&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;recent-commits&quot;&gt;Recent Commits&lt;&#x2F;h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;code&gt;920e9fa&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@b0f&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;e80a198&lt;&#x2F;code&gt; Deploy: Sync public files from private repository CGutt-hub&#x2F;EmotiViewPrivate@9a7&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;p&gt;This project is actively maintained as part of my commitment to open and transparent science.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CGutt-hub&#x2F;EmotiView&quot;&gt;View on GitHub →&lt;&#x2F;a&gt; | &lt;a href=&quot;&#x2F;projects&#x2F;&quot;&gt;See all projects →&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
